@@ -1,0 +1,29 @@
+<svg width="500" height="350" viewBox="0 0 500 350" fill="none" xmlns="http://www.w3.org/2000/svg">
+
+<rect width="500" height="350" rx="35" fill="#F2EDFF"/>
+
+<circle cx="175" cy="130" r="55" fill="#FFB98A"/>
+<circle cx="325" cy="130" r="55" fill="#9CC9FF"/>
+
+<path d="M105 275C105 215 135 190 175 190C215 190 245 215 245 275" fill="#8B5CF6"/>
+
+<path d="M255 275C255 215 285 190 325 190C365 190 395 215 395 275" fill="#FF8A3D"/>
+
+<circle cx="155" cy="125" r="7" fill="#242B38"/>
+<circle cx="195" cy="125" r="7" fill="#242B38"/>
+
+<circle cx="305" cy="125" r="7" fill="#242B38"/>
+<circle cx="345" cy="125" r="7" fill="#242B38"/>
+
+<path d="M160 150C170 160 180 160 190 150" stroke="#242B38" stroke-width="6" stroke-linecap="round"/>
+<path d="M310 150C320 160 330 160 340 150" stroke="#242B38" stroke-width="6" stroke-linecap="round"/>
+
+<rect x="175" y="245" width="150" height="48" rx="24" fill="white"/>
+
+<path d="M205 269L220 283L250 253" stroke="#12B981" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+
+<text x="263" y="278" font-family="Arial" font-size="17" font-weight="700" fill="#242B38">
+MATCH
+</text>
+
+</svg>

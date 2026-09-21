@@ -1,0 +1,21 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+
+  <rect width="64" height="64" rx="18" fill="#242B38"/>
+
+  <circle cx="32" cy="32" r="20" fill="#8B5CF6" opacity="0.18"/>
+
+  <path
+    d="M21 25C24 20 32 19 37 22C40 24 40 28 37 30L27 35C24 37 25 41 29 42C33 43 38 41 41 37"
+    stroke="#FF8A3D"
+    stroke-width="4"
+    stroke-linecap="round"
+  />
+
+  <path
+    d="M38 39C35 44 27 45 22 42C19 40 19 36 22 34L32 29C35 27 34 24 30 23C27 22 24 24 22 27"
+    stroke="#8B5CF6"
+    stroke-width="4"
+    stroke-linecap="round"
+  />
+
+</svg>

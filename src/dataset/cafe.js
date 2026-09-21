@@ -1,0 +1,111 @@
+export const cafeData = [
+  {
+    id: "cafe-01",
+    cafe_name: "Cafe Buddy's Espresso - Alandi",
+    location: "College, MITAOE Road, Dehu Phata, Pune 412105",
+    timings: "8:00 AM - 11:00 PM",
+    rating: 5.0,
+    price_range: "₹100-400",
+    contact: "+91 8208959471",
+    food_type: "veg",
+  },
+
+  {
+    id: "cafe-02",
+    cafe_name: "The Elite Space",
+    location: "MIT College Campus, Devachi, Tapkir Nagar, Dehu Phata 412105",
+    timings: "7:00 AM - 10:00 PM",
+    rating: 4.3,
+    price_range: "₹1-200",
+    contact: "+91 7040441717",
+    food_type: "veg",
+  },
+
+  {
+    id: "cafe-03",
+    cafe_name: "THE CAFE 24",
+    location: "Tapkir Nagar Dehu-phata, MIT AOE College Road, Alandi 412105",
+    timings: "10:00 AM - 9:00 PM",
+    rating: 4.5,
+    price_range: "₹200-400",
+    contact: "contact nhavta tithe",
+    food_type: "veg",
+  },
+
+  {
+    id: "cafe-04",
+    cafe_name: "Cafe Mitram",
+    location: "Shop No 4, Dehu-Alandi Rd, near MIT College, Tapkir Nagar, Alandi",
+    timings: "10:00 AM - 10:00 PM",
+    rating: 4.5,
+    price_range: "₹200-400",
+    contact: "+91 8087742425",
+    food_type: "",
+  },
+
+  {
+    id: "cafe-05",
+    cafe_name: "Caffeine Hub",
+    location: "opp. MIT college, near Indrayani Co, Vishweshwar Nagar, Dehu Phata, Alandi",
+    timings: "10:00 AM - 11:00 PM",
+    rating: 4.6,
+    price_range: "₹1-200",
+    contact: "+91 9763301691",
+    food_type: "Veg",
+  },
+
+  {
+    id: "cafe-06",
+    cafe_name: "Cafe Love Shove",
+    location: "opposite MIT college, Vishweshwar Nagar, Alandi",
+    timings: "9:00 AM - 10:00 PM",
+    rating: 5.0,
+    price_range: "₹200-400",
+    contact: "+91 9112225113",
+    food_type: "veg",
+  },
+
+  {
+    id: "cafe-07",
+    cafe_name: "FIRST WAY CAFE",
+    location: "first floor, Dehu-Alandi Rd, near MIT college, Vishweshwar Nagar, Dehu Phata, Alandi",
+    timings: "10:00 AM - 10:00 PM",
+    rating: 5.0,
+    price_range: "₹1-300",
+    contact: "+91 9371971123",
+    food_type: "",
+  },
+
+  {
+    id: "cafe-08",
+    cafe_name: "Cafe Hangout",
+    location: "shop no 1, second floor, Appa G Complex, Pune-Alandi Rd, above Mom's Kitchen, near MIT engineering, Vishweshwar Nagar, Dehu Phata",
+    timings: "",
+    rating: 5.0,
+    price_range: "₹1-200",
+    contact: "",
+    food_type: "",
+  },
+
+  {
+    id: "cafe-09",
+    cafe_name: "CAFE CREME",
+    location: "shop no 2, Asara Tirhtraj Complex, Alandi Devachi, near MIT College, Dehu Phata",
+    timings: "11:00 AM - 11:00 PM",
+    rating: 4.0,
+    price_range: "₹1-200",
+    contact: "+91 9850339525",
+    food_type: "Veg",
+  },
+
+  {
+    id: "cafe-10",
+    cafe_name: "Hideout Cafe",
+    location: "Near MIT ACSC, opposite Mathura Sweet, Dehu-Alandi Rd, Alandi",
+    timings: "9:30 AM - 9:30 PM",
+    rating: 4.3,
+    price_range: "₹1-300",
+    contact: "",
+    food_type: "Both",
+  },
+];

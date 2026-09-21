@@ -1,0 +1,122 @@
+export const hostelData = [
+  {
+    id: "hostel-01",
+    hostel_name: "Goodluck",
+    location: "Dehu Phata",
+    charges: 65000,
+    charge_unit: "year",
+    gender: "Boys",
+    contact: "9325130176",
+    rating: 4.2,
+  },
+
+  {
+    id: "hostel-02",
+    hostel_name: "Sai Dham",
+    location: "Near MIT - AOE",
+    charges: 68000,
+    charge_unit: "year",
+    gender: "Girls",
+    contact: "7947418768",
+    rating: 4.5,
+  },
+
+  {
+    id: "hostel-03",
+    hostel_name: "Classmate",
+    location: "Near gajanan maharaj mandir",
+    charges: 72000,
+    charge_unit: "year",
+    gender: "Boys",
+    contact: "7796438998",
+    rating: 4.0,
+  },
+
+  {
+    id: "hostel-04",
+    hostel_name: "Manas",
+    location: "Near gajanan maharaj mandir",
+    charges: 64000,
+    charge_unit: "year",
+    gender: "Girls",
+    contact: "9511880533",
+    rating: 4.3,
+  },
+
+  {
+    id: "hostel-05",
+    hostel_name: "Rajmata",
+    location: "Indrayani Nagar",
+    charges: 66000,
+    charge_unit: "year",
+    gender: "Girls",
+    contact: "8855985506",
+    rating: 4.1,
+  },
+
+  {
+    id: "hostel-06",
+    hostel_name: "Mathura",
+    location: "Visheshwar Nagar",
+    charges: 70000,
+    charge_unit: "year",
+    gender: "Boys",
+    contact: "9112266268",
+    rating: 4.4,
+  },
+
+  {
+    id: "hostel-07",
+    hostel_name: "Chaitanya",
+    location: "Dehu - Alandi Rd, Pahat, Alandi",
+    charges: 50000,
+    charge_unit: "year",
+    gender: "Boys",
+    contact: "7261951607",
+    rating: 4.0,
+  },
+
+  {
+    id: "hostel-08",
+    hostel_name: "Tuljai PG and Hostel",
+    location: "Near Kale Residency, Vishweshwar Nagar, Alandi",
+    charges: 65000,
+    charge_unit: "year",
+    gender: "Girls",
+    contact: "8830446549",
+    rating: 4.2,
+  },
+
+  {
+    id: "hostel-09",
+    hostel_name: "Vasanti",
+    location: "Dehu Phata, Alandi",
+    charges: 68000,
+    charge_unit: "year",
+    gender: "Boys",
+    contact: "7387598009",
+    rating: 4.3,
+  },
+
+  {
+    id: "hostel-10",
+    hostel_name: "Dhananjay",
+    location: "Opp. MIT College, behind Anand Hospital, Hinjewadi",
+    charges: 66000,
+    charge_unit: "year",
+    gender: "Boys",
+    contact: "8766929642",
+    rating: 4.1,
+  },
+
+  {
+    id: "hostel-11",
+    hostel_name: "Pearl Paradise",
+    location: "DhyanYog Apartment, Dehu - Alandi Rd, near MIT",
+    charges: 68000,
+    charge_unit: "year",
+    gender: "Girls",
+    contact: "9087656560",
+    rating: 4.5,
+  },
+];
