@@ -1,282 +1,218 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import {
-  ArrowRight,
-  Search,
   Sparkles,
-  ShieldCheck,
+  Search,
+  CheckCircle2,
   MapPin,
-  Star,
+  Users,
+  ArrowRight,
   LogIn,
+  UtensilsCrossed,
+  ShoppingBag,
+  Sparkle,
+  Home,
+  Calendar,
+  Crown,
 } from "lucide-react";
 
 export default function Hero() {
+  const [searchQuery, setSearchQuery] = useState("");
+
   return (
-    <section className="relative overflow-hidden bg-[#f8f5f7] px-6 pb-20 pt-12 md:px-10 lg:px-16">
-      {/* Decorative circles */}
-      <div className="pointer-events-none absolute -left-20 top-20 h-64 w-64 rounded-full bg-[#d9c9ff] opacity-40 blur-3xl" />
-
-      <div className="pointer-events-none absolute right-0 top-0 h-72 w-72 rounded-full bg-[#ffd9b8] opacity-50 blur-3xl" />
-
-      <div className="relative mx-auto grid max-w-7xl items-center gap-12 lg:grid-cols-2">
-        {/* LEFT CONTENT */}
-        <div>
-          {/* Small label */}
-          <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-[#ddd2e9] bg-white px-4 py-2 text-sm font-semibold text-[#5b5263] shadow-sm">
-            <Sparkles size={16} className="text-[#8b5cf6]" />
-            Built for student life
+    <section className="relative overflow-hidden bg-gradient-to-b from-purple-50/40 via-white to-white pt-8 pb-16">
+      <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+        {/* Left Column: Heading, Search & Value Props */}
+        <div className="lg:col-span-6 space-y-6">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-purple-100 text-purple-700 text-xs font-bold uppercase tracking-wider">
+            <Sparkles className="w-3.5 h-3.5" />
+            Campus Concierge
           </div>
 
-          {/* Main heading */}
-          <h1 className="max-w-3xl text-5xl font-black leading-[1.05] tracking-tight text-[#343b46] md:text-6xl lg:text-7xl">
-            Your campus life,
-            <span className="block text-[#7654e8]">sorted.</span>
+          <h1 className="text-5xl md:text-6xl font-black text-slate-950 tracking-tight leading-[1.1]">
+            Your campus life, <br />
+            <span className="text-purple-600">sorted.</span>
           </h1>
 
-          {/* Description */}
-          <p className="mt-6 max-w-xl text-lg leading-8 text-[#746b73] md:text-xl">
-            Find trusted messes, laundry, room cleaning, PGs, cafes and
-            roommates — all from one simple student platform.
+          <p className="text-slate-600 text-base md:text-lg max-w-lg leading-relaxed">
+            Find trusted messes, laundry, room cleaning, PGs, cafes and roommates — all from one simple student platform.
           </p>
 
-          {/* Search */}
-          <div className="mt-8 flex max-w-2xl items-center gap-2 rounded-2xl border border-[#ded5df] bg-white p-2 shadow-lg">
-            <Search
-              className="ml-3 shrink-0 text-[#8c8189]"
-              size={21}
-            />
-
+          {/* Search Bar */}
+          <div className="p-2 bg-white rounded-2xl shadow-xl shadow-purple-500/5 border border-purple-100 flex items-center gap-3">
+            <Search className="w-5 h-5 text-slate-400 ml-3 shrink-0" />
             <input
               type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="What do you need around campus?"
-              className="min-w-0 flex-1 bg-transparent px-2 py-3 text-sm text-[#343b46] outline-none md:text-base"
+              className="w-full text-sm font-medium text-slate-800 placeholder-slate-400 focus:outline-none bg-transparent"
             />
-
             <Link
-              href="/student/services"
-              className="hidden shrink-0 items-center gap-2 rounded-xl bg-[#46505b] px-5 py-3 font-bold text-white transition hover:bg-[#343b46] sm:flex"
+              href={`/services?q=${encodeURIComponent(searchQuery)}`}
+              className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white text-sm font-semibold rounded-xl flex items-center gap-2 transition shadow-md shadow-purple-200 shrink-0"
             >
               Explore
-              <ArrowRight size={17} />
+              <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
 
-          {/* Small benefits */}
-          <div className="mt-6 flex flex-wrap gap-5 text-sm text-[#6f6670]">
-            <div className="flex items-center gap-2">
-              <ShieldCheck
-                size={17}
-                className="text-[#0e9f6e]"
-              />
-              Verified services
+          {/* Trust Value Badges */}
+          <div className="grid grid-cols-3 gap-3 pt-2">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
+                <CheckCircle2 className="w-5 h-5" />
+              </div>
+              <div className="text-xs">
+                <p className="font-bold text-slate-900">Verified services</p>
+                <p className="text-slate-500">Trusted & safe</p>
+              </div>
             </div>
 
-            <div className="flex items-center gap-2">
-              <MapPin
-                size={17}
-                className="text-[#e88a25]"
-              />
-              Near your campus
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center shrink-0">
+                <MapPin className="w-5 h-5" />
+              </div>
+              <div className="text-xs">
+                <p className="font-bold text-slate-900">Near campus</p>
+                <p className="text-slate-500">Convenient & quick</p>
+              </div>
             </div>
 
-            <div className="flex items-center gap-2">
-              <Star
-                size={17}
-                className="fill-[#f5a623] text-[#f5a623]"
-              />
-              Student-rated
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center shrink-0">
+                <Users className="w-5 h-5" />
+              </div>
+              <div className="text-xs">
+                <p className="font-bold text-slate-900">Student-rated</p>
+                <p className="text-slate-500">Real reviews</p>
+              </div>
             </div>
           </div>
 
-          {/* MAIN ACTION BUTTONS */}
-          <div className="mt-7 flex flex-wrap items-center gap-3">
-            {/* GET STARTED */}
+          {/* Quick Action Buttons */}
+          <div className="flex items-center gap-4 pt-2">
             <Link
               href="/register"
-              className="inline-flex items-center gap-2 rounded-xl bg-[#7654e8] px-6 py-3.5 font-bold text-white shadow-md transition hover:-translate-y-0.5 hover:bg-[#6545d4]"
+              className="px-7 py-3.5 bg-purple-600 hover:bg-purple-700 text-white font-bold text-sm rounded-xl shadow-lg shadow-purple-200 flex items-center gap-2 transition"
             >
               Get Started
-              <ArrowRight size={17} />
+              <ArrowRight className="w-4 h-4" />
             </Link>
-
-            {/* LOGIN */}
             <Link
               href="/login"
-              className="inline-flex items-center gap-2 rounded-xl border border-[#d8cde3] bg-white px-6 py-3.5 font-bold text-[#46505b] shadow-sm transition hover:-translate-y-0.5 hover:bg-[#f5f0f8]"
+              className="px-7 py-3.5 bg-white hover:bg-slate-50 text-slate-800 font-bold text-sm rounded-xl border border-slate-200 flex items-center gap-2 transition"
             >
-              <LogIn size={17} />
+              <LogIn className="w-4 h-4" />
               Login
             </Link>
-
-            {/* FRESHER PASS */}
-            <Link
-              href="/pass"
-              className="inline-flex items-center gap-2 rounded-xl border border-[#f0cda9] bg-[#fff4e8] px-6 py-3.5 font-bold text-[#9a5b17] transition hover:-translate-y-0.5 hover:bg-[#ffecd8]"
-            >
-              Explore Fresher Pass
-            </Link>
           </div>
-
-          {/* Small navigation hint */}
-          <p className="mt-4 text-sm text-[#8a8088]">
-            New here? Click <strong>Get Started</strong> to register.
-          </p>
         </div>
 
-        {/* RIGHT VISUAL */}
-        <div className="relative mx-auto w-full max-w-xl">
-          {/* Main dashboard card */}
-          <div className="rounded-[28px] border border-white bg-white p-5 shadow-2xl">
-            {/* Header */}
-            <div className="mb-5 flex items-center justify-between">
+        {/* Right Column: Hero SVG + Floating Concierge Widget */}
+        <div className="lg:col-span-6 relative flex justify-center items-center">
+          {/* Main Card displaying hero-campus.svg */}
+          <div className="relative w-[340px] sm:w-[390px] h-[480px] rounded-[36px] overflow-hidden shadow-2xl border-4 border-white">
+            <img
+              src="/images/hero-campus.svg"
+              alt="Student Life Campus Concierge"
+              className="w-full h-full object-cover"
+            />
+          </div>
+
+          {/* Floating UI Widget */}
+          <div className="absolute -bottom-6 -right-2 sm:right-2 md:right-6 w-[290px] bg-white rounded-3xl p-5 shadow-2xl border border-purple-50 space-y-4">
+            <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-bold uppercase tracking-wider text-[#968a91]">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
                   Campus Concierge
                 </p>
-
-                <h3 className="mt-1 text-xl font-black text-[#343b46]">
-                  Everything nearby
-                </h3>
+                <h4 className="text-sm font-extrabold text-slate-900">
+                  What do you need today?
+                </h4>
               </div>
-
-              <div className="rounded-full bg-[#e9f8ef] px-3 py-1.5 text-xs font-bold text-[#0e9565]">
-                ● Live
-              </div>
+              <span className="flex items-center gap-1 text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                Live
+              </span>
             </div>
 
-            {/* Service mini cards */}
-            <div className="grid grid-cols-2 gap-3">
-              {/* Mess */}
+            {/* 2x2 Services Grid */}
+            <div className="grid grid-cols-2 gap-2.5">
               <Link
                 href="/student/mess"
-                className="rounded-2xl bg-[#f1ebff] p-4 transition hover:-translate-y-1 hover:shadow-md"
+                className="bg-orange-50/70 hover:bg-orange-100/70 p-3 rounded-2xl border border-orange-100 transition"
               >
-                <div className="text-2xl">🍱</div>
-
-                <p className="mt-3 font-bold text-[#40384b]">
-                  Mess
-                </p>
-
-                <p className="text-xs text-[#81758a]">
-                  From ₹2,600/mo
-                </p>
+                <UtensilsCrossed className="w-5 h-5 text-orange-600 mb-1" />
+                <p className="text-xs font-bold text-slate-900">Mess</p>
+                <p className="text-[10px] text-slate-500">From ₹2,600/mo</p>
               </Link>
 
-              {/* Laundry */}
               <Link
                 href="/student/laundry"
-                className="rounded-2xl bg-[#fff0e4] p-4 transition hover:-translate-y-1 hover:shadow-md"
+                className="bg-sky-50/70 hover:bg-sky-100/70 p-3 rounded-2xl border border-sky-100 transition"
               >
-                <div className="text-2xl">🧺</div>
-
-                <p className="mt-3 font-bold text-[#40384b]">
-                  Laundry
-                </p>
-
-                <p className="text-xs text-[#81758a]">
-                  From ₹60/load
-                </p>
+                <ShoppingBag className="w-5 h-5 text-sky-600 mb-1" />
+                <p className="text-xs font-bold text-slate-900">Laundry</p>
+                <p className="text-[10px] text-slate-500">From ₹60/load</p>
               </Link>
 
-              {/* Cleaning */}
               <Link
                 href="/student/cleaning"
-                className="rounded-2xl bg-[#e5f7f1] p-4 transition hover:-translate-y-1 hover:shadow-md"
+                className="bg-emerald-50/70 hover:bg-emerald-100/70 p-3 rounded-2xl border border-emerald-100 transition"
               >
-                <div className="text-2xl">✨</div>
-
-                <p className="mt-3 font-bold text-[#40384b]">
-                  Cleaning
-                </p>
-
-                <p className="text-xs text-[#81758a]">
-                  From ₹150/room
-                </p>
+                <Sparkle className="w-5 h-5 text-emerald-600 mb-1" />
+                <p className="text-xs font-bold text-slate-900">Cleaning</p>
+                <p className="text-[10px] text-slate-500">From ₹150/room</p>
               </Link>
 
-              {/* PG */}
               <Link
                 href="/student/pg"
-                className="rounded-2xl bg-[#eaf0ff] p-4 transition hover:-translate-y-1 hover:shadow-md"
+                className="bg-purple-50/70 hover:bg-purple-100/70 p-3 rounded-2xl border border-purple-100 transition"
               >
-                <div className="text-2xl">🏠</div>
-
-                <p className="mt-3 font-bold text-[#40384b]">
-                  PGs
-                </p>
-
-                <p className="text-xs text-[#81758a]">
-                  Verified stays
-                </p>
+                <Home className="w-5 h-5 text-purple-600 mb-1" />
+                <p className="text-xs font-bold text-slate-900">PGs & Hostels</p>
+                <p className="text-[10px] text-slate-500">Safe stays</p>
               </Link>
             </div>
 
-            {/* Booking preview */}
+            {/* Upcoming Booking Pill */}
             <Link
               href="/bookings"
-              className="mt-4 block rounded-2xl border border-[#eee5eb] bg-[#fbf8fa] p-4 transition hover:border-[#d8cde3]"
+              className="bg-purple-50 hover:bg-purple-100/80 p-3 rounded-2xl flex items-center justify-between border border-purple-100 transition"
             >
-              <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-purple-600 text-white flex items-center justify-center shrink-0">
+                  <Calendar className="w-4 h-4" />
+                </div>
                 <div>
-                  <p className="text-xs font-semibold text-[#9a8e95]">
-                    UPCOMING
-                  </p>
-
-                  <p className="mt-1 font-bold text-[#454c56]">
+                  <p className="text-[11px] font-bold text-slate-900 leading-tight">
                     Weekend Room Cleaning
                   </p>
+                  <p className="text-[10px] text-slate-500">Sat, 11:30 AM • ₹200</p>
                 </div>
+              </div>
+              <ArrowRight className="w-4 h-4 text-purple-600" />
+            </Link>
 
-                <span className="rounded-full bg-[#fff1d5] px-3 py-1 text-xs font-bold text-[#a56813]">
-                  Saturday
+            {/* Fresher Pass Pill */}
+            <Link
+              href="/pass"
+              className="bg-slate-950 hover:bg-slate-900 text-white px-4 py-2.5 rounded-2xl flex items-center justify-between shadow-lg transition"
+            >
+              <div className="flex items-center gap-2">
+                <Crown className="w-4 h-4 text-amber-400" />
+                <span className="text-[11px] font-bold uppercase tracking-wide">
+                  Fresher Pass
                 </span>
               </div>
-
-              <div className="mt-4 flex items-center justify-between">
-                <span className="text-sm text-[#81767e]">
-                  11:30 AM – 12:30 PM
-                </span>
-
-                <span className="font-black text-[#343b46]">
-                  ₹200
-                </span>
-              </div>
+              <span className="text-xs font-extrabold text-amber-400">
+                ₹199/month
+              </span>
             </Link>
           </div>
-
-          {/* Floating rating */}
-          <div className="absolute -bottom-5 -left-5 hidden rounded-2xl border border-white bg-white px-5 py-4 shadow-xl sm:block">
-            <div className="flex items-center gap-2">
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#fff0c7]">
-                ⭐
-              </div>
-
-              <div>
-                <p className="font-black text-[#343b46]">
-                  4.8/5
-                </p>
-
-                <p className="text-xs text-[#81767e]">
-                  Student ratings
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Floating pass */}
-          <Link
-            href="/pass"
-            className="absolute -right-4 -top-5 hidden rounded-2xl bg-[#46505b] px-5 py-4 text-white shadow-xl transition hover:-translate-y-1 sm:block"
-          >
-            <p className="text-xs font-semibold text-[#d9dce0]">
-              FRESHER PASS
-            </p>
-
-            <p className="mt-1 text-lg font-black">
-              ₹200/month
-            </p>
-          </Link>
         </div>
       </div>
     </section>

@@ -1,120 +1,68 @@
 "use client";
 
 import Link from "next/link";
-import { Menu, X, UserRound } from "lucide-react";
-import { useState } from "react";
-import Logo from "./Logo";
-import Button from "./Button";
+import { GraduationCap, Search } from "lucide-react";
 
 export default function Navbar() {
-  const [open, setOpen] = useState(false);
-
   return (
-    <header className="sticky top-0 z-50 border-b border-[#e5dddd] bg-[#fffdfd]/95 backdrop-blur">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 lg:px-8">
-        <Logo />
+    <nav className="w-full bg-white/90 backdrop-blur-md sticky top-0 z-50 border-b border-purple-50">
+      <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+        {/* Brand Logo */}
+        <Link href="/" className="flex items-center gap-3">
+          <div className="w-11 h-11 rounded-2xl bg-purple-600 flex items-center justify-center text-white shadow-lg shadow-purple-200">
+            <GraduationCap className="w-6 h-6" />
+          </div>
+          <div>
+            <span className="text-xl font-black text-slate-900 tracking-tight block leading-none">
+              Studentica.
+            </span>
+            <span className="text-[11px] font-semibold text-purple-600 tracking-wide">
+              Campus Concierge
+            </span>
+          </div>
+        </Link>
 
-        {/* Desktop Navigation */}
-        <nav className="hidden items-center gap-7 md:flex">
-          <Link
-            href="/"
-            className="text-sm font-semibold text-[#514b55] transition hover:text-[#7357d9]"
-          >
+        {/* Navigation Links */}
+        <div className="hidden md:flex items-center gap-8 text-sm font-semibold text-slate-600">
+          <Link href="/" className="text-purple-600 font-bold border-b-2 border-purple-600 pb-1">
             Home
           </Link>
-
-          <Link
-            href="/student/services"
-            className="text-sm font-semibold text-[#514b55] transition hover:text-[#7357d9]"
-          >
+          <Link href="/services" className="hover:text-purple-600 transition-colors">
             Services
           </Link>
-
-          <Link
-            href="/pass"
-            className="text-sm font-semibold text-[#514b55] transition hover:text-[#7357d9]"
-          >
+          <Link href="/pass" className="hover:text-purple-600 transition-colors">
             Fresher Pass
           </Link>
-
-          <Link
-            href="/roomate"
-            className="text-sm font-semibold text-[#514b55] transition hover:text-[#7357d9]"
-          >
-            Find Roommate
+          <Link href="/roommate" className="hover:text-purple-600 transition-colors">
+            Roommate Finder
           </Link>
-
-          <Link
-            href="/vendor"
-            className="text-sm font-semibold text-[#514b55] transition hover:text-[#7357d9]"
-          >
-            For Vendors
-          </Link>
-        </nav>
-
-        <div className="hidden items-center gap-3 md:flex">
-          <Link href="/login">
-            <button className="flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold text-[#424b55] hover:bg-[#f4f0f0]">
-              <UserRound size={17} />
-              Login
-            </button>
-          </Link>
-
-          <Link href="/register">
-            <Button variant="purple">Get Started</Button>
+          <Link href="#about" className="hover:text-purple-600 transition-colors">
+            About
           </Link>
         </div>
 
-        {/* Mobile Button */}
-        <button
-          onClick={() => setOpen(!open)}
-          className="rounded-xl border border-[#ddd4d4] p-2 md:hidden"
-        >
-          {open ? <X size={22} /> : <Menu size={22} />}
-        </button>
+        {/* Action Buttons */}
+        <div className="flex items-center gap-3">
+          <button
+            aria-label="Search"
+            className="p-2 text-slate-500 hover:text-slate-900 rounded-full hover:bg-slate-100 transition"
+          >
+            <Search className="w-5 h-5" />
+          </button>
+          <Link
+            href="/login"
+            className="px-5 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 border border-slate-200 rounded-xl transition"
+          >
+            Login
+          </Link>
+          <Link
+            href="/register"
+            className="px-5 py-2.5 text-sm font-semibold text-white bg-purple-600 hover:bg-purple-700 rounded-xl shadow-md shadow-purple-200 transition"
+          >
+            Get Started
+          </Link>
+        </div>
       </div>
-
-      {/* Mobile Menu */}
-      {open && (
-        <div className="border-t border-[#e5dddd] bg-white px-5 py-5 md:hidden">
-          <div className="flex flex-col gap-4">
-            <Link href="/" onClick={() => setOpen(false)}>
-              Home
-            </Link>
-
-            <Link
-              href="/student/services"
-              onClick={() => setOpen(false)}
-            >
-              Services
-            </Link>
-
-            <Link href="/pass" onClick={() => setOpen(false)}>
-              Fresher Pass
-            </Link>
-
-            <Link href="/roomate" onClick={() => setOpen(false)}>
-              Find Roommate
-            </Link>
-
-            <Link href="/vendor" onClick={() => setOpen(false)}>
-              For Vendors
-            </Link>
-
-            <hr />
-
-            <Link href="/login" onClick={() => setOpen(false)}>
-              Login
-            </Link>
-
-            <Link href="/register" onClick={() => setOpen(false)}>
-              <Button className="w-full" variant="purple">
-                Get Started
-              </Button>
-            </Link>
-          </div>
-        </div>
-      )}
-    </header>
+    </nav>
   );
 }

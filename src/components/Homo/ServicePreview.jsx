@@ -1,144 +1,161 @@
+"use client";
+
 import Link from "next/link";
 import {
-  ArrowRight,
-  Utensils,
+  UtensilsCrossed,
   Shirt,
   Sparkles,
   Home,
   Coffee,
-  Users,
+  UserCheck,
+  GraduationCap,
+  Clock,
+  IndianRupee,
+  ShieldCheck,
 } from "lucide-react";
 
 const services = [
   {
-    title: "Mess & Meals",
-    description: "Discover verified messes and flexible monthly meal plans.",
-    price: "From ₹2,600/mo",
+    title: "Mess",
+    desc: "Hygienic & affordable meal plans",
+    img: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&auto=format&fit=crop",
+    icon: UtensilsCrossed,
+    color: "bg-orange-500 text-white",
     href: "/student/mess",
-    icon: Utensils,
-    bg: "bg-[#fff0e3]",
-    iconBg: "bg-[#ffe0c5]",
-    iconColor: "text-[#dc791d]",
   },
   {
-    title: "Hostel Laundry",
-    description: "Schedule pickup and get your clothes back clean and ready.",
-    price: "From ₹60/load",
-    href: "/student/laundry",
+    title: "Laundry",
+    desc: "Clean clothes, less stress",
+    img: "https://images.unsplash.com/photo-1582735689369-4fe89db7114c?w=500&auto=format&fit=crop",
     icon: Shirt,
-    bg: "bg-[#eaf0ff]",
-    iconBg: "bg-[#dce6ff]",
-    iconColor: "text-[#5474d4]",
+    color: "bg-sky-500 text-white",
+    href: "/student/laundry",
   },
   {
-    title: "Room Cleaning",
-    description: "Book weekend cleaning whenever your room needs a reset.",
-    price: "From ₹150/room",
-    href: "/student/cleaning",
+    title: "Cleaning",
+    desc: "A cleaner space, a better you",
+    img: "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=500&auto=format&fit=crop",
     icon: Sparkles,
-    bg: "bg-[#e6f8f1]",
-    iconBg: "bg-[#d2f1e4]",
-    iconColor: "text-[#079765]",
+    color: "bg-emerald-500 text-white",
+    href: "/student/cleaning",
   },
   {
     title: "PGs & Hostels",
-    description: "Find student-friendly stays near your campus.",
-    price: "Verified listings",
-    href: "/student/pg",
+    desc: "Safe & verified stays",
+    img: "https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=500&auto=format&fit=crop",
     icon: Home,
-    bg: "bg-[#f2edff]",
-    iconBg: "bg-[#e4dbff]",
-    iconColor: "text-[#7654e8]",
+    color: "bg-purple-600 text-white",
+    href: "/student/pg",
   },
   {
-    title: "Cafes & Perks",
-    description: "Discover student deals during afternoon campus breaks.",
-    price: "Up to 15% off",
-    href: "/student/cafes",
+    title: "Cafes & Restaurants",
+    desc: "Great food, close by",
+    img: "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=500&auto=format&fit=crop",
     icon: Coffee,
-    bg: "bg-[#fff4d9]",
-    iconBg: "bg-[#ffeab5]",
-    iconColor: "text-[#bc7a09]",
+    color: "bg-amber-500 text-white",
+    href: "/student/cafes",
   },
   {
     title: "Roommate Finder",
-    description: "Find compatible roommates using lifestyle preferences.",
-    price: "Smart matching",
-    href: "/student/roommate",
-    icon: Users,
-    bg: "bg-[#f8eafa]",
-    iconBg: "bg-[#efd9f3]",
-    iconColor: "text-[#a04cab]",
+    desc: "Find your perfect match",
+    img: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=500&auto=format&fit=crop",
+    icon: UserCheck,
+    color: "bg-indigo-600 text-white",
+    href: "/student/roommates",
   },
 ];
 
 export default function ServicePreview() {
   return (
-    <section className="bg-white px-6 py-20 md:px-10 lg:px-16">
-      <div className="mx-auto max-w-7xl">
-        
-        <div className="flex flex-col justify-between gap-5 md:flex-row md:items-end">
-          <div>
-            <span className="inline-flex rounded-full bg-[#e9f7f1] px-4 py-2 text-sm font-bold text-[#087b57]">
-              Campus services
-            </span>
+    <section className="max-w-7xl mx-auto px-6 py-12">
+      {/* Section Header */}
+      <div className="mb-10">
+        <span className="text-xs font-extrabold uppercase text-purple-600 tracking-wider">
+          Explore Services
+        </span>
+        <h2 className="text-3xl md:text-4xl font-black text-slate-950 mt-1">
+          Everything you need, <br />
+          all in one place.
+        </h2>
+        <p className="text-slate-500 text-sm mt-2">
+          From food to friends, we&apos;ve got your campus life covered.
+        </p>
+      </div>
 
-            <h2 className="mt-4 text-4xl font-black text-[#343b46] md:text-5xl">
-              Everything around campus
-            </h2>
+      {/* 6 Services Grid Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        {services.map((item, idx) => {
+          const Icon = item.icon;
+          return (
+            <Link
+              key={idx}
+              href={item.href}
+              className="group bg-white rounded-3xl p-3 border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 flex flex-col items-center text-center"
+            >
+              <div className="relative w-full h-32 rounded-2xl overflow-hidden mb-5">
+                <img
+                  src={item.img}
+                  alt={item.title}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                />
+                <div
+                  className={`absolute -bottom-3 left-1/2 -translate-x-1/2 w-9 h-9 rounded-xl ${item.color} flex items-center justify-center shadow-md`}
+                >
+                  <Icon className="w-5 h-5" />
+                </div>
+              </div>
 
-            <p className="mt-4 max-w-2xl text-lg text-[#786e76]">
-              From your daily meals to finding a roommate, Campus Concierge
-              brings the essentials together.
-            </p>
+              <h3 className="font-extrabold text-slate-900 text-sm mt-1">
+                {item.title}
+              </h3>
+              <p className="text-[11px] text-slate-400 mt-1 leading-tight mb-2">
+                {item.desc}
+              </p>
+            </Link>
+          );
+        })}
+      </div>
+
+      {/* 4 Bottom Metric Stats */}
+      <div className="mt-12 bg-purple-50/70 border border-purple-100 rounded-3xl p-6 grid grid-cols-2 md:grid-cols-4 gap-6 divide-y md:divide-y-0 md:divide-x divide-purple-200/60">
+        <div className="flex items-center gap-4 justify-center">
+          <div className="w-11 h-11 rounded-2xl bg-purple-600 text-white flex items-center justify-center">
+            <GraduationCap className="w-6 h-6" />
           </div>
-
-          <Link
-            href="/student/services"
-            className="inline-flex items-center gap-2 font-bold text-[#7654e8]"
-          >
-            View all services
-            <ArrowRight size={18} />
-          </Link>
+          <div>
+            <h4 className="text-xl font-black text-slate-900">5+</h4>
+            <p className="text-xs font-semibold text-slate-500">Campus Services</p>
+          </div>
         </div>
 
-        <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {services.map((service) => {
-            const Icon = service.icon;
+        <div className="flex items-center gap-4 justify-center pt-4 md:pt-0">
+          <div className="w-11 h-11 rounded-2xl bg-purple-600 text-white flex items-center justify-center">
+            <Clock className="w-6 h-6" />
+          </div>
+          <div>
+            <h4 className="text-xl font-black text-slate-900">24/7</h4>
+            <p className="text-xs font-semibold text-slate-500">Digital Access</p>
+          </div>
+        </div>
 
-            return (
-              <Link
-                href={service.href}
-                key={service.title}
-                className={`group rounded-3xl p-6 ${service.bg} transition duration-300 hover:-translate-y-1 hover:shadow-lg`}
-              >
-                <div className="flex items-start justify-between">
-                  <div
-                    className={`flex h-14 w-14 items-center justify-center rounded-2xl ${service.iconBg}`}
-                  >
-                    <Icon size={25} className={service.iconColor} />
-                  </div>
+        <div className="flex items-center gap-4 justify-center pt-4 md:pt-0">
+          <div className="w-11 h-11 rounded-2xl bg-purple-600 text-white flex items-center justify-center">
+            <IndianRupee className="w-6 h-6" />
+          </div>
+          <div>
+            <h4 className="text-xl font-black text-slate-900">₹199</h4>
+            <p className="text-xs font-semibold text-slate-500">Fresher Pass Starts</p>
+          </div>
+        </div>
 
-                  <ArrowRight
-                    size={20}
-                    className="text-[#8b8187] transition group-hover:translate-x-1"
-                  />
-                </div>
-
-                <h3 className="mt-7 text-xl font-black text-[#414852]">
-                  {service.title}
-                </h3>
-
-                <p className="mt-2 min-h-[48px] text-sm leading-6 text-[#766d74]">
-                  {service.description}
-                </p>
-
-                <div className="mt-5 inline-flex rounded-full bg-white/80 px-3 py-1.5 text-xs font-bold text-[#555d66]">
-                  {service.price}
-                </div>
-              </Link>
-            );
-          })}
+        <div className="flex items-center gap-4 justify-center pt-4 md:pt-0">
+          <div className="w-11 h-11 rounded-2xl bg-purple-600 text-white flex items-center justify-center">
+            <ShieldCheck className="w-6 h-6" />
+          </div>
+          <div>
+            <h4 className="text-xl font-black text-slate-900">100%</h4>
+            <p className="text-xs font-semibold text-slate-500">Student Focused</p>
+          </div>
         </div>
       </div>
     </section>
