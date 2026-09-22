@@ -1,9 +1,0 @@
-{
-  "/page": "app/page.js",
-  "/vendor/page": "app/vendor/page.js",
-  "/pass/page": "app/pass/page.js",
-  "/login/page": "app/login/page.js",
-  "/student/mess/page": "app/student/mess/page.js",
-  "/student/services/page": "app/student/services/page.js",
-  "/student/page": "app/student/page.js"
-}
