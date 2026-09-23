@@ -22,7 +22,14 @@ import {
   Shirt,
   BookOpen,
   Car,
-  Home,
+  Home as HomeIcon,
+  Grid,
+  Building,
+  Coffee,
+  Award,
+  User,
+  Settings,
+  MessageCircle,
 } from "lucide-react";
 
 export default function StudentPGPage() {
@@ -30,6 +37,22 @@ export default function StudentPGPage() {
   const [genderFilter, setGenderFilter] = useState({ boys: false, girls: false, both: false });
   const [priceRange, setPriceRange] = useState(75000);
   const [selectedSort, setSelectedSort] = useState("Rating");
+
+  const sidebarLinks = [
+    { label: "Home", href: "/", icon: HomeIcon },
+    { label: "Services", href: "/student/services", icon: Grid },
+    { label: "Mess", href: "/student/mess", icon: Utensils },
+    { label: "Hostel / PG", href: "/student/pg", icon: Building, active: true },
+    { label: "Restaurant", href: "/student/cafes", icon: Utensils },
+    { label: "Cafe", href: "/student/cafes", icon: Coffee },
+    { label: "Laundry", href: "/student/laundry", icon: Shirt },
+    { label: "Housekeeping", href: "/student/cleaning", icon: Sparkles },
+    { label: "Roommate Finder", href: "/student/roommates", icon: Users },
+    { label: "Freshers Pass", href: "/pass", icon: Award },
+    { label: "Notices", href: "/student/notices", icon: Bell },
+    { label: "Profile", href: "/student/profile", icon: User },
+    { label: "Settings", href: "/settings", icon: Settings },
+  ];
 
   const hostels = [
     {
@@ -180,7 +203,7 @@ export default function StudentPGPage() {
       <Navbar />
 
       {/* 2. HERO BANNER */}
-      <section className="max-w-7xl mx-auto px-6 pt-6 pb-4">
+      <section className="max-w-[1550px] mx-auto px-4 md:px-6 pt-6 pb-4">
         <div className="relative rounded-[36px] bg-gradient-to-r from-[#EDE9FE] via-[#F5F3FF] to-[#FAF5FF] border border-purple-100 p-8 md:p-12 overflow-hidden flex flex-col lg:flex-row items-center justify-between gap-8 shadow-sm">
           {/* Top Doodle Tag */}
           <div className="absolute top-6 left-1/3 hidden md:block text-[#6C47FF] text-xs font-bold rotate-[-10deg] pointer-events-none select-none">
@@ -190,7 +213,7 @@ export default function StudentPGPage() {
           {/* Left Text */}
           <div className="space-y-4 max-w-xl z-10">
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-purple-200/60 text-[#6C47FF] text-xs font-bold uppercase tracking-wider">
-              <Home className="w-3.5 h-3.5" />
+              <Building className="w-3.5 h-3.5" />
               Hostel & PG
             </div>
 
@@ -245,25 +268,25 @@ export default function StudentPGPage() {
             </div>
 
             <Link
-  href="/support"
-  className="w-full py-2.5 rounded-xl bg-white hover:bg-slate-100 text-slate-900 text-xs font-extrabold flex items-center justify-center gap-1.5 transition shadow-md"
->
-  <span className="text-slate-900 font-extrabold">Contact Support</span>
-  <ArrowRight className="w-3.5 h-3.5 text-[#6C47FF]" />
-</Link>
+              href="/support"
+              className="w-full py-2.5 rounded-xl bg-white hover:bg-slate-100 text-slate-900 text-xs font-extrabold flex items-center justify-center gap-1.5 transition shadow-md"
+            >
+              <span className="text-slate-900 font-extrabold">Contact Support</span>
+              <ArrowRight className="w-3.5 h-3.5 text-[#6C47FF]" />
+            </Link>
           </div>
         </div>
       </section>
 
-      {/* 3. MAIN CONTENT: FILTERS SIDEBAR + 11 HOSTEL CARDS */}
-      <section className="max-w-7xl mx-auto px-6 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      {/* 3. MAIN WORKSPACE: LEFT FILTERS + CENTER CARDS + RIGHT QUICK NAV */}
+      <section className="max-w-[1550px] mx-auto px-4 md:px-6 py-8">
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
           {/* LEFT SIDEBAR: FILTERS */}
-          <aside className="lg:col-span-3 space-y-6">
+          <aside className="xl:col-span-3 space-y-6">
             <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm space-y-6">
               <div className="flex items-center justify-between pb-3 border-b border-slate-100">
                 <h3 className="font-extrabold text-sm text-slate-900 flex items-center gap-2">
-                  <Home className="w-4 h-4 text-[#6C47FF]" />
+                  <Building className="w-4 h-4 text-[#6C47FF]" />
                   Filter Hostels & PGs
                 </h3>
                 <SlidersHorizontal className="w-4 h-4 text-slate-400" />
@@ -379,8 +402,8 @@ export default function StudentPGPage() {
             </div>
           </aside>
 
-          {/* RIGHT GRID: 11 HOSTEL / PG CARDS */}
-          <main className="lg:col-span-9 space-y-5">
+          {/* CENTER MAIN: HOSTEL / PG CARDS */}
+          <main className="xl:col-span-7 space-y-5">
             {/* Top Bar with count & sort */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -406,8 +429,8 @@ export default function StudentPGPage() {
               </div>
             </div>
 
-            {/* 3-Column Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+            {/* Grid of Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {hostels.map((item) => (
                 <div
                   key={item.id}
@@ -454,7 +477,7 @@ export default function StudentPGPage() {
                     </div>
 
                     {/* Amenities Icons */}
-                    <div className="px-1 pt-3 flex flex-wrap gap-2 text-[10px] font-semibold text-slate-600">
+                    <div className="px-1 pt-3 flex flex-wrap gap-1.5 text-[10px] font-semibold text-slate-600">
                       {item.amenities.map((amenity, aIdx) => (
                         <span
                           key={aIdx}
@@ -500,6 +523,52 @@ export default function StudentPGPage() {
               </div>
             </div>
           </main>
+
+          {/* RIGHT SIDEBAR: QUICK NAV */}
+          <aside className="hidden xl:flex flex-col w-64 bg-white rounded-3xl p-5 border border-slate-100 shadow-sm shrink-0 sticky top-24 space-y-6">
+            <div>
+              <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-400 mb-3 px-2">
+                Quick Nav
+              </h4>
+              <nav className="space-y-1">
+                {sidebarLinks.map((item, idx) => {
+                  const Icon = item.icon;
+                  return (
+                    <Link
+                      key={idx}
+                      href={item.href}
+                      className={`flex items-center gap-3 px-3.5 py-2 rounded-2xl text-xs font-bold transition-all ${
+                        item.active
+                          ? "bg-[#6C47FF] text-white shadow-md shadow-purple-200"
+                          : "text-slate-600 hover:bg-purple-50 hover:text-[#6C47FF]"
+                      }`}
+                    >
+                      <Icon className="w-4 h-4 shrink-0" />
+                      <span>{item.label}</span>
+                    </Link>
+                  );
+                })}
+              </nav>
+            </div>
+
+            {/* Need Help Live Chat Card */}
+            <div className="rounded-2xl p-4 bg-purple-50 border border-purple-100 space-y-3">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                <div>
+                  <h4 className="text-xs font-black text-slate-900">Need Help?</h4>
+                  <p className="text-[10px] text-slate-500">Chat with us</p>
+                </div>
+              </div>
+              <Link
+                href="/support"
+                className="w-full py-2 rounded-xl bg-[#6C47FF] hover:bg-[#5835e5] text-white text-xs font-extrabold flex items-center justify-center gap-1.5 transition shadow-sm"
+              >
+                <MessageCircle className="w-3.5 h-3.5" />
+                Live Chat
+              </Link>
+            </div>
+          </aside>
         </div>
       </section>
 
