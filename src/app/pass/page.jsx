@@ -1,6 +1,5 @@
 "use client";
 
-import "./pass.css";
 import Link from "next/link";
 import {
   Crown,

@@ -2,161 +2,152 @@
 
 import Link from "next/link";
 import {
-  UtensilsCrossed,
+  ArrowRight,
+  Utensils,
   Shirt,
   Sparkles,
   Home,
   Coffee,
-  UserCheck,
-  GraduationCap,
-  Clock,
-  IndianRupee,
-  ShieldCheck,
+  Users,
 } from "lucide-react";
 
 const services = [
   {
-    title: "Mess",
-    desc: "Hygienic & affordable meal plans",
-    img: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&auto=format&fit=crop",
-    icon: UtensilsCrossed,
-    color: "bg-orange-500 text-white",
-    href: "/student/mess",
+    title: "Mess & Food",
+    description: "Discover nearby messes, restaurants and everyday food options.",
+    image: "/images/mess.jpg",
+    icon: Utensils,
+    iconBg: "bg-orange-100",
+    iconColor: "text-orange-600",
   },
   {
     title: "Laundry",
-    desc: "Clean clothes, less stress",
-    img: "https://images.unsplash.com/photo-1582735689369-4fe89db7114c?w=500&auto=format&fit=crop",
+    description: "Find reliable laundry and dry-cleaning services around campus.",
+    image: "/images/laundry.jpg",
     icon: Shirt,
-    color: "bg-sky-500 text-white",
-    href: "/student/laundry",
+    iconBg: "bg-blue-100",
+    iconColor: "text-blue-600",
   },
   {
     title: "Cleaning",
-    desc: "A cleaner space, a better you",
-    img: "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=500&auto=format&fit=crop",
+    description: "Book trusted housekeeping and room-cleaning services.",
+    image: "/images/cleaning.jpg",
     icon: Sparkles,
-    color: "bg-emerald-500 text-white",
-    href: "/student/cleaning",
+    iconBg: "bg-green-100",
+    iconColor: "text-green-600",
   },
   {
-    title: "PGs & Hostels",
-    desc: "Safe & verified stays",
-    img: "https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=500&auto=format&fit=crop",
+    title: "Hostels & PGs",
+    description: "Explore student-friendly stays near your college.",
+    image: "/images/hostel.jpg",
     icon: Home,
-    color: "bg-purple-600 text-white",
-    href: "/student/pg",
+    iconBg: "bg-purple-100",
+    iconColor: "text-purple-600",
   },
   {
-    title: "Cafes & Restaurants",
-    desc: "Great food, close by",
-    img: "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=500&auto=format&fit=crop",
+    title: "Cafes",
+    description: "Find cafes for quick meals, coffee, study sessions and hangouts.",
+    image: "/images/cafe.jpg",
     icon: Coffee,
-    color: "bg-amber-500 text-white",
-    href: "/student/cafes",
+    iconBg: "bg-yellow-100",
+    iconColor: "text-yellow-600",
   },
   {
-    title: "Roommate Finder",
-    desc: "Find your perfect match",
-    img: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=500&auto=format&fit=crop",
-    icon: UserCheck,
-    color: "bg-indigo-600 text-white",
-    href: "/student/roommates",
+    title: "Roommates",
+    description: "Find students with compatible habits, preferences and lifestyles.",
+    image: "/images/roommate.jpg",
+    icon: Users,
+    iconBg: "bg-pink-100",
+    iconColor: "text-pink-600",
   },
 ];
 
 export default function ServicePreview() {
   return (
-    <section className="max-w-7xl mx-auto px-6 py-12">
-      {/* Section Header */}
-      <div className="mb-10">
-        <span className="text-xs font-extrabold uppercase text-purple-600 tracking-wider">
-          Explore Services
-        </span>
-        <h2 className="text-3xl md:text-4xl font-black text-slate-950 mt-1">
-          Everything you need, <br />
-          all in one place.
-        </h2>
-        <p className="text-slate-500 text-sm mt-2">
-          From food to friends, we&apos;ve got your campus life covered.
-        </p>
-      </div>
+    <section className="bg-white py-20">
+      <div className="mx-auto max-w-[1400px] px-6 lg:px-10">
 
-      {/* 6 Services Grid Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-        {services.map((item, idx) => {
-          const Icon = item.icon;
-          return (
-            <Link
-              key={idx}
-              href={item.href}
-              className="group bg-white rounded-3xl p-3 border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 flex flex-col items-center text-center"
-            >
-              <div className="relative w-full h-32 rounded-2xl overflow-hidden mb-5">
-                <img
-                  src={item.img}
-                  alt={item.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                />
-                <div
-                  className={`absolute -bottom-3 left-1/2 -translate-x-1/2 w-9 h-9 rounded-xl ${item.color} flex items-center justify-center shadow-md`}
-                >
-                  <Icon className="w-5 h-5" />
+        {/* SECTION HEADER */}
+        <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
+          <div className="max-w-2xl">
+            <div className="mb-3 inline-flex rounded-full bg-purple-50 px-4 py-2 text-xs font-black uppercase tracking-wider text-purple-700">
+              Everything in one place
+            </div>
+
+            <h2 className="text-4xl font-black tracking-tight text-[#14244a] sm:text-5xl">
+              Services that make
+              <span className="text-purple-600"> campus life easier.</span>
+            </h2>
+
+            <p className="mt-4 max-w-xl text-base leading-7 text-slate-500">
+              From your daily meals to finding a roommate, get the services
+              you need without jumping between different platforms.
+            </p>
+          </div>
+
+          <Link
+            href="/student/services"
+            className="inline-flex w-fit items-center gap-2 rounded-xl border border-purple-200 px-5 py-3 text-sm font-bold text-purple-700 transition hover:bg-purple-50"
+          >
+            View all services
+            <ArrowRight size={17} />
+          </Link>
+        </div>
+
+        {/* SERVICE GRID */}
+        <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {services.map((service) => {
+            const Icon = service.icon;
+
+            return (
+              <Link
+                key={service.title}
+                href="/student/services"
+                className="group overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl"
+              >
+                {/* IMAGE */}
+                <div className="relative h-52 overflow-hidden">
+                  <img
+                    src={service.image}
+                    alt={service.title}
+                    className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                  />
+
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+
+                  {/* ICON */}
+                  <div
+                    className={`absolute bottom-4 left-4 flex h-12 w-12 items-center justify-center rounded-2xl ${service.iconBg} ${service.iconColor} shadow-lg`}
+                  >
+                    <Icon size={21} />
+                  </div>
                 </div>
-              </div>
 
-              <h3 className="font-extrabold text-slate-900 text-sm mt-1">
-                {item.title}
-              </h3>
-              <p className="text-[11px] text-slate-400 mt-1 leading-tight mb-2">
-                {item.desc}
-              </p>
-            </Link>
-          );
-        })}
-      </div>
+                {/* CONTENT */}
+                <div className="p-6">
+                  <div className="flex items-start justify-between gap-4">
+                    <h3 className="text-xl font-black text-[#14244a]">
+                      {service.title}
+                    </h3>
 
-      {/* 4 Bottom Metric Stats */}
-      <div className="mt-12 bg-purple-50/70 border border-purple-100 rounded-3xl p-6 grid grid-cols-2 md:grid-cols-4 gap-6 divide-y md:divide-y-0 md:divide-x divide-purple-200/60">
-        <div className="flex items-center gap-4 justify-center">
-          <div className="w-11 h-11 rounded-2xl bg-purple-600 text-white flex items-center justify-center">
-            <GraduationCap className="w-6 h-6" />
-          </div>
-          <div>
-            <h4 className="text-xl font-black text-slate-900">5+</h4>
-            <p className="text-xs font-semibold text-slate-500">Campus Services</p>
-          </div>
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-50 text-slate-400 transition group-hover:bg-purple-600 group-hover:text-white">
+                      <ArrowRight size={17} />
+                    </div>
+                  </div>
+
+                  <p className="mt-3 text-sm leading-6 text-slate-500">
+                    {service.description}
+                  </p>
+
+                  <div className="mt-5 text-sm font-bold text-purple-600">
+                    Explore service →
+                  </div>
+                </div>
+              </Link>
+            );
+          })}
         </div>
 
-        <div className="flex items-center gap-4 justify-center pt-4 md:pt-0">
-          <div className="w-11 h-11 rounded-2xl bg-purple-600 text-white flex items-center justify-center">
-            <Clock className="w-6 h-6" />
-          </div>
-          <div>
-            <h4 className="text-xl font-black text-slate-900">24/7</h4>
-            <p className="text-xs font-semibold text-slate-500">Digital Access</p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-4 justify-center pt-4 md:pt-0">
-          <div className="w-11 h-11 rounded-2xl bg-purple-600 text-white flex items-center justify-center">
-            <IndianRupee className="w-6 h-6" />
-          </div>
-          <div>
-            <h4 className="text-xl font-black text-slate-900">₹199</h4>
-            <p className="text-xs font-semibold text-slate-500">Fresher Pass Starts</p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-4 justify-center pt-4 md:pt-0">
-          <div className="w-11 h-11 rounded-2xl bg-purple-600 text-white flex items-center justify-center">
-            <ShieldCheck className="w-6 h-6" />
-          </div>
-          <div>
-            <h4 className="text-xl font-black text-slate-900">100%</h4>
-            <p className="text-xs font-semibold text-slate-500">Student Focused</p>
-          </div>
-        </div>
       </div>
     </section>
   );

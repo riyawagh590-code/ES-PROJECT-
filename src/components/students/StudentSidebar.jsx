@@ -1,120 +1,64 @@
 "use client";
 
+import Link from "next/link";
 import {
   LayoutDashboard,
-  Utensils,
-  Shirt,
-  Sparkles,
-  Home,
-  Coffee,
-  Users,
   CalendarDays,
-  CreditCard,
-  UserCircle,
-  LogOut,
+  Wallet,
+  Headphones,
+  Settings,
 } from "lucide-react";
 
-const menuItems = [
-  {
-    label: "Dashboard",
-    icon: LayoutDashboard,
-    href: "/student",
-  },
-  {
-    label: "Mess",
-    icon: Utensils,
-    href: "/student/mess",
-  },
-  {
-    label: "Laundry",
-    icon: Shirt,
-    href: "/student/laundry",
-  },
-  {
-    label: "Cleaning",
-    icon: Sparkles,
-    href: "/student/cleaning",
-  },
-  {
-    label: "PG & Hostels",
-    icon: Home,
-    href: "/student/pg",
-  },
-  {
-    label: "Cafes",
-    icon: Coffee,
-    href: "/student/cafes",
-  },
-  {
-    label: "Roommate Finder",
-    icon: Users,
-    href: "/student/roomate",
-  },
-  {
-    label: "My Bookings",
-    icon: CalendarDays,
-    href: "/bookings",
-  },
-  {
-    label: "Fresher Pass",
-    icon: CreditCard,
-    href: "/pass",
-  },
-  {
-    label: "Profile",
-    icon: UserCircle,
-    href: "/student/profile",
-  },
-];
+export default function StudentSidebar() {
+  const menuItems = [
+    { label: "Dashboard", icon: LayoutDashboard, href: "/student", active: true },
+    { label: "My Bookings", icon: CalendarDays, href: "/bookings", active: false },
+    { label: "Wallet", icon: Wallet, href: "/student/wallet", active: false },
+    { label: "Support", icon: Headphones, href: "/support", active: false },
+    { label: "Settings", icon: Settings, href: "/student/settings", active: false },
+  ];
 
-export default function StudentSidebar({
-  active,
-  onNavigate,
-  onLogout,
-}) {
   return (
-    <aside className="w-64 min-h-screen bg-white border-r border-gray-100 flex flex-col">
-      <div className="px-6 py-6 border-b border-gray-100">
-        <h2 className="text-xl font-black text-gray-900">
-          Campus
-          <span className="text-purple-600"> Concierge</span>
-        </h2>
-
-        <p className="text-xs text-gray-400 mt-1">
-          Your campus life, sorted.
-        </p>
-      </div>
-
-      <nav className="p-4 flex-1 space-y-1">
-        {menuItems.map((item) => {
+    <aside className="w-56 bg-white border-r border-slate-100 flex flex-col justify-between py-6 px-4 shrink-0 min-h-[calc(100vh-80px)]">
+      {/* Top Nav Items */}
+      <div className="space-y-1.5">
+        {menuItems.map((item, idx) => {
           const Icon = item.icon;
-          const isActive = active === item.label;
-
           return (
-            <button
-              key={item.label}
-              onClick={() => onNavigate?.(item.href)}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition ${
-                isActive
-                  ? "bg-purple-50 text-purple-700"
-                  : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+            <Link
+              key={idx}
+              href={item.href}
+              className={`flex items-center gap-3.5 px-4 py-3 rounded-2xl text-xs font-bold transition-all ${
+                item.active
+                  ? "bg-purple-50 text-[#6C47FF] shadow-sm shadow-purple-100"
+                  : "text-slate-500 hover:text-slate-900 hover:bg-slate-50"
               }`}
             >
-              <Icon className="w-5 h-5" />
+              <Icon className={`w-4 h-4 ${item.active ? "text-[#6C47FF]" : "text-slate-400"}`} />
               {item.label}
-            </button>
+            </Link>
           );
         })}
-      </nav>
+      </div>
 
-      <div className="p-4 border-t border-gray-100">
-        <button
-          onClick={onLogout}
-          className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-red-500 hover:bg-red-50 transition"
-        >
-          <LogOut className="w-5 h-5" />
-          Logout
-        </button>
+      {/* Bottom Campus Illustration & Doodle */}
+      <div className="relative pt-6 border-t border-slate-100 text-center">
+        {/* Doodle text */}
+        <div className="mb-2 text-[#4F46E5] font-bold text-[11px] leading-tight rotate-[-4deg] pointer-events-none select-none">
+          Happy <br />
+          Campus Life <br />
+          Starts Here!
+          <div className="text-sm mt-0.5">☺ ✦</div>
+        </div>
+
+        {/* Campus Landmark Vector Art */}
+        <div className="w-full h-36 rounded-2xl overflow-hidden bg-gradient-to-t from-purple-100 via-pink-50 to-transparent flex items-end justify-center p-2">
+          <img
+            src="https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=400&auto=format&fit=crop&q=80"
+            alt="Campus Clocktower"
+            className="w-full h-32 object-cover rounded-xl shadow-sm"
+          />
+        </div>
       </div>
     </aside>
   );

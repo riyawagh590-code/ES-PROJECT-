@@ -1,46 +1,51 @@
 "use client";
 
 import { Search, X } from "lucide-react";
-import { useState } from "react";
 
 export default function SearchBar({
-  placeholder = "Search services, vendors or locations...",
-  onSearch,
+  value = "",
+  onChange,
+  placeholder = "Search services, food, laundry, hostels...",
 }) {
-  const [value, setValue] = useState("");
-
-  const handleChange = (e) => {
-    const newValue = e.target.value;
-
-    setValue(newValue);
-    onSearch?.(newValue);
+  const handleChange = (event) => {
+    if (onChange) {
+      onChange(event.target.value);
+    }
   };
 
   const clearSearch = () => {
-    setValue("");
-    onSearch?.("");
+    if (onChange) {
+      onChange("");
+    }
   };
 
   return (
     <div className="relative w-full">
-      <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+      <div className="flex min-h-[58px] items-center rounded-2xl border border-slate-200 bg-white px-4 shadow-sm transition focus-within:border-purple-300 focus-within:ring-4 focus-within:ring-purple-50">
+        <Search
+          size={21}
+          className="mr-3 shrink-0 text-slate-400"
+        />
 
-      <input
-        type="text"
-        value={value}
-        onChange={handleChange}
-        placeholder={placeholder}
-        className="w-full pl-12 pr-12 py-4 bg-white border border-gray-200 rounded-2xl outline-none focus:border-purple-500 focus:ring-4 focus:ring-purple-50 transition"
-      />
+        <input
+          type="text"
+          value={value}
+          onChange={handleChange}
+          placeholder={placeholder}
+          className="min-w-0 flex-1 bg-transparent text-sm font-medium text-slate-700 outline-none placeholder:text-slate-400"
+        />
 
-      {value && (
-        <button
-          onClick={clearSearch}
-          className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700"
-        >
-          <X className="w-5 h-5" />
-        </button>
-      )}
+        {value && (
+          <button
+            type="button"
+            onClick={clearSearch}
+            className="ml-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+            aria-label="Clear search"
+          >
+            <X size={17} />
+          </button>
+        )}
+      </div>
     </div>
   );
 }

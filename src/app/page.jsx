@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import Navbar from "@/components/common/Navbar";
 import {
   GraduationCap,
   Search,
@@ -82,62 +83,7 @@ export default function HomePage() {
   return (
     <main className="min-h-screen bg-[#faf9fc] text-slate-900 font-sans selection:bg-purple-100 selection:text-purple-700">
       {/* 1. TOP NAVBAR */}
-      <nav className="w-full bg-white/90 backdrop-blur-md sticky top-0 z-50 border-b border-purple-50">
-        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-2xl bg-purple-600 flex items-center justify-center text-white shadow-lg shadow-purple-200">
-              <GraduationCap className="w-6 h-6" />
-            </div>
-            <div>
-              <span className="text-xl font-black text-slate-900 tracking-tight block leading-none">
-                Studentica.
-              </span>
-              <span className="text-[11px] font-semibold text-purple-600 tracking-wide">
-                Campus Concierge
-              </span>
-            </div>
-          </Link>
-
-          <div className="hidden md:flex items-center gap-8 text-sm font-semibold text-slate-600">
-            <Link href="/" className="text-purple-600 font-bold border-b-2 border-purple-600 pb-1">
-              Home
-            </Link>
-            <Link href="/services" className="hover:text-purple-600 transition-colors">
-              Services
-            </Link>
-            <Link href="/pass" className="hover:text-purple-600 transition-colors">
-              Fresher Pass
-            </Link>
-            <Link href="/roommate" className="hover:text-purple-600 transition-colors">
-              Roommate Finder
-            </Link>
-            <Link href="#about" className="hover:text-purple-600 transition-colors">
-              About
-            </Link>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <button
-              aria-label="Search"
-              className="p-2 text-slate-500 hover:text-slate-900 rounded-full hover:bg-slate-100 transition"
-            >
-              <Search className="w-5 h-5" />
-            </button>
-            <Link
-              href="/login"
-              className="px-5 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 border border-slate-200 rounded-xl transition"
-            >
-              Login
-            </Link>
-            <Link
-              href="/register"
-              className="px-5 py-2.5 text-sm font-semibold text-white bg-purple-600 hover:bg-purple-700 rounded-xl shadow-md shadow-purple-200 transition"
-            >
-              Get Started
-            </Link>
-          </div>
-        </div>
-      </nav>
+      <Navbar />
 
       {/* 2. HERO SECTION */}
       <section className="relative overflow-hidden pt-8 pb-16">
@@ -250,7 +196,6 @@ export default function HomePage() {
 
               {/* Exact Photo Container */}
               <div className="relative w-[320px] sm:w-[390px] h-[460px] sm:h-[500px] rounded-[40px] overflow-hidden shadow-2xl border-[5px] border-white bg-[#efe8fd]">
-                {/* Fallback resilient image loader */}
                 <picture>
                   <source
                     srcSet="https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=800&auto=format&fit=crop&q=80"
