@@ -468,7 +468,7 @@ export default function StudentMessPage() {
 
                       {/* Rating Pill */}
                       <div className="absolute top-2.5 right-2.5 bg-white/90 backdrop-blur-md rounded-full px-2.5 py-0.5 flex items-center gap-1 shadow-sm">
-                        <Star className="w-3 h-3 text-amber-500 fill-amber-500" />
+                        <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
                         <span className="text-[11px] font-black text-slate-900">{item.rating}</span>
                         <span className="text-[10px] text-slate-400">({item.reviews})</span>
                       </div>
@@ -508,10 +508,14 @@ export default function StudentMessPage() {
                   {/* View Details Button */}
                   <div className="pt-4 px-1">
                     <Link
-                      href={`/service/${item.id}`}
-                      className="w-full py-2.5 rounded-xl bg-[#6C47FF] hover:bg-[#5835e5] text-white text-xs font-bold flex items-center justify-center gap-2 transition shadow-md shadow-purple-200"
+                      href={
+                        item.id === "annapurna" || item.name?.toLowerCase().includes("annapurna")
+                          ? "/student/mess/annapurna"
+                          : `/service/${item.id}`
+                      }
+                      className="w-full py-2.5 rounded-xl bg-[#6C47FF] hover:bg-[#5835e5] text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition shadow-sm"
                     >
-                      View Details
+                      <span>View Details</span>
                       <ArrowRight className="w-3.5 h-3.5" />
                     </Link>
                   </div>
@@ -520,7 +524,7 @@ export default function StudentMessPage() {
             </div>
           </main>
 
-          {/* RIGHT SIDEBAR: QUICK NAV (Exact match to image) */}
+          {/* RIGHT SIDEBAR: QUICK NAV */}
           <aside className="hidden xl:flex flex-col w-64 bg-white rounded-3xl p-5 border border-slate-100 shadow-sm shrink-0 sticky top-24 space-y-6">
             <div>
               <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-400 mb-3 px-2">

@@ -25,6 +25,40 @@ import {
   Coffee,
 } from "lucide-react";
 
+// Predefined demo credentials mapped directly to the 5 dashboards
+const PRESET_VENDORS = [
+  {
+    email: "annapurna@vendor.com",
+    password: "mess123",
+    vendorId: "mess-01",
+    name: "Annapurna Dining Hall",
+  },
+  {
+    email: "cottonspa@vendor.com",
+    password: "laundry123",
+    vendorId: "laundry-01",
+    name: "CottonSpa Laundry",
+  },
+  {
+    email: "shital@vendor.com",
+    password: "clean123",
+    vendorId: "cleaning-01",
+    name: "Shital Patil Housekeeping",
+  },
+  {
+    email: "manas@vendor.com",
+    password: "hostel123",
+    vendorId: "hostel-01",
+    name: "Manas Girls Hostel",
+  },
+  {
+    email: "cafe24@vendor.com",
+    password: "cafe123",
+    vendorId: "cafe-03",
+    name: "THE CAFE 24",
+  },
+];
+
 export default function LoginForm() {
   const [role, setRole] = useState("student");
 
@@ -53,19 +87,101 @@ export default function LoginForm() {
 
     setMessage("");
 
-    if (!formData.email || !formData.password) {
+    const inputEmail = formData.email.trim().toLowerCase();
+    const inputPassword = formData.password.trim();
+
+    if (!inputEmail || !inputPassword) {
       setMessage("Please enter your email and password.");
       return;
     }
 
     /*
-      FRONTEND-ONLY LOGIN
-
-      We are checking the account saved during registration.
-      Backend authentication can be connected later.
+      =======================================================
+      1. VENDOR AUTHENTICATION & DIRECT ROUTING
+      =======================================================
     */
+    if (role === "vendor") {
+      // Check preset vendor credentials first
+      const matchedPreset = PRESET_VENDORS.find(
+        (v) => v.email.toLowerCase() === inputEmail
+      );
 
-    const savedUser = localStorage.getItem("campusConciergeUser");
+      if (matchedPreset) {
+        if (matchedPreset.password === inputPassword) {
+          const session = {
+            role: "vendor",
+            vendorId: matchedPreset.vendorId,
+            name: matchedPreset.name,
+            email: matchedPreset.email,
+            rememberMe,
+          };
+
+          localStorage.setItem("currentUser", JSON.stringify(session));
+          localStorage.setItem("campusConciergeLoggedIn", JSON.stringify(session));
+
+          setMessage("Login successful! Redirecting to your dashboard...");
+
+          setTimeout(() => {
+            window.location.href = `/vendor?vendor=${matchedPreset.vendorId}`;
+          }, 600);
+          return;
+        } else {
+          setMessage("Incorrect password for this vendor account.");
+          return;
+        }
+      }
+
+      // Check account registered dynamically via localStorage
+      const savedUser = localStorage.getItem("currentUser") || localStorage.getItem("campusConciergeUser");
+      if (savedUser) {
+        try {
+          const user = JSON.parse(savedUser);
+          if (
+            user.email &&
+            user.email.toLowerCase() === inputEmail &&
+            (!user.password || user.password === inputPassword)
+          ) {
+            let targetId = user.vendorId || "mess-01";
+            if (!user.vendorId && user.category) {
+              if (user.category.includes("Laundry")) targetId = "laundry-01";
+              else if (user.category.includes("Cleaning") || user.category.includes("Housekeeping")) targetId = "cleaning-01";
+              else if (user.category.includes("PG") || user.category.includes("Hostel")) targetId = "hostel-01";
+              else if (user.category.includes("Cafe")) targetId = "cafe-03";
+            }
+
+            const session = {
+              ...user,
+              role: "vendor",
+              vendorId: targetId,
+              rememberMe,
+            };
+
+            localStorage.setItem("currentUser", JSON.stringify(session));
+            localStorage.setItem("campusConciergeLoggedIn", JSON.stringify(session));
+
+            setMessage("Login successful! Redirecting...");
+            setTimeout(() => {
+              window.location.href = `/vendor?vendor=${targetId}`;
+            }, 600);
+            return;
+          }
+        } catch (err) {
+          console.error("Error reading saved user:", err);
+        }
+      }
+
+      setMessage(
+        "Vendor account not found. Use your registered vendor email or presets like annapurna@vendor.com."
+      );
+      return;
+    }
+
+    /*
+      =======================================================
+      2. STUDENT AUTHENTICATION
+      =======================================================
+    */
+    const savedUser = localStorage.getItem("campusConciergeUser") || localStorage.getItem("currentUser");
 
     if (savedUser) {
       try {
@@ -73,16 +189,15 @@ export default function LoginForm() {
 
         if (
           user.email &&
-          user.email === formData.email &&
-          user.password &&
-          user.password === formData.password
+          user.email.toLowerCase() === inputEmail &&
+          (!user.password || user.password === inputPassword)
         ) {
           localStorage.setItem(
             "campusConciergeLoggedIn",
             JSON.stringify({
               email: user.email,
-              role: user.role || role,
-              name: user.fullName || "",
+              role: "student",
+              name: user.fullName || user.name || "Student",
               rememberMe,
             })
           );
@@ -90,13 +205,8 @@ export default function LoginForm() {
           setMessage("Login successful!");
 
           setTimeout(() => {
-            if (role === "vendor") {
-              window.location.href = "/vendor";
-            } else {
-              window.location.href = "/student";
-            }
-          }, 700);
-
+            window.location.href = "/student";
+          }, 600);
           return;
         }
       } catch (error) {
@@ -104,9 +214,23 @@ export default function LoginForm() {
       }
     }
 
-    /*
-      If backend is not connected yet, show a friendly message.
-    */
+    // Default student demo bypass if entered directly
+    if (inputEmail.includes("@")) {
+      const studentSession = {
+        role: "student",
+        email: inputEmail,
+        name: "Student",
+        rememberMe,
+      };
+      localStorage.setItem("campusConciergeLoggedIn", JSON.stringify(studentSession));
+      localStorage.setItem("currentUser", JSON.stringify(studentSession));
+
+      setMessage("Login successful!");
+      setTimeout(() => {
+        window.location.href = "/student";
+      }, 600);
+      return;
+    }
 
     setMessage(
       "Account not found. Please check your details or create an account first."
@@ -344,7 +468,7 @@ export default function LoginForm() {
               <div className="absolute bottom-[-30px] left-[-80px] h-[270px] w-[620px] overflow-hidden rounded-[45%_45%_0_0] bg-[#eee7ff]" />
 
               <img
-                src="/images/campus-students-reference.jpg"
+                src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=800&auto=format&fit=crop&q=80"
                 alt="Students enjoying campus life"
                 className="absolute bottom-[-70px] left-[-30px] z-10 h-[390px] w-[590px] object-cover object-center"
               />
@@ -358,7 +482,7 @@ export default function LoginForm() {
 
             <div className="mt-8 flex justify-center md:hidden">
               <img
-                src="/images/campus-students-reference.jpg"
+                src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=800&auto=format&fit=crop&q=80"
                 alt="Students enjoying campus life"
                 className="h-[300px] w-full rounded-[30px] object-cover"
               />
@@ -397,7 +521,10 @@ export default function LoginForm() {
               <div className="mt-7 grid grid-cols-2 rounded-2xl bg-[#f5f4fa] p-1">
                 <button
                   type="button"
-                  onClick={() => setRole("student")}
+                  onClick={() => {
+                    setRole("student");
+                    setMessage("");
+                  }}
                   className={`flex h-12 items-center justify-center gap-2 rounded-xl text-[15px] font-bold transition ${
                     role === "student"
                       ? "bg-gradient-to-r from-[#7549e8] to-[#6840dd] text-white shadow-md"
@@ -411,7 +538,10 @@ export default function LoginForm() {
 
                 <button
                   type="button"
-                  onClick={() => setRole("vendor")}
+                  onClick={() => {
+                    setRole("vendor");
+                    setMessage("");
+                  }}
                   className={`flex h-12 items-center justify-center gap-2 rounded-xl text-[15px] font-bold transition ${
                     role === "vendor"
                       ? "bg-gradient-to-r from-[#7549e8] to-[#6840dd] text-white shadow-md"
@@ -455,8 +585,9 @@ export default function LoginForm() {
                       name="email"
                       value={formData.email}
                       onChange={handleChange}
-                      placeholder="you@example.com"
+                      placeholder={role === "vendor" ? "e.g. annapurna@vendor.com" : "you@example.com"}
                       className="login-input pl-12"
+                      required
                     />
                   </div>
                 </div>
@@ -490,6 +621,7 @@ export default function LoginForm() {
                       onChange={handleChange}
                       placeholder="Enter your password"
                       className="login-input pl-12 pr-12"
+                      required
                     />
 
                     <button
@@ -587,6 +719,15 @@ export default function LoginForm() {
 
                 <button
                   type="button"
+                  onClick={() => {
+                    const session = {
+                      role: "student",
+                      name: "Google Student",
+                      email: "student@campus.edu",
+                    };
+                    localStorage.setItem("currentUser", JSON.stringify(session));
+                    window.location.href = "/student";
+                  }}
                   className="flex h-[55px] w-full items-center justify-center gap-3 rounded-2xl border border-[#d5dce8] bg-white text-[15px] font-bold text-[#233b61] transition hover:border-[#bcaaf2] hover:bg-[#faf8ff]"
                 >
                   <span className="text-[22px] font-extrabold">
@@ -599,7 +740,7 @@ export default function LoginForm() {
                 {/* REGISTER */}
 
                 <p className="pt-1 text-center text-[14px] text-[#7a89a1]">
-                  Don't have an account?{" "}
+                  Don&apos;t have an account?{" "}
                   <Link
                     href="/register"
                     className="font-bold text-[#6840df] hover:underline"

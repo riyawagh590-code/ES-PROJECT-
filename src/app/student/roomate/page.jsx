@@ -1,5 +1,4 @@
 "use client";
-
 import React, { useState } from "react";
 import Link from "next/link";
 import Navbar from "@/components/common/Navbar";
@@ -9,12 +8,12 @@ import {
   Bell,
   MapPin,
   Star,
-  Sparkles,
+  Sparkles,  
   ShieldCheck,
   Users,
   Award,
   User,
-  Settings,
+  Settings,  
   ArrowRight,
   Flame,
   Heart,
@@ -23,7 +22,7 @@ import {
   ChevronRight,
   SlidersHorizontal,
   ChevronDown,
-  Home as HomeIcon,
+  Home as HomeIcon, 
   Grid,
   Utensils,
   Building,

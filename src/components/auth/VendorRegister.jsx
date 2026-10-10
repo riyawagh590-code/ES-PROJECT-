@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -14,7 +15,6 @@ import {
   MapPin,
   Phone,
   ShieldCheck,
-  Sparkles,
   Store,
   User,
   Utensils,
@@ -25,17 +25,52 @@ import {
 } from "lucide-react";
 
 export default function VendorRegister() {
+  const router = useRouter();
+
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
+  // Form states to capture vendor info
+  const [businessName, setBusinessName] = useState("");
+  const [ownerName, setOwnerName] = useState("");
+  const [category, setCategory] = useState("Mess & Food");
+  const [location, setLocation] = useState("");
+  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
+  const handleRegister = (e) => {
+    e.preventDefault();
+
+    // Map selected category directly to its matching vendor dashboard ID
+    let assignedVendorId = "mess-01";
+    if (category === "Laundry") assignedVendorId = "laundry-01";
+    else if (category === "Housekeeping") assignedVendorId = "cleaning-01";
+    else if (category === "PG & Hostels") assignedVendorId = "hostel-01";
+    else if (category === "Cafes") assignedVendorId = "cafe-03";
+
+    const session = {
+      role: "vendor",
+      vendorId: assignedVendorId,
+      name: businessName || "Vendor Business",
+      owner: ownerName,
+      category: category,
+      location: location,
+      phone: phone,
+      email: email,
+    };
+
+    localStorage.setItem("currentUser", JSON.stringify(session));
+    router.push(`/vendor?vendor=${assignedVendorId}`);
+  };
+
   return (
     <main className="min-h-screen bg-[#fcf9f6] text-[#142541] overflow-hidden">
-
       <div className="min-h-screen grid lg:grid-cols-[48%_52%]">
 
         {/* LEFT */}
         <section className="relative hidden lg:flex flex-col justify-between overflow-hidden bg-[#f5f1ff] px-12 xl:px-16 py-10">
-
           <div className="absolute -top-40 -left-32 w-[430px] h-[430px] rounded-full bg-[#dfd1ff]" />
           <div className="absolute top-[-80px] right-[-120px] w-[400px] h-[400px] rounded-full bg-[#ffe6d1]" />
           <div className="absolute bottom-[-160px] left-[-100px] w-[470px] h-[470px] rounded-full bg-[#d9cbff]" />
@@ -44,7 +79,6 @@ export default function VendorRegister() {
 
             {/* Logo */}
             <Link href="/" className="inline-flex items-center gap-3">
-
               <div className="w-12 h-12 rounded-2xl bg-[#6034dc] flex items-center justify-center shadow-lg shadow-purple-200">
                 <GraduationCap className="text-white" size={28} />
               </div>
@@ -58,12 +92,10 @@ export default function VendorRegister() {
                   Campus Concierge
                 </div>
               </div>
-
             </Link>
 
             {/* Main vendor message */}
             <div className="mt-20 max-w-xl">
-
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-purple-100 shadow-sm text-[#6536dc] text-sm font-bold">
                 <Store size={15} />
                 Grow with your campus
@@ -85,7 +117,6 @@ export default function VendorRegister() {
 
               {/* Vendor categories */}
               <div className="mt-10 grid grid-cols-2 gap-5 max-w-lg">
-
                 <VendorFeature
                   icon={<Utensils size={21} />}
                   title="Mess & Food"
@@ -133,14 +164,11 @@ export default function VendorRegister() {
                   bg="bg-[#ffeaf5]"
                   color="text-[#e9278f]"
                 />
-
               </div>
-
             </div>
           </div>
 
           <div className="relative z-10 border-l-4 border-[#6536dc] pl-5 max-w-md">
-
             <p className="text-xl font-bold">
               Serve students.
               <br />
@@ -150,14 +178,11 @@ export default function VendorRegister() {
             <p className="mt-2 text-sm text-[#74819a]">
               Orders, bookings, services and earnings — together.
             </p>
-
           </div>
-
         </section>
 
         {/* RIGHT */}
         <section className="relative flex items-center justify-center px-5 sm:px-8 py-10">
-
           <div className="absolute top-[-100px] right-[-100px] w-72 h-72 bg-[#eee5ff] rounded-full" />
 
           <div className="relative z-10 w-full max-w-[560px]">
@@ -165,7 +190,6 @@ export default function VendorRegister() {
             {/* Mobile logo */}
             <div className="lg:hidden mb-8">
               <Link href="/" className="inline-flex items-center gap-3">
-
                 <div className="w-11 h-11 rounded-xl bg-[#6034dc] flex items-center justify-center">
                   <GraduationCap className="text-white" size={24} />
                 </div>
@@ -179,7 +203,6 @@ export default function VendorRegister() {
                     Campus Concierge
                   </div>
                 </div>
-
               </Link>
             </div>
 
@@ -201,7 +224,6 @@ export default function VendorRegister() {
 
               {/* Switch */}
               <div className="mt-7 grid grid-cols-2 gap-2 p-1.5 bg-[#f4f3f8] rounded-2xl">
-
                 <Link
                   href="/register"
                   className="flex items-center justify-center gap-2 py-3.5 rounded-xl text-[#71809a] font-semibold"
@@ -214,82 +236,110 @@ export default function VendorRegister() {
                   <Store size={18} />
                   Vendor
                 </div>
-
               </div>
 
-              {/* Business name */}
-              <Field
-                label="Business / Service Name"
-                icon={<Building2 size={18} />}
-                placeholder="e.g. Annapurna Home Mess"
-              />
-
-              {/* Owner */}
-              <Field
-                label="Owner / Contact Person"
-                icon={<User size={18} />}
-                placeholder="e.g. Rahul Patil"
-              />
-
-              {/* Service */}
-              <Field
-                label="Service Category"
-                icon={<BriefcaseBusiness size={18} />}
-                placeholder="Select service"
-                select
-              />
-
-              {/* Location */}
-              <Field
-                label="Business Location"
-                icon={<MapPin size={18} />}
-                placeholder="Enter your service location"
-              />
-
-              {/* Phone + Email */}
-              <div className="grid sm:grid-cols-2 gap-4">
-
+              <form onSubmit={handleRegister}>
+                {/* Business name */}
                 <Field
-                  label="Contact Number"
-                  icon={<Phone size={18} />}
-                  placeholder="10-digit mobile number"
+                  label="Business / Service Name"
+                  icon={<Building2 size={18} />}
+                  placeholder="e.g. Annapurna Home Mess"
+                  value={businessName}
+                  onChange={(e) => setBusinessName(e.target.value)}
                 />
 
+                {/* Owner */}
                 <Field
-                  label="Email"
-                  icon={<Mail size={18} />}
-                  placeholder="business@example.com"
+                  label="Owner / Contact Person"
+                  icon={<User size={18} />}
+                  placeholder="e.g. Rahul Patil"
+                  value={ownerName}
+                  onChange={(e) => setOwnerName(e.target.value)}
                 />
 
-              </div>
+                {/* Service Category */}
+                <div className="mt-5">
+                  <label className="flex items-center gap-2 text-sm font-bold mb-2 text-[#263654]">
+                    <BriefcaseBusiness size={18} />
+                    Service Category
+                  </label>
+                  <div className="relative">
+                    <select
+                      value={category}
+                      onChange={(e) => setCategory(e.target.value)}
+                      className="w-full h-14 px-4 pr-12 rounded-xl border border-[#dfe3eb] bg-[#fffdfc] outline-none focus:border-[#713ce5] focus:ring-4 focus:ring-purple-100 transition text-sm font-medium text-[#263654] cursor-pointer"
+                    >
+                      <option value="Mess & Food">Mess & Food</option>
+                      <option value="Laundry">Laundry</option>
+                      <option value="Housekeeping">Housekeeping</option>
+                      <option value="PG & Hostels">PG & Hostels</option>
+                      <option value="Cafes">Cafes</option>
+                    </select>
+                    <ChevronDown
+                      size={18}
+                      className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[#7c879b]"
+                    />
+                  </div>
+                </div>
 
-              {/* Password */}
-              <div className="grid sm:grid-cols-2 gap-4">
-
-                <PasswordField
-                  label="Password"
-                  placeholder="Create password"
-                  show={showPassword}
-                  setShow={setShowPassword}
+                {/* Location */}
+                <Field
+                  label="Business Location"
+                  icon={<MapPin size={18} />}
+                  placeholder="Enter your service location"
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
                 />
 
-                <PasswordField
-                  label="Confirm Password"
-                  placeholder="Confirm password"
-                  show={showConfirm}
-                  setShow={setShowConfirm}
-                />
+                {/* Phone + Email */}
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <Field
+                    label="Contact Number"
+                    icon={<Phone size={18} />}
+                    placeholder="10-digit mobile number"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                  />
 
-              </div>
+                  <Field
+                    label="Email"
+                    icon={<Mail size={18} />}
+                    placeholder="business@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
+                </div>
 
-              {/* Register */}
-              <button
-                type="button"
-                className="mt-7 w-full h-14 rounded-xl bg-[#6537df] hover:bg-[#5630c9] text-white font-bold flex items-center justify-center gap-2 shadow-lg shadow-purple-200 transition hover:-translate-y-0.5"
-              >
-                Create Vendor Account
-                <ArrowRight size={19} />
-              </button>
+                {/* Password */}
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <PasswordField
+                    label="Password"
+                    placeholder="Create password"
+                    show={showPassword}
+                    setShow={setShowPassword}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+
+                  <PasswordField
+                    label="Confirm Password"
+                    placeholder="Confirm password"
+                    show={showConfirm}
+                    setShow={setShowConfirm}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                  />
+                </div>
+
+                {/* Register */}
+                <button
+                  type="submit"
+                  className="mt-7 w-full h-14 rounded-xl bg-[#6537df] hover:bg-[#5630c9] text-white font-bold flex items-center justify-center gap-2 shadow-lg shadow-purple-200 transition hover:-translate-y-0.5"
+                >
+                  Create Vendor Account
+                  <ArrowRight size={19} />
+                </button>
+              </form>
 
               {/* Login */}
               <p className="text-center text-sm text-[#758198] mt-7">
@@ -304,7 +354,6 @@ export default function VendorRegister() {
 
               {/* Trust */}
               <div className="mt-7 pt-5 border-t border-[#eeeef2] flex items-center justify-center gap-4 text-xs text-[#7d879b]">
-
                 <span className="flex items-center gap-1.5">
                   <ShieldCheck size={15} className="text-[#15a46a]" />
                   Secure registration
@@ -313,9 +362,7 @@ export default function VendorRegister() {
                 <span className="w-px h-4 bg-[#dddde2]" />
 
                 <span>Campus-focused platform</span>
-
               </div>
-
             </div>
           </div>
         </section>
@@ -323,7 +370,6 @@ export default function VendorRegister() {
     </main>
   );
 }
-
 
 /* ---------------- VENDOR FEATURE ---------------- */
 
@@ -336,7 +382,6 @@ function VendorFeature({
 }) {
   return (
     <div className="flex items-center gap-3">
-
       <div
         className={`w-11 h-11 rounded-xl ${bg} ${color} flex items-center justify-center`}
       >
@@ -352,11 +397,9 @@ function VendorFeature({
           {text}
         </p>
       </div>
-
     </div>
   );
 }
-
 
 /* ---------------- FIELD ---------------- */
 
@@ -364,36 +407,28 @@ function Field({
   label,
   icon,
   placeholder,
-  select = false,
+  value,
+  onChange,
 }) {
   return (
     <div className="mt-5">
-
       <label className="flex items-center gap-2 text-sm font-bold mb-2 text-[#263654]">
         {icon}
         {label}
       </label>
 
       <div className="relative">
-
         <input
           type="text"
           placeholder={placeholder}
-          className="w-full h-14 px-4 pr-12 rounded-xl border border-[#dfe3eb] bg-[#fffdfc] outline-none focus:border-[#713ce5] focus:ring-4 focus:ring-purple-100 transition placeholder:text-[#9aa4b7]"
+          value={value}
+          onChange={onChange}
+          className="w-full h-14 px-4 pr-4 rounded-xl border border-[#dfe3eb] bg-[#fffdfc] outline-none focus:border-[#713ce5] focus:ring-4 focus:ring-purple-100 transition placeholder:text-[#9aa4b7] text-sm text-[#263654]"
         />
-
-        {select && (
-          <ChevronDown
-            size={18}
-            className="absolute right-4 top-1/2 -translate-y-1/2 text-[#7c879b]"
-          />
-        )}
-
       </div>
     </div>
   );
 }
-
 
 /* ---------------- PASSWORD ---------------- */
 
@@ -402,21 +437,23 @@ function PasswordField({
   placeholder,
   show,
   setShow,
+  value,
+  onChange,
 }) {
   return (
     <div className="mt-5">
-
       <label className="flex items-center gap-2 text-sm font-bold mb-2 text-[#263654]">
         <Eye size={16} />
         {label}
       </label>
 
       <div className="relative">
-
         <input
           type={show ? "text" : "password"}
           placeholder={placeholder}
-          className="w-full h-14 px-4 pr-12 rounded-xl border border-[#dfe3eb] bg-[#fffdfc] outline-none focus:border-[#713ce5] focus:ring-4 focus:ring-purple-100 transition placeholder:text-[#9aa4b7]"
+          value={value}
+          onChange={onChange}
+          className="w-full h-14 px-4 pr-12 rounded-xl border border-[#dfe3eb] bg-[#fffdfc] outline-none focus:border-[#713ce5] focus:ring-4 focus:ring-purple-100 transition placeholder:text-[#9aa4b7] text-sm text-[#263654]"
         />
 
         <button
@@ -426,7 +463,6 @@ function PasswordField({
         >
           {show ? <EyeOff size={18} /> : <Eye size={18} />}
         </button>
-
       </div>
     </div>
   );
