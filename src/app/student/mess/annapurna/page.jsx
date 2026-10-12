@@ -23,7 +23,6 @@ import {
 
 export default function AnnapurnaDetailsPage() {
   const [activeTab, setActiveTab] = useState("Monthly");
-  const [activeMenu, setActiveMenu] = useState("Dashboard");
 
   return (
     <div className="min-h-screen bg-[#F4F6FC] text-[#14244A] font-sans flex antialiased">
@@ -44,59 +43,40 @@ export default function AnnapurnaDetailsPage() {
             </div>
           </Link>
 
-          <nav className="space-y-1.5 pt-2">
-            <button
-              type="button"
-              onClick={() => setActiveMenu("Dashboard")}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-bold transition-all ${
-                activeMenu === "Dashboard"
-                  ? "bg-[#F3EFFF] text-[#6C47FF] shadow-sm shadow-purple-100"
-                  : "text-slate-500 hover:text-slate-900 hover:bg-slate-50"
-              }`}
+          <nav className="space-y-1 pt-2">
+            {/* Dashboard */}
+            <Link
+              href="/student"
+              className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-bold bg-[#F3EFFF] text-[#6C47FF] shadow-sm shadow-purple-100 transition"
             >
-              <LayoutDashboard className="w-4 h-4 text-[#6C47FF]" />
+              <LayoutDashboard className="w-4 h-4 shrink-0 text-[#6C47FF]" />
               <span>Dashboard</span>
-            </button>
+            </Link>
 
+            {/* My Bookings */}
             <Link
               href="/bookings"
-              className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-bold text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition"
+              className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-bold text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition"
             >
-              <CalendarDays className="w-4 h-4 text-slate-400" />
+              <CalendarDays className="w-4 h-4 shrink-0 text-slate-400" />
               <span>My Bookings</span>
             </Link>
 
-            <button
-              type="button"
-              onClick={() => setActiveMenu("Rate Us")}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-bold transition-all ${
-                activeMenu === "Rate Us"
-                  ? "bg-[#F3EFFF] text-[#6C47FF]"
-                  : "text-slate-500 hover:text-slate-900 hover:bg-slate-50"
-              }`}
+            {/* Rating & Review */}
+            <Link
+              href="/student/mess/annapurna/review"
+              className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-bold text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition"
             >
-              <Star className="w-4 h-4 text-slate-400" />
-              <span>Rate Us</span>
-            </button>
+              <MessageSquarePlus className="w-4 h-4 shrink-0 text-slate-400" />
+              <span>Rating &amp; Review</span>
+            </Link>
 
-            <button
-              type="button"
-              onClick={() => setActiveMenu("Add Review")}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-bold transition-all ${
-                activeMenu === "Add Review"
-                  ? "bg-[#F3EFFF] text-[#6C47FF]"
-                  : "text-slate-500 hover:text-slate-900 hover:bg-slate-50"
-              }`}
-            >
-              <MessageSquarePlus className="w-4 h-4 text-slate-400" />
-              <span>Add Review</span>
-            </button>
-
+            {/* Settings */}
             <Link
               href="/student/profile"
-              className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-bold text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition"
+              className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-bold text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition"
             >
-              <Settings className="w-4 h-4 text-slate-400" />
+              <Settings className="w-4 h-4 shrink-0 text-slate-400" />
               <span>Settings</span>
             </Link>
           </nav>
@@ -219,7 +199,7 @@ export default function AnnapurnaDetailsPage() {
 
               <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#1C2C24] text-[#4ADE80] text-[11px] font-bold shadow-sm">
                 <span className="w-2 h-2 rounded-full bg-[#22C55E] animate-pulse" />
-                Serves Monthly & Daily basis (Closes 10:00 PM)
+                Serves Monthly &amp; Daily basis (Closes 10:00 PM)
               </div>
             </div>
 

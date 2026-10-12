@@ -1,6 +1,8 @@
 "use client";
-import React, { useEffect, useState } from "react";
+
+import React, { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import {
   GraduationCap,
   Search,
@@ -32,10 +34,7 @@ import {
   Tag,
   Leaf,
   Heart,
-  ClipboardList,
   IndianRupee,
-  Coffee,
-  BadgePercent,
   Calendar,
   UserCheck,
   Award,
@@ -45,86 +44,130 @@ import {
   BedDouble,
   Users,
   Sparkles,
-  Gift,
   HelpCircle,
   Pencil,
   Hourglass,
 } from "lucide-react";
-export default function VendorDashboardPage() {
+
+const DEMO_VENDORS = {
+  "mess-01": {
+    name: "Annapurna Dining Hall",
+    displayName: "Annapurna Mess",
+    service: "Mess Vendor",
+    dashboardTitle: "Mess Vendor Dashboard",
+    welcomeName: "Ramesh",
+    location: "Near Main Gate",
+    rating: "4.5",
+    badge: "Mess",
+  },
+  "laundry-01": {
+    name: "Express Dhobi & Dry Cleaners",
+    displayName: "CottonSpa",
+    service: "Laundry Vendor",
+    dashboardTitle: "Laundry Vendor Dashboard",
+    welcomeName: "Rahul Sharma",
+    location: "Dehu Phata",
+    rating: "4.2",
+    badge: "Laundry",
+  },
+  "cleaning-01": {
+    name: "CleanSpace Weekend Service",
+    displayName: "Housekeeping",
+    service: "House Cleaning Vendor",
+    dashboardTitle: "House Cleaning Vendor Dashboard",
+    welcomeName: "Shital Patil",
+    location: "Hostels A & B",
+    rating: "4.6",
+    badge: "Cleaning",
+  },
+  "hostel-01": {
+    name: "Sai Residency",
+    displayName: "Manas Girls Hostel",
+    service: "Hostel / PG Vendor",
+    dashboardTitle: "Hostel / PG Vendor Dashboard",
+    welcomeName: "Rohit Sharma",
+    location: "Campus Crossroad",
+    rating: "4.3",
+    badge: "Hostel / PG",
+  },
+  "cafe-03": {
+    name: "THE CAFE 24",
+    displayName: "THE CAFE 24",
+    service: "Café Vendor",
+    dashboardTitle: "Café Vendor Dashboard",
+    welcomeName: "Rahul Sharma",
+    location: "Tapkir Nagar Dehu-phata, MIT AOE College Road, Alandi 412105",
+    rating: "4.5",
+    badge: "Café",
+  },
+};
+
+const TYPE_TO_VENDOR_ID = {
+  mess: "mess-01",
+  food: "mess-01",
+  "mess-01": "mess-01",
+  annapurna: "mess-01",
+  laundry: "laundry-01",
+  "laundry-01": "laundry-01",
+  cotton: "laundry-01",
+  cottonspa: "laundry-01",
+  cleaning: "cleaning-01",
+  "cleaning-01": "cleaning-01",
+  housekeeping: "cleaning-01",
+  shital: "cleaning-01",
+  hostel: "hostel-01",
+  "hostel-01": "hostel-01",
+  pg: "hostel-01",
+  manas: "hostel-01",
+  cafe: "cafe-03",
+  "cafe-03": "cafe-03",
+  cafe24: "cafe-03",
+};
+
+function VendorDashboardInner() {
   const [mounted, setMounted] = useState(false);
   const [vendorId, setVendorId] = useState("mess-01");
-
-  const demoVendors = {
-    "mess-01": {
-      name: "Annapurna Dining Hall",
-      displayName: "Annapurna Mess",
-      service: "Mess Vendor",
-      dashboardTitle: "Mess Vendor Dashboard",
-      welcomeName: "Ramesh",
-      location: "Near Main Gate",
-      rating: "4.5",
-      badge: "Mess",
-    },
-    "laundry-01": {
-      name: "Express Dhobi & Dry Cleaners",
-      displayName: "CottonSpa",
-      service: "Laundry Vendor",
-      dashboardTitle: "Laundry Vendor Dashboard",
-      welcomeName: "Rahul Sharma",
-      location: "Dehu Phata",
-      rating: "4.2",
-      badge: "Laundry",
-    },
-    "cleaning-01": {
-      name: "CleanSpace Weekend Service",
-      displayName: "Housekeeping",
-      service: "House Cleaning Vendor",
-      dashboardTitle: "House Cleaning Vendor Dashboard",
-      welcomeName: "Shital Patil",
-      location: "Hostels A & B",
-      rating: "4.6",
-      badge: "Cleaning",
-    },
-    "hostel-01": {
-      name: "Sai Residency",
-      displayName: "Manas Girls Hostel",
-      service: "Hostel / PG Vendor",
-      dashboardTitle: "Hostel / PG Vendor Dashboard",
-      welcomeName: "Rohit Sharma",
-      location: "Campus Crossroad",
-      rating: "4.3",
-      badge: "Hostel / PG",
-    },
-    "cafe-03": {
-      name: "THE CAFE 24",
-      displayName: "THE CAFE 24",
-      service: "Café Vendor",
-      dashboardTitle: "Café Vendor Dashboard",
-      welcomeName: "Rahul Sharma",
-      location: "Tapkir Nagar Dehu-phata, MIT AOE College Road, Alandi 412105",
-      rating: "4.5",
-      badge: "Café",
-    },
-  };
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     setMounted(true);
 
-    const params = new URLSearchParams(window.location.search);
-    const urlVendor = params.get("vendor");
+    // 1. Check URL parameters: ?type=... or ?vendor=...
+    const urlType = searchParams.get("type");
+    const urlVendor = searchParams.get("vendor");
+    const targetQuery = (urlType || urlVendor || "").toLowerCase().trim();
 
-    if (urlVendor && demoVendors[urlVendor]) {
-      setVendorId(urlVendor);
+    if (targetQuery && TYPE_TO_VENDOR_ID[targetQuery]) {
+      setVendorId(TYPE_TO_VENDOR_ID[targetQuery]);
       return;
     }
 
+    if (targetQuery && DEMO_VENDORS[targetQuery]) {
+      setVendorId(targetQuery);
+      return;
+    }
+
+    // 2. Fallback to localStorage ('currentUser' or 'current_user')
     try {
-      const stored = localStorage.getItem("currentUser");
+      const stored =
+        localStorage.getItem("currentUser") ||
+        localStorage.getItem("current_user");
       if (stored) {
         const parsed = JSON.parse(stored);
-        if (parsed.vendorId && demoVendors[parsed.vendorId]) {
-          setVendorId(parsed.vendorId);
-          return;
+        const resolvedKey = (
+          parsed.categoryKey ||
+          parsed.type ||
+          parsed.vendorId ||
+          parsed.serviceCategory ||
+          parsed.businessName ||
+          ""
+        ).toLowerCase();
+
+        for (const [key, id] of Object.entries(TYPE_TO_VENDOR_ID)) {
+          if (resolvedKey.includes(key)) {
+            setVendorId(id);
+            return;
+          }
         }
       }
     } catch (e) {
@@ -132,9 +175,9 @@ export default function VendorDashboardPage() {
     }
 
     setVendorId("mess-01");
-  }, []);
+  }, [searchParams]);
 
-  const vendor = demoVendors[vendorId] || demoVendors["mess-01"];
+  const vendor = DEMO_VENDORS[vendorId] || DEMO_VENDORS["mess-01"];
 
   if (!mounted) {
     return (
@@ -161,6 +204,20 @@ export default function VendorDashboardPage() {
   }
 
   return <MessDashboard vendor={vendor} vendorId={vendorId} />;
+}
+
+export default function VendorDashboardPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-[#FAF9FD] flex items-center justify-center">
+          <div className="w-8 h-8 border-4 border-[#5835E5] border-t-transparent rounded-full animate-spin" />
+        </div>
+      }
+    >
+      <VendorDashboardInner />
+    </Suspense>
+  );
 }
 
 /* ============================================================
@@ -239,21 +296,24 @@ function CleaningDashboard() {
       rating: "5.0",
       comment: "Very punctual and does excellent work. Highly recommended!",
       date: "12 Sep 2026",
-      avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=120&auto=format&fit=crop&q=80",
+      avatar:
+        "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=120&auto=format&fit=crop&q=80",
     },
     {
       name: "Sneha Kadam",
       rating: "4.5",
       comment: "Clean and professional. Very polite.",
       date: "08 Sep 2026",
-      avatar: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=120&auto=format&fit=crop&q=80",
+      avatar:
+        "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=120&auto=format&fit=crop&q=80",
     },
     {
       name: "Rohan Patil",
       rating: "4.8",
       comment: "Great service! Will book again.",
       date: "28 Aug 2026",
-      avatar: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=120&auto=format&fit=crop&q=80",
+      avatar:
+        "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=120&auto=format&fit=crop&q=80",
     },
   ];
 
@@ -267,8 +327,12 @@ function CleaningDashboard() {
               <Sparkles className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-base font-black tracking-tight leading-tight">Housekeeping</h2>
-              <p className="text-[10px] text-purple-300 font-medium">Vendor Portal</p>
+              <h2 className="text-base font-black tracking-tight leading-tight">
+                Housekeeping
+              </h2>
+              <p className="text-[10px] text-purple-300 font-medium">
+                Vendor Portal
+              </p>
             </div>
           </div>
 
@@ -320,7 +384,11 @@ function CleaningDashboard() {
               <span>Need Help?</span>
             </div>
             <p className="text-[10px] text-purple-300/70">Chat with us</p>
-            <button className="w-full py-2 rounded-xl bg-[#6C47FF] hover:bg-[#5835e5] text-white text-xs font-extrabold flex items-center justify-center gap-1.5 transition shadow-sm">
+            <button
+              type="button"
+              suppressHydrationWarning
+              className="w-full py-2 rounded-xl bg-[#6C47FF] hover:bg-[#5835e5] text-white text-xs font-extrabold flex items-center justify-center gap-1.5 transition shadow-sm"
+            >
               <MessageCircle className="w-3.5 h-3.5" />
               Live Chat
             </button>
@@ -336,12 +404,19 @@ function CleaningDashboard() {
             <input
               type="text"
               placeholder="Search bookings, staff, or services..."
+              suppressHydrationWarning
+              data-lpignore="true"
+              autoComplete="off"
               className="w-full text-xs font-medium text-slate-800 placeholder-slate-400 bg-transparent focus:outline-none"
             />
           </div>
 
           <div className="flex items-center gap-4">
-            <button className="relative p-2.5 rounded-2xl bg-slate-50 text-slate-600 hover:text-slate-900 transition border border-slate-200/60">
+            <button
+              type="button"
+              suppressHydrationWarning
+              className="relative p-2.5 rounded-2xl bg-slate-50 text-slate-600 hover:text-slate-900 transition border border-slate-200/60"
+            >
               <Bell className="w-4 h-4" />
               <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-rose-500 text-[9px] font-black text-white flex items-center justify-center">
                 3
@@ -355,8 +430,12 @@ function CleaningDashboard() {
                 className="w-10 h-10 rounded-2xl object-cover ring-2 ring-purple-100"
               />
               <div className="hidden sm:block text-left">
-                <p className="text-xs font-black text-slate-900 leading-tight">Rohit Sharma</p>
-                <p className="text-[10px] text-slate-400 font-semibold">Vendor Owner</p>
+                <p className="text-xs font-black text-slate-900 leading-tight">
+                  Rohit Sharma
+                </p>
+                <p className="text-[10px] text-slate-400 font-semibold">
+                  Vendor Owner
+                </p>
               </div>
               <ChevronDown className="w-4 h-4 text-slate-400" />
             </div>
@@ -386,7 +465,10 @@ function CleaningDashboard() {
                   <h1 className="text-2xl sm:text-3xl font-black text-slate-900 leading-tight flex items-center gap-2">
                     Shital Patil
                     <span className="text-xs font-bold text-amber-500 flex items-center gap-1">
-                      ★ 4.6 <span className="text-slate-400 font-normal">(124 reviews)</span>
+                      ★ 4.6{" "}
+                      <span className="text-slate-400 font-normal">
+                        (124 reviews)
+                      </span>
                     </span>
                   </h1>
 
@@ -400,7 +482,9 @@ function CleaningDashboard() {
                       <Phone className="w-3 h-3 text-slate-400" /> 9000010002
                     </span>
                     <span>•</span>
-                    <span className="text-slate-500">Available at your service</span>
+                    <span className="text-slate-500">
+                      Available at your service
+                    </span>
                   </div>
 
                   <div className="flex flex-wrap items-center gap-2 pt-2 text-[10px] font-bold">
@@ -442,7 +526,11 @@ function CleaningDashboard() {
                 <p className="text-xs text-white/90">on next booking</p>
               </div>
 
-              <button className="w-full py-2.5 rounded-xl bg-white/20 hover:bg-white/30 text-white text-xs font-black flex items-center justify-center gap-1.5 transition border border-white/20 mt-4 backdrop-blur-sm">
+              <button
+                type="button"
+                suppressHydrationWarning
+                className="w-full py-2.5 rounded-xl bg-white/20 hover:bg-white/30 text-white text-xs font-black flex items-center justify-center gap-1.5 transition border border-white/20 mt-4 backdrop-blur-sm"
+              >
                 <span>View Offer</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </button>
@@ -460,7 +548,9 @@ function CleaningDashboard() {
                 <p className="text-[11px] font-bold text-emerald-600 flex items-center gap-1 mt-1">
                   <TrendingUp className="w-3.5 h-3.5" />
                   <span>12%</span>
-                  <span className="text-slate-400 font-medium">vs last month</span>
+                  <span className="text-slate-400 font-medium">
+                    vs last month
+                  </span>
                 </p>
               </div>
             </div>
@@ -470,7 +560,9 @@ function CleaningDashboard() {
                 <p className="text-xs font-extrabold text-slate-500 flex items-center gap-1.5">
                   <span className="text-blue-500">🕒</span> Working Hours
                 </p>
-                <h3 className="text-lg font-black text-slate-950 mt-1">9:00 AM - 5:00 PM</h3>
+                <h3 className="text-lg font-black text-slate-950 mt-1">
+                  9:00 AM - 5:00 PM
+                </h3>
                 <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full mt-1">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                   Active
@@ -487,7 +579,9 @@ function CleaningDashboard() {
                 <p className="text-[11px] font-bold text-emerald-600 flex items-center gap-1 mt-1">
                   <TrendingUp className="w-3.5 h-3.5" />
                   <span>5%</span>
-                  <span className="text-slate-400 font-medium">vs last month</span>
+                  <span className="text-slate-400 font-medium">
+                    vs last month
+                  </span>
                 </p>
               </div>
             </div>
@@ -501,7 +595,9 @@ function CleaningDashboard() {
                 <p className="text-[11px] font-bold text-emerald-600 flex items-center gap-1 mt-1">
                   <TrendingUp className="w-3.5 h-3.5" />
                   <span>8%</span>
-                  <span className="text-slate-400 font-medium">vs last month</span>
+                  <span className="text-slate-400 font-medium">
+                    vs last month
+                  </span>
                 </p>
               </div>
             </div>
@@ -514,7 +610,11 @@ function CleaningDashboard() {
                 <h3 className="text-sm font-black text-slate-900 flex items-center gap-2">
                   <span className="text-rose-500">📅</span> Upcoming Bookings
                 </h3>
-                <button className="text-xs font-bold text-[#6C47FF] hover:underline">
+                <button
+                  type="button"
+                  suppressHydrationWarning
+                  className="text-xs font-bold text-[#6C47FF] hover:underline"
+                >
                   View All →
                 </button>
               </div>
@@ -535,17 +635,29 @@ function CleaningDashboard() {
                       <tr key={idx} className="hover:bg-slate-50/50 transition">
                         <td className="py-3">
                           <p className="font-black text-slate-900">{b.date}</p>
-                          <p className="text-[10px] text-slate-400 font-medium">{b.time}</p>
+                          <p className="text-[10px] text-slate-400 font-medium">
+                            {b.time}
+                          </p>
                         </td>
-                        <td className="py-3 font-semibold text-slate-700">{b.location}</td>
-                        <td className="py-3 font-semibold text-slate-700">{b.workType}</td>
+                        <td className="py-3 font-semibold text-slate-700">
+                          {b.location}
+                        </td>
+                        <td className="py-3 font-semibold text-slate-700">
+                          {b.workType}
+                        </td>
                         <td className="py-3">
-                          <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${b.statusStyle}`}>
+                          <span
+                            className={`text-[10px] font-black px-2 py-0.5 rounded-full ${b.statusStyle}`}
+                          >
                             {b.status}
                           </span>
                         </td>
                         <td className="py-3 text-right">
-                          <button className="px-2.5 py-1 rounded-xl bg-purple-50 text-[#6C47FF] text-[10px] font-black hover:bg-[#6C47FF] hover:text-white transition">
+                          <button
+                            type="button"
+                            suppressHydrationWarning
+                            className="px-2.5 py-1 rounded-xl bg-purple-50 text-[#6C47FF] text-[10px] font-black hover:bg-[#6C47FF] hover:text-white transition"
+                          >
                             Details
                           </button>
                         </td>
@@ -561,7 +673,11 @@ function CleaningDashboard() {
                 <h3 className="text-sm font-black text-slate-900 flex items-center gap-2">
                   <span className="text-blue-500">📅</span> Work Schedule
                 </h3>
-                <button className="text-[11px] font-bold text-[#6C47FF] hover:underline">
+                <button
+                  type="button"
+                  suppressHydrationWarning
+                  className="text-[11px] font-bold text-[#6C47FF] hover:underline"
+                >
                   View Calendar →
                 </button>
               </div>
@@ -587,21 +703,29 @@ function CleaningDashboard() {
                   <Clock className="w-4 h-4 text-slate-400 mt-0.5 shrink-0" />
                   <div>
                     <p className="font-bold text-slate-900">Working Hours</p>
-                    <p className="text-[11px] text-slate-500">9:00 AM - 5:00 PM</p>
+                    <p className="text-[11px] text-slate-500">
+                      9:00 AM - 5:00 PM
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-start gap-2.5">
                   <CalendarDays className="w-4 h-4 text-slate-400 mt-0.5 shrink-0" />
                   <div>
                     <p className="font-bold text-slate-900">Working Days</p>
-                    <p className="text-[11px] text-slate-500">Monday - Saturday</p>
+                    <p className="text-[11px] text-slate-500">
+                      Monday - Saturday
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-start gap-2.5">
                   <MapPin className="w-4 h-4 text-slate-400 mt-0.5 shrink-0" />
                   <div>
-                    <p className="font-bold text-slate-900">Preferred Locations</p>
-                    <p className="text-[11px] text-slate-500">Alandi, Moshi, Dehu Phata</p>
+                    <p className="font-bold text-slate-900">
+                      Preferred Locations
+                    </p>
+                    <p className="text-[11px] text-slate-500">
+                      Alandi, Moshi, Dehu Phata
+                    </p>
                   </div>
                 </div>
               </div>
@@ -620,8 +744,12 @@ function CleaningDashboard() {
                   <div className="flex items-center gap-2.5">
                     <span className="text-base">📅</span>
                     <div>
-                      <p className="text-xs font-black text-slate-900">Update Availability</p>
-                      <p className="text-[9px] text-slate-400">Set your working hours</p>
+                      <p className="text-xs font-black text-slate-900">
+                        Update Availability
+                      </p>
+                      <p className="text-[9px] text-slate-400">
+                        Set your working hours
+                      </p>
                     </div>
                   </div>
                   <ChevronRight className="w-4 h-4 text-slate-400" />
@@ -634,8 +762,12 @@ function CleaningDashboard() {
                   <div className="flex items-center gap-2.5">
                     <span className="text-base">📋</span>
                     <div>
-                      <p className="text-xs font-black text-slate-900">Manage Bookings</p>
-                      <p className="text-[9px] text-slate-400">View & update bookings</p>
+                      <p className="text-xs font-black text-slate-900">
+                        Manage Bookings
+                      </p>
+                      <p className="text-[9px] text-slate-400">
+                        View & update bookings
+                      </p>
                     </div>
                   </div>
                   <ChevronRight className="w-4 h-4 text-slate-400" />
@@ -648,8 +780,12 @@ function CleaningDashboard() {
                   <div className="flex items-center gap-2.5">
                     <span className="text-base">₹</span>
                     <div>
-                      <p className="text-xs font-black text-slate-900">View Earnings</p>
-                      <p className="text-[9px] text-slate-400">Check your earnings</p>
+                      <p className="text-xs font-black text-slate-900">
+                        View Earnings
+                      </p>
+                      <p className="text-[9px] text-slate-400">
+                        Check your earnings
+                      </p>
                     </div>
                   </div>
                   <ChevronRight className="w-4 h-4 text-slate-400" />
@@ -662,8 +798,12 @@ function CleaningDashboard() {
                   <div className="flex items-center gap-2.5">
                     <span className="text-base">👤</span>
                     <div>
-                      <p className="text-xs font-black text-slate-900">Update Profile</p>
-                      <p className="text-[9px] text-slate-400">Edit your details</p>
+                      <p className="text-xs font-black text-slate-900">
+                        Update Profile
+                      </p>
+                      <p className="text-[9px] text-slate-400">
+                        Edit your details
+                      </p>
                     </div>
                   </div>
                   <ChevronRight className="w-4 h-4 text-slate-400" />
@@ -677,25 +817,37 @@ function CleaningDashboard() {
             <div className="lg:col-span-3 bg-white rounded-3xl p-5 border border-purple-100/50 shadow-sm flex flex-col justify-between">
               <div className="flex items-center justify-between pb-2">
                 <h4 className="text-xs font-black text-slate-900 flex items-center gap-1.5">
-                  <BarChart3 className="w-3.5 h-3.5 text-[#6C47FF]" /> Earnings Overview
+                  <BarChart3 className="w-3.5 h-3.5 text-[#6C47FF]" /> Earnings
+                  Overview
                 </h4>
-                <select className="text-[10px] font-bold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-2 py-0.5">
+                <select
+                  suppressHydrationWarning
+                  className="text-[10px] font-bold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-2 py-0.5"
+                >
                   <option>This Month</option>
                 </select>
               </div>
 
               <div>
                 <p className="text-xl font-black text-slate-950">
-                  ₹12,600 <span className="text-[11px] font-bold text-emerald-600">↑ 18%</span>
+                  ₹12,600{" "}
+                  <span className="text-[11px] font-bold text-emerald-600">
+                    ↑ 18%
+                  </span>
                 </p>
-                <p className="text-[10px] text-slate-400 font-medium">vs last month</p>
+                <p className="text-[10px] text-slate-400 font-medium">
+                  vs last month
+                </p>
               </div>
 
               <div className="pt-3">
                 <div className="flex items-end justify-between h-20 gap-1 px-1">
                   {[20, 35, 60, 40, 75, 55, 90].map((h, i) => (
                     <div key={i} className="flex-1 bg-purple-100 rounded-t-lg">
-                      <div className="w-full bg-[#6C47FF] rounded-t-lg" style={{ height: `${h}%` }} />
+                      <div
+                        className="w-full bg-[#6C47FF] rounded-t-lg"
+                        style={{ height: `${h}%` }}
+                      />
                     </div>
                   ))}
                 </div>
@@ -727,7 +879,11 @@ function CleaningDashboard() {
                   className="w-full h-full object-cover"
                 />
               </div>
-              <button className="w-full py-2 rounded-xl bg-[#6C47FF] hover:bg-[#5835e5] text-white text-xs font-bold flex items-center justify-center gap-1 transition">
+              <button
+                type="button"
+                suppressHydrationWarning
+                className="w-full py-2 rounded-xl bg-[#6C47FF] hover:bg-[#5835e5] text-white text-xs font-bold flex items-center justify-center gap-1 transition"
+              >
                 <span>Update Profile</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </button>
@@ -739,20 +895,32 @@ function CleaningDashboard() {
               </h4>
               <div className="space-y-2 text-xs">
                 <div>
-                  <p className="text-[10px] text-slate-400 font-bold">Contact Number</p>
+                  <p className="text-[10px] text-slate-400 font-bold">
+                    Contact Number
+                  </p>
                   <p className="font-extrabold text-slate-800">9000010002</p>
                 </div>
                 <div>
-                  <p className="text-[10px] text-slate-400 font-bold">Charges per Hour</p>
+                  <p className="text-[10px] text-slate-400 font-bold">
+                    Charges per Hour
+                  </p>
                   <p className="font-extrabold text-slate-800">₹300</p>
                 </div>
                 <div>
-                  <p className="text-[10px] text-slate-400 font-bold">Working Hours</p>
-                  <p className="font-extrabold text-slate-800">9:00 AM - 5:00 PM</p>
+                  <p className="text-[10px] text-slate-400 font-bold">
+                    Working Hours
+                  </p>
+                  <p className="font-extrabold text-slate-800">
+                    9:00 AM - 5:00 PM
+                  </p>
                 </div>
                 <div>
-                  <p className="text-[10px] text-slate-400 font-bold">Working Days</p>
-                  <p className="font-extrabold text-slate-800">Monday - Saturday</p>
+                  <p className="text-[10px] text-slate-400 font-bold">
+                    Working Days
+                  </p>
+                  <p className="font-extrabold text-slate-800">
+                    Monday - Saturday
+                  </p>
                 </div>
               </div>
             </div>
@@ -763,20 +931,34 @@ function CleaningDashboard() {
                   <h4 className="text-xs font-black text-slate-900 flex items-center gap-1.5">
                     <span className="text-amber-500">★</span> Recent Reviews
                   </h4>
-                  <button className="text-[10px] font-bold text-[#6C47FF] hover:underline">
+                  <button
+                    type="button"
+                    suppressHydrationWarning
+                    className="text-[10px] font-bold text-[#6C47FF] hover:underline"
+                  >
                     View All →
                   </button>
                 </div>
                 <div className="space-y-2">
                   {recentReviews.map((r, i) => (
                     <div key={i} className="flex items-start gap-2.5 text-xs">
-                      <img src={r.avatar} alt={r.name} className="w-7 h-7 rounded-full object-cover shrink-0 mt-0.5" />
+                      <img
+                        src={r.avatar}
+                        alt={r.name}
+                        className="w-7 h-7 rounded-full object-cover shrink-0 mt-0.5"
+                      />
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center justify-between">
-                          <p className="font-black text-slate-900 text-[11px] truncate">{r.name}</p>
-                          <span className="text-[10px] text-amber-500 font-bold">★ {r.rating}</span>
+                          <p className="font-black text-slate-900 text-[11px] truncate">
+                            {r.name}
+                          </p>
+                          <span className="text-[10px] text-amber-500 font-bold">
+                            ★ {r.rating}
+                          </span>
                         </div>
-                        <p className="text-[10px] text-slate-500 truncate">{r.comment}</p>
+                        <p className="text-[10px] text-slate-500 truncate">
+                          {r.comment}
+                        </p>
                       </div>
                     </div>
                   ))}
@@ -827,7 +1009,8 @@ function HostelDashboard() {
       checkIn: "15 Sep 2026",
       status: "Confirmed",
       statusStyle: "bg-emerald-50 text-emerald-600 border border-emerald-200",
-      avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&auto=format&fit=crop&q=80",
+      avatar:
+        "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&auto=format&fit=crop&q=80",
     },
     {
       id: "#BKG1023",
@@ -836,7 +1019,8 @@ function HostelDashboard() {
       checkIn: "14 Sep 2026",
       status: "Confirmed",
       statusStyle: "bg-emerald-50 text-emerald-600 border border-emerald-200",
-      avatar: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=120&auto=format&fit=crop&q=80",
+      avatar:
+        "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=120&auto=format&fit=crop&q=80",
     },
     {
       id: "#BKG1022",
@@ -845,7 +1029,8 @@ function HostelDashboard() {
       checkIn: "12 Sep 2026",
       status: "Pending",
       statusStyle: "bg-amber-50 text-amber-600 border border-amber-200",
-      avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=120&auto=format&fit=crop&q=80",
+      avatar:
+        "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=120&auto=format&fit=crop&q=80",
     },
     {
       id: "#BKG1021",
@@ -854,7 +1039,8 @@ function HostelDashboard() {
       checkIn: "10 Sep 2026",
       status: "Confirmed",
       statusStyle: "bg-emerald-50 text-emerald-600 border border-emerald-200",
-      avatar: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=120&auto=format&fit=crop&q=80",
+      avatar:
+        "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=120&auto=format&fit=crop&q=80",
     },
     {
       id: "#BKG1020",
@@ -863,7 +1049,8 @@ function HostelDashboard() {
       checkIn: "08 Sep 2026",
       status: "Checked Out",
       statusStyle: "bg-purple-50 text-[#6C47FF] border border-purple-200",
-      avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=120&auto=format&fit=crop&q=80",
+      avatar:
+        "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=120&auto=format&fit=crop&q=80",
     },
   ];
 
@@ -884,8 +1071,12 @@ function HostelDashboard() {
               <Home className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-base font-black tracking-tight leading-tight">HostelHub</h2>
-              <p className="text-[10px] text-pink-300 font-medium">Vendor Portal</p>
+              <h2 className="text-base font-black tracking-tight leading-tight">
+                HostelHub
+              </h2>
+              <p className="text-[10px] text-pink-300 font-medium">
+                Vendor Portal
+              </p>
             </div>
           </div>
 
@@ -937,7 +1128,11 @@ function HostelDashboard() {
               <span>Need Help?</span>
             </div>
             <p className="text-[10px] text-purple-300/70">Chat with us</p>
-            <button className="w-full py-2 rounded-xl bg-[#E11D74] hover:bg-[#c21461] text-white text-xs font-extrabold flex items-center justify-center gap-1.5 transition shadow-sm">
+            <button
+              type="button"
+              suppressHydrationWarning
+              className="w-full py-2 rounded-xl bg-[#E11D74] hover:bg-[#c21461] text-white text-xs font-extrabold flex items-center justify-center gap-1.5 transition shadow-sm"
+            >
               <MessageCircle className="w-3.5 h-3.5" />
               Live Chat
             </button>
@@ -953,12 +1148,19 @@ function HostelDashboard() {
             <input
               type="text"
               placeholder="Search students, bookings, rooms..."
+              suppressHydrationWarning
+              data-lpignore="true"
+              autoComplete="off"
               className="w-full text-xs font-medium text-slate-800 placeholder-slate-400 bg-transparent focus:outline-none"
             />
           </div>
 
           <div className="flex items-center gap-4">
-            <button className="relative p-2.5 rounded-2xl bg-slate-50 text-slate-600 hover:text-slate-900 transition border border-slate-200/60">
+            <button
+              type="button"
+              suppressHydrationWarning
+              className="relative p-2.5 rounded-2xl bg-slate-50 text-slate-600 hover:text-slate-900 transition border border-slate-200/60"
+            >
               <Bell className="w-4 h-4" />
               <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-rose-500 text-[9px] font-black text-white flex items-center justify-center">
                 9
@@ -972,8 +1174,12 @@ function HostelDashboard() {
                 className="w-10 h-10 rounded-2xl object-cover ring-2 ring-pink-100"
               />
               <div className="hidden sm:block text-left">
-                <p className="text-xs font-black text-slate-900 leading-tight">Rohit Sharma</p>
-                <p className="text-[10px] text-slate-400 font-semibold">Hostel Owner</p>
+                <p className="text-xs font-black text-slate-900 leading-tight">
+                  Rohit Sharma
+                </p>
+                <p className="text-[10px] text-slate-400 font-semibold">
+                  Hostel Owner
+                </p>
               </div>
               <ChevronDown className="w-4 h-4 text-slate-400" />
             </div>
@@ -987,13 +1193,18 @@ function HostelDashboard() {
               <div className="flex items-center gap-5 z-10">
                 <div className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-3xl overflow-hidden border-4 border-white shadow-md bg-[#1B173E] flex flex-col items-center justify-center text-center p-2 text-white shrink-0">
                   <span className="text-xl">🪷</span>
-                  <span className="text-xs font-black tracking-tight leading-tight mt-1">MANAS</span>
-                  <span className="text-[8px] text-pink-300 font-semibold tracking-wider">Girls Hostel</span>
+                  <span className="text-xs font-black tracking-tight leading-tight mt-1">
+                    MANAS
+                  </span>
+                  <span className="text-[8px] text-pink-300 font-semibold tracking-wider">
+                    Girls Hostel
+                  </span>
                 </div>
 
                 <div className="space-y-1.5">
                   <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-black inline-flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Active
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />{" "}
+                    Active
                   </span>
 
                   <h1 className="text-2xl sm:text-3xl font-black text-slate-900 leading-tight flex items-center gap-2">
@@ -1004,12 +1215,16 @@ function HostelDashboard() {
                   </h1>
 
                   <p className="text-xs font-semibold text-slate-600 flex items-center gap-1.5">
-                    <MapPin className="w-3.5 h-3.5 text-[#E11D74]" /> Near gajanan maharaj mandir
+                    <MapPin className="w-3.5 h-3.5 text-[#E11D74]" /> Near
+                    gajanan maharaj mandir
                   </p>
 
                   <div className="flex flex-wrap items-center gap-3 text-[11px] font-semibold text-slate-700 pt-0.5">
                     <span className="text-amber-500 font-black flex items-center gap-1">
-                      ★ 4.3 <span className="text-slate-400 font-normal">(48 reviews)</span>
+                      ★ 4.3{" "}
+                      <span className="text-slate-400 font-normal">
+                        (48 reviews)
+                      </span>
                     </span>
                     <span>•</span>
                     <span className="px-2 py-0.5 rounded-full bg-pink-100 text-[#E11D74] font-black text-[10px]">
@@ -1023,7 +1238,7 @@ function HostelDashboard() {
 
                   <div className="flex flex-wrap items-center gap-2 pt-2 text-[10px] font-bold text-slate-700">
                     <span className="px-2.5 py-1 rounded-xl bg-white border border-slate-200/80 shadow-sm flex items-center gap-1">
-                      🛡️ Safe & Secure
+                      🛡️ Safe &amp; Secure
                     </span>
                     <span className="px-2.5 py-1 rounded-xl bg-white border border-slate-200/80 shadow-sm flex items-center gap-1">
                       🍲 Hygienic Food
@@ -1063,7 +1278,11 @@ function HostelDashboard() {
                 <p className="text-xs text-white/90">on first month rent</p>
               </div>
 
-              <button className="w-full py-2.5 rounded-xl bg-white/20 hover:bg-white/30 text-white text-xs font-black flex items-center justify-center gap-1.5 transition border border-white/20 mt-4 backdrop-blur-sm">
+              <button
+                type="button"
+                suppressHydrationWarning
+                className="w-full py-2.5 rounded-xl bg-white/20 hover:bg-white/30 text-white text-xs font-black flex items-center justify-center gap-1.5 transition border border-white/20 mt-4 backdrop-blur-sm"
+              >
                 <span>View Details</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </button>
@@ -1078,7 +1297,10 @@ function HostelDashboard() {
               </p>
               <h3 className="text-2xl font-black text-slate-950">32</h3>
               <p className="text-[11px] font-bold text-emerald-600 flex items-center gap-1">
-                <TrendingUp className="w-3.5 h-3.5" /> 18% <span className="text-slate-400 font-medium">vs last month</span>
+                <TrendingUp className="w-3.5 h-3.5" /> 18%{" "}
+                <span className="text-slate-400 font-medium">
+                  vs last month
+                </span>
               </p>
             </div>
 
@@ -1088,7 +1310,10 @@ function HostelDashboard() {
               </p>
               <h3 className="text-2xl font-black text-slate-950">26</h3>
               <p className="text-[11px] font-bold text-emerald-600 flex items-center gap-1">
-                <TrendingUp className="w-3.5 h-3.5" /> 12% <span className="text-slate-400 font-medium">vs last month</span>
+                <TrendingUp className="w-3.5 h-3.5" /> 12%{" "}
+                <span className="text-slate-400 font-medium">
+                  vs last month
+                </span>
               </p>
             </div>
 
@@ -1098,7 +1323,10 @@ function HostelDashboard() {
               </p>
               <h3 className="text-2xl font-black text-slate-950">6</h3>
               <p className="text-[11px] font-bold text-emerald-600 flex items-center gap-1">
-                <TrendingUp className="w-3.5 h-3.5" /> 33% <span className="text-slate-400 font-medium">vs last month</span>
+                <TrendingUp className="w-3.5 h-3.5" /> 33%{" "}
+                <span className="text-slate-400 font-medium">
+                  vs last month
+                </span>
               </p>
             </div>
 
@@ -1108,7 +1336,10 @@ function HostelDashboard() {
               </p>
               <h3 className="text-2xl font-black text-slate-950">₹1,92,000</h3>
               <p className="text-[11px] font-bold text-emerald-600 flex items-center gap-1">
-                <TrendingUp className="w-3.5 h-3.5" /> 20% <span className="text-slate-400 font-medium">vs last month</span>
+                <TrendingUp className="w-3.5 h-3.5" /> 20%{" "}
+                <span className="text-slate-400 font-medium">
+                  vs last month
+                </span>
               </p>
             </div>
 
@@ -1118,7 +1349,10 @@ function HostelDashboard() {
               </p>
               <h3 className="text-2xl font-black text-slate-950">4.3</h3>
               <p className="text-[11px] font-bold text-emerald-600 flex items-center gap-1">
-                <TrendingUp className="w-3.5 h-3.5" /> 5% <span className="text-slate-400 font-medium">vs last month</span>
+                <TrendingUp className="w-3.5 h-3.5" /> 5%{" "}
+                <span className="text-slate-400 font-medium">
+                  vs last month
+                </span>
               </p>
             </div>
           </div>
@@ -1131,9 +1365,15 @@ function HostelDashboard() {
                   <h3 className="text-sm font-black text-slate-900 flex items-center gap-2">
                     <span className="text-pink-500">📅</span> Recent Bookings
                   </h3>
-                  <p className="text-[10px] text-slate-400 font-medium">Latest student bookings to your hostel</p>
+                  <p className="text-[10px] text-slate-400 font-medium">
+                    Latest student bookings to your hostel
+                  </p>
                 </div>
-                <button className="text-xs font-bold text-[#E11D74] hover:underline">
+                <button
+                  type="button"
+                  suppressHydrationWarning
+                  className="text-xs font-bold text-[#E11D74] hover:underline"
+                >
                   View All →
                 </button>
               </div>
@@ -1153,7 +1393,9 @@ function HostelDashboard() {
                   <tbody className="divide-y divide-slate-50">
                     {recentBookings.map((b, idx) => (
                       <tr key={idx} className="hover:bg-slate-50/50 transition">
-                        <td className="py-3 font-semibold text-slate-400 text-[11px]">{b.id}</td>
+                        <td className="py-3 font-semibold text-slate-400 text-[11px]">
+                          {b.id}
+                        </td>
                         <td className="py-3">
                           <div className="flex items-center gap-2">
                             <img
@@ -1161,18 +1403,30 @@ function HostelDashboard() {
                               alt={b.studentName}
                               className="w-6 h-6 rounded-full object-cover shrink-0"
                             />
-                            <span className="font-bold text-slate-900">{b.studentName}</span>
+                            <span className="font-bold text-slate-900">
+                              {b.studentName}
+                            </span>
                           </div>
                         </td>
-                        <td className="py-3 font-semibold text-slate-700">{b.roomNo}</td>
-                        <td className="py-3 font-medium text-slate-500">{b.checkIn}</td>
+                        <td className="py-3 font-semibold text-slate-700">
+                          {b.roomNo}
+                        </td>
+                        <td className="py-3 font-medium text-slate-500">
+                          {b.checkIn}
+                        </td>
                         <td className="py-3">
-                          <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${b.statusStyle}`}>
+                          <span
+                            className={`text-[10px] font-black px-2 py-0.5 rounded-full ${b.statusStyle}`}
+                          >
                             {b.status}
                           </span>
                         </td>
                         <td className="py-3 text-right">
-                          <button className="px-2.5 py-1 rounded-xl bg-pink-50 text-[#E11D74] text-[10px] font-black hover:bg-[#E11D74] hover:text-white transition">
+                          <button
+                            type="button"
+                            suppressHydrationWarning
+                            className="px-2.5 py-1 rounded-xl bg-pink-50 text-[#E11D74] text-[10px] font-black hover:bg-[#E11D74] hover:text-white transition"
+                          >
                             View
                           </button>
                         </td>
@@ -1189,14 +1443,27 @@ function HostelDashboard() {
                   <h3 className="text-sm font-black text-slate-900 flex items-center gap-2">
                     <span className="text-[#6C47FF]">📊</span> Room Occupancy
                   </h3>
-                  <select className="text-[10px] font-bold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-2 py-0.5">
+                  <select
+                    suppressHydrationWarning
+                    className="text-[10px] font-bold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-2 py-0.5"
+                  >
                     <option>This Month</option>
                   </select>
                 </div>
 
                 <div className="flex items-center justify-center relative py-2">
-                  <svg className="w-32 h-32 transform -rotate-90" viewBox="0 0 100 100">
-                    <circle cx="50" cy="50" r="40" stroke="#F1F0FB" strokeWidth="12" fill="none" />
+                  <svg
+                    className="w-32 h-32 transform -rotate-90"
+                    viewBox="0 0 100 100"
+                  >
+                    <circle
+                      cx="50"
+                      cy="50"
+                      r="40"
+                      stroke="#F1F0FB"
+                      strokeWidth="12"
+                      fill="none"
+                    />
                     <circle
                       cx="50"
                       cy="50"
@@ -1210,27 +1477,34 @@ function HostelDashboard() {
                     />
                   </svg>
                   <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                    <span className="text-xl font-black text-slate-900 leading-none">81%</span>
-                    <span className="text-[9px] text-slate-400 font-bold mt-1">Occupied</span>
+                    <span className="text-xl font-black text-slate-900 leading-none">
+                      81%
+                    </span>
+                    <span className="text-[9px] text-slate-400 font-bold mt-1">
+                      Occupied
+                    </span>
                   </div>
                 </div>
 
                 <div className="space-y-1.5 text-xs font-semibold text-slate-600">
                   <div className="flex items-center justify-between">
                     <span className="flex items-center gap-2">
-                      <span className="w-2.5 h-2.5 rounded-full bg-[#6C47FF]" /> Occupied
+                      <span className="w-2.5 h-2.5 rounded-full bg-[#6C47FF]" />{" "}
+                      Occupied
                     </span>
                     <span className="font-bold text-slate-900">26</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="flex items-center gap-2">
-                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" /> Available
+                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />{" "}
+                      Available
                     </span>
                     <span className="font-bold text-slate-900">6</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="flex items-center gap-2">
-                      <span className="w-2.5 h-2.5 rounded-full bg-amber-500" /> Under Maintenance
+                      <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />{" "}
+                      Under Maintenance
                     </span>
                     <span className="font-bold text-slate-900">0</span>
                   </div>
@@ -1242,7 +1516,11 @@ function HostelDashboard() {
                   <h4 className="text-xs font-black text-slate-900 flex items-center gap-1.5">
                     <span className="text-pink-500">🏠</span> Room Overview
                   </h4>
-                  <button className="text-[10px] font-bold text-[#E11D74] hover:underline">
+                  <button
+                    type="button"
+                    suppressHydrationWarning
+                    className="text-[10px] font-bold text-[#E11D74] hover:underline"
+                  >
                     View All →
                   </button>
                 </div>
@@ -1250,22 +1528,30 @@ function HostelDashboard() {
                 <div className="grid grid-cols-4 gap-2 text-center pt-1">
                   <div className="p-2.5 rounded-2xl bg-pink-50/70 border border-pink-100">
                     <span className="text-base">🛏️</span>
-                    <p className="text-[9px] text-slate-500 font-bold mt-1">Single</p>
+                    <p className="text-[9px] text-slate-500 font-bold mt-1">
+                      Single
+                    </p>
                     <p className="text-sm font-black text-slate-900">12</p>
                   </div>
                   <div className="p-2.5 rounded-2xl bg-purple-50/70 border border-purple-100">
                     <span className="text-base">👥</span>
-                    <p className="text-[9px] text-slate-500 font-bold mt-1">Double</p>
+                    <p className="text-[9px] text-slate-500 font-bold mt-1">
+                      Double
+                    </p>
                     <p className="text-sm font-black text-slate-900">10</p>
                   </div>
                   <div className="p-2.5 rounded-2xl bg-emerald-50/70 border border-emerald-100">
                     <span className="text-base">👨‍👩‍👧</span>
-                    <p className="text-[9px] text-slate-500 font-bold mt-1">Triple</p>
+                    <p className="text-[9px] text-slate-500 font-bold mt-1">
+                      Triple
+                    </p>
                     <p className="text-sm font-black text-slate-900">4</p>
                   </div>
                   <div className="p-2.5 rounded-2xl bg-blue-50/70 border border-blue-100">
                     <span className="text-base">🏢</span>
-                    <p className="text-[9px] text-slate-500 font-bold mt-1">Total</p>
+                    <p className="text-[9px] text-slate-500 font-bold mt-1">
+                      Total
+                    </p>
                     <p className="text-sm font-black text-slate-900">26</p>
                   </div>
                 </div>
@@ -1286,8 +1572,12 @@ function HostelDashboard() {
                     <div className="flex items-center gap-2.5">
                       <span className="text-base">📅</span>
                       <div>
-                        <p className="text-xs font-black text-slate-900">Update Availability</p>
-                        <p className="text-[9px] text-slate-400">Mark rooms available</p>
+                        <p className="text-xs font-black text-slate-900">
+                          Update Availability
+                        </p>
+                        <p className="text-[9px] text-slate-400">
+                          Mark rooms available
+                        </p>
                       </div>
                     </div>
                     <ChevronRight className="w-4 h-4 text-slate-400" />
@@ -1300,8 +1590,12 @@ function HostelDashboard() {
                     <div className="flex items-center gap-2.5">
                       <span className="text-base">📋</span>
                       <div>
-                        <p className="text-xs font-black text-slate-900">Manage Bookings</p>
-                        <p className="text-[9px] text-slate-400">View & update bookings</p>
+                        <p className="text-xs font-black text-slate-900">
+                          Manage Bookings
+                        </p>
+                        <p className="text-[9px] text-slate-400">
+                          View & update bookings
+                        </p>
                       </div>
                     </div>
                     <ChevronRight className="w-4 h-4 text-slate-400" />
@@ -1314,8 +1608,12 @@ function HostelDashboard() {
                     <div className="flex items-center gap-2.5">
                       <span className="text-base">👤</span>
                       <div>
-                        <p className="text-xs font-black text-slate-900">Student Details</p>
-                        <p className="text-[9px] text-slate-400">Check student records</p>
+                        <p className="text-xs font-black text-slate-900">
+                          Student Details
+                        </p>
+                        <p className="text-[9px] text-slate-400">
+                          Check student records
+                        </p>
                       </div>
                     </div>
                     <ChevronRight className="w-4 h-4 text-slate-400" />
@@ -1328,8 +1626,12 @@ function HostelDashboard() {
                     <div className="flex items-center gap-2.5">
                       <span className="text-base">🏷️</span>
                       <div>
-                        <p className="text-xs font-black text-slate-900">Add Special Offer</p>
-                        <p className="text-[9px] text-slate-400">Attract students</p>
+                        <p className="text-xs font-black text-slate-900">
+                          Add Special Offer
+                        </p>
+                        <p className="text-[9px] text-slate-400">
+                          Attract students
+                        </p>
                       </div>
                     </div>
                     <ChevronRight className="w-4 h-4 text-slate-400" />
@@ -1344,7 +1646,10 @@ function HostelDashboard() {
 
                 <div className="space-y-2 text-xs">
                   {topRatedFeatures.map((f, i) => (
-                    <div key={i} className="flex items-center justify-between p-2 rounded-xl bg-slate-50/60">
+                    <div
+                      key={i}
+                      className="flex items-center justify-between p-2 rounded-xl bg-slate-50/60"
+                    >
                       <span className="flex items-center gap-2 font-semibold text-slate-700 text-[11px]">
                         <span>{f.icon}</span> {f.title}
                       </span>
@@ -1381,7 +1686,9 @@ function HostelDashboard() {
                   🛡️
                 </span>
                 <div>
-                  <p className="font-extrabold text-slate-900 text-xs">Safe Environment</p>
+                  <p className="font-extrabold text-slate-900 text-xs">
+                    Safe Environment
+                  </p>
                   <p className="text-[10px] text-slate-500">24/7 Security</p>
                 </div>
               </div>
@@ -1391,8 +1698,10 @@ function HostelDashboard() {
                   🍲
                 </span>
                 <div>
-                  <p className="font-extrabold text-slate-900 text-xs">Nutritious Food</p>
-                  <p className="text-[10px] text-slate-500">Hygienic & Tasty</p>
+                  <p className="font-extrabold text-slate-900 text-xs">
+                    Nutritious Food
+                  </p>
+                  <p className="text-[10px] text-slate-500">Hygienic &amp; Tasty</p>
                 </div>
               </div>
 
@@ -1401,13 +1710,21 @@ function HostelDashboard() {
                   🏢
                 </span>
                 <div>
-                  <p className="font-extrabold text-slate-900 text-xs">Modern Facilities</p>
-                  <p className="text-[10px] text-slate-500">Wi-Fi, Laundry, Study</p>
+                  <p className="font-extrabold text-slate-900 text-xs">
+                    Modern Facilities
+                  </p>
+                  <p className="text-[10px] text-slate-500">
+                    Wi-Fi, Laundry, Study
+                  </p>
                 </div>
               </div>
             </div>
 
-            <button className="px-6 py-2.5 rounded-2xl bg-[#E11D74] hover:bg-[#c21461] text-white text-xs font-black flex items-center gap-2 transition shadow-md shadow-pink-200 shrink-0 z-10">
+            <button
+              type="button"
+              suppressHydrationWarning
+              className="px-6 py-2.5 rounded-2xl bg-[#E11D74] hover:bg-[#c21461] text-white text-xs font-black flex items-center gap-2 transition shadow-md shadow-pink-200 shrink-0 z-10"
+            >
               <BarChart3 className="w-4 h-4" />
               <span>View Reports →</span>
             </button>
@@ -1424,7 +1741,12 @@ function HostelDashboard() {
 
 function MessDashboard({ vendor, vendorId }) {
   const sidebarItems = [
-    { label: "Dashboard", icon: LayoutDashboard, href: `/vendor?vendor=${vendorId}`, active: true },
+    {
+      label: "Dashboard",
+      icon: LayoutDashboard,
+      href: `/vendor?vendor=${vendorId}`,
+      active: true,
+    },
     { label: `My ${vendor.badge}`, icon: UtensilsCrossed, href: "/vendor/mess" },
     { label: "Orders", icon: ShoppingBag, href: "/vendor/orders", badge: "12" },
     { label: "Menu & Schedule", icon: CalendarDays, href: "/vendor/menu" },
@@ -1444,7 +1766,8 @@ function MessDashboard({ vendor, vendorId }) {
       status: "Pending",
       statusColor: "bg-amber-100 text-amber-700",
       price: "₹100",
-      avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80",
+      avatar:
+        "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80",
     },
     {
       id: "ord-2",
@@ -1454,7 +1777,8 @@ function MessDashboard({ vendor, vendorId }) {
       status: "Confirmed",
       statusColor: "bg-emerald-100 text-emerald-700",
       price: "₹120",
-      avatar: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=200&auto=format&fit=crop&q=80",
+      avatar:
+        "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=200&auto=format&fit=crop&q=80",
     },
     {
       id: "ord-3",
@@ -1464,7 +1788,8 @@ function MessDashboard({ vendor, vendorId }) {
       status: "Preparing",
       statusColor: "bg-blue-100 text-blue-700",
       price: "₹130",
-      avatar: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=200&auto=format&fit=crop&q=80",
+      avatar:
+        "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=200&auto=format&fit=crop&q=80",
     },
     {
       id: "ord-4",
@@ -1474,7 +1799,8 @@ function MessDashboard({ vendor, vendorId }) {
       status: "Completed",
       statusColor: "bg-purple-100 text-[#6C47FF]",
       price: "₹100",
-      avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80",
+      avatar:
+        "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80",
     },
     {
       id: "ord-5",
@@ -1484,12 +1810,16 @@ function MessDashboard({ vendor, vendorId }) {
       status: "Completed",
       statusColor: "bg-purple-100 text-[#6C47FF]",
       price: "₹120",
-      avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&auto=format&fit=crop&q=80",
+      avatar:
+        "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&auto=format&fit=crop&q=80",
     },
   ];
 
   return (
-    <div className="min-h-screen bg-[#FAF9FD] text-slate-900 font-sans flex" suppressHydrationWarning>
+    <div
+      className="min-h-screen bg-[#FAF9FD] text-slate-900 font-sans flex"
+      suppressHydrationWarning
+    >
       <aside className="hidden lg:flex flex-col w-64 bg-white border-r border-slate-100 shrink-0 sticky top-0 h-screen justify-between p-5 z-40">
         <div className="space-y-6">
           <Link href="/vendor" className="flex items-center gap-3 px-2">
@@ -1555,12 +1885,19 @@ function MessDashboard({ vendor, vendorId }) {
             <input
               type="text"
               placeholder="Search orders, students, menu..."
+              suppressHydrationWarning
+              data-lpignore="true"
+              autoComplete="off"
               className="w-full text-xs font-medium text-slate-800 placeholder-slate-400 bg-transparent focus:outline-none"
             />
           </div>
 
           <div className="flex items-center gap-4">
-            <button className="relative p-2.5 rounded-2xl bg-slate-50 text-slate-600 border border-slate-200/60">
+            <button
+              type="button"
+              suppressHydrationWarning
+              className="relative p-2.5 rounded-2xl bg-slate-50 text-slate-600 border border-slate-200/60"
+            >
               <Bell className="w-4 h-4" />
               <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-rose-500 text-[9px] font-black text-white flex items-center justify-center">
                 3
@@ -1577,7 +1914,9 @@ function MessDashboard({ vendor, vendorId }) {
                 <p className="text-xs font-black text-slate-900 leading-tight">
                   {vendor.welcomeName}
                 </p>
-                <p className="text-[10px] text-slate-400 font-semibold">{vendor.service}</p>
+                <p className="text-[10px] text-slate-400 font-semibold">
+                  {vendor.service}
+                </p>
               </div>
               <ChevronDown className="w-4 h-4 text-slate-400" />
             </div>
@@ -1599,11 +1938,16 @@ function MessDashboard({ vendor, vendorId }) {
               <div className="inline-flex items-center gap-3 px-3.5 py-2 rounded-2xl bg-white/90 shadow-sm border border-white/60 text-xs">
                 <MapPin className="w-4 h-4 text-[#5835E5]" />
                 <div className="text-left">
-                  <p className="font-extrabold text-slate-900 text-xs">{vendor.displayName}</p>
-                  <p className="text-[10px] text-slate-500 font-medium">{vendor.location}</p>
+                  <p className="font-extrabold text-slate-900 text-xs">
+                    {vendor.displayName}
+                  </p>
+                  <p className="text-[10px] text-slate-500 font-medium">
+                    {vendor.location}
+                  </p>
                 </div>
                 <span className="ml-2 flex items-center gap-1 text-[10px] font-black text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Active
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />{" "}
+                  Active
                 </span>
               </div>
             </div>
@@ -1645,9 +1989,14 @@ function MessDashboard({ vendor, vendorId }) {
               <div className="flex items-center justify-between pb-3 border-b border-slate-50">
                 <div>
                   <h3 className="text-sm font-black">📋 Recent Orders</h3>
-                  <p className="text-[10px] text-slate-400">Latest orders from students</p>
+                  <p className="text-[10px] text-slate-400">
+                    Latest orders from students
+                  </p>
                 </div>
-                <Link href="/vendor/orders" className="text-xs font-bold text-[#5835E5]">
+                <Link
+                  href="/vendor/orders"
+                  className="text-xs font-bold text-[#5835E5]"
+                >
                   View All →
                 </Link>
               </div>
@@ -1670,7 +2019,9 @@ function MessDashboard({ vendor, vendorId }) {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className={`text-[9px] font-black px-2 py-1 rounded-full ${ord.statusColor}`}>
+                      <span
+                        className={`text-[9px] font-black px-2 py-1 rounded-full ${ord.statusColor}`}
+                      >
                         {ord.status}
                       </span>
                       <span className="text-xs font-black">{ord.price}</span>
@@ -1684,7 +2035,10 @@ function MessDashboard({ vendor, vendorId }) {
               <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm">
                 <div className="flex items-center justify-between">
                   <h3 className="text-sm font-black">📅 Today's Menu</h3>
-                  <Link href="/vendor/menu" className="text-xs font-bold text-[#5835E5]">
+                  <Link
+                    href="/vendor/menu"
+                    className="text-xs font-bold text-[#5835E5]"
+                  >
                     View Full Menu →
                   </Link>
                 </div>
@@ -1709,7 +2063,8 @@ function MessDashboard({ vendor, vendorId }) {
 
               <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm">
                 <h3 className="text-sm font-black flex items-center gap-2">
-                  <BarChart3 className="w-4 h-4 text-[#5835E5]" /> Orders Overview
+                  <BarChart3 className="w-4 h-4 text-[#5835E5]" /> Orders
+                  Overview
                 </h3>
                 <div className="mt-5 h-28 flex items-end gap-3">
                   {[45, 70, 55, 85, 65, 90, 75].map((height, i) => (
@@ -1735,17 +2090,32 @@ function MessDashboard({ vendor, vendorId }) {
             <div className="lg:col-span-3 space-y-5">
               <div className="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm">
                 <h4 className="text-xs font-black mb-3">⚡ Quick Actions</h4>
-                <Link href="/vendor/menu" className="block p-3 rounded-2xl bg-emerald-50 mb-2">
+                <Link
+                  href="/vendor/menu"
+                  className="block p-3 rounded-2xl bg-emerald-50 mb-2"
+                >
                   <p className="text-xs font-black">📝 Update Menu</p>
-                  <p className="text-[9px] text-slate-400">Change today's menu</p>
+                  <p className="text-[9px] text-slate-400">
+                    Change today's menu
+                  </p>
                 </Link>
-                <Link href="/vendor/orders" className="block p-3 rounded-2xl bg-rose-50 mb-2">
+                <Link
+                  href="/vendor/orders"
+                  className="block p-3 rounded-2xl bg-rose-50 mb-2"
+                >
                   <p className="text-xs font-black">📦 Manage Orders</p>
-                  <p className="text-[9px] text-slate-400">View & update orders</p>
+                  <p className="text-[9px] text-slate-400">
+                    View & update orders
+                  </p>
                 </Link>
-                <Link href="/vendor/offers" className="block p-3 rounded-2xl bg-orange-50">
+                <Link
+                  href="/vendor/offers"
+                  className="block p-3 rounded-2xl bg-orange-50"
+                >
                   <p className="text-xs font-black">🏷️ Add Special Offer</p>
-                  <p className="text-[9px] text-slate-400">Attract more students</p>
+                  <p className="text-[9px] text-slate-400">
+                    Attract more students
+                  </p>
                 </Link>
               </div>
 
@@ -1776,7 +2146,8 @@ function MessStat({ title, value, icon, change }) {
         <p className="text-xs font-extrabold text-slate-500">{title}</p>
         <h3 className="text-2xl font-black text-slate-950 mt-1">{value}</h3>
         <p className="text-[11px] font-bold text-emerald-600 mt-1">
-          ↑ {change} <span className="text-slate-400 font-medium">vs last week</span>
+          ↑ {change}{" "}
+          <span className="text-slate-400 font-medium">vs last week</span>
         </p>
       </div>
       <div className="w-12 h-12 rounded-2xl bg-purple-50 text-[#5835E5] flex items-center justify-center text-xl">
@@ -1801,10 +2172,7 @@ function MenuBox({ title, time, items }) {
 }
 
 /* ============================================================
-   CAFE & LAUNDRY DASHBOARD MODULES
-============================================================ */
-/* ============================================================
-   CAFE DASHBOARD (THE CAFE 24 - EXACT MATCH IMPLEMENTATION)
+   CAFE DASHBOARD (THE CAFE 24)
 ============================================================ */
 
 function CafeDashboard() {
@@ -1909,12 +2277,9 @@ function CafeDashboard() {
 
   return (
     <div className="min-h-screen bg-[#F4F6FB] text-slate-900 font-sans flex antialiased">
-      {/* =====================================================
-          1. DARK LEFT SIDEBAR
-      ===================================================== */}
+      {/* SIDEBAR */}
       <aside className="hidden lg:flex flex-col w-[235px] bg-[#0E1528] text-white shrink-0 sticky top-0 h-screen justify-between p-3.5 z-40 overflow-y-auto">
         <div className="space-y-4">
-          {/* Logo */}
           <Link href="/vendor" className="flex items-center gap-3 px-2 pt-2">
             <div className="w-10 h-10 rounded-2xl bg-[#090D1A] border border-amber-500/20 flex items-center justify-center text-xl shadow-inner">
               ☕
@@ -1929,7 +2294,6 @@ function CafeDashboard() {
             </div>
           </Link>
 
-          {/* Menu items */}
           <nav className="space-y-1 pt-1">
             {sidebarLinks.map((item) => {
               const Icon = item.icon;
@@ -1938,6 +2302,8 @@ function CafeDashboard() {
               return (
                 <button
                   key={item.label}
+                  type="button"
+                  suppressHydrationWarning
                   onClick={() => setActiveMenu(item.label)}
                   className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all ${
                     isActive
@@ -1960,7 +2326,6 @@ function CafeDashboard() {
           </nav>
         </div>
 
-        {/* Doodle + Sandwich / Coffee artwork */}
         <div className="space-y-3 pt-2">
           <div className="text-center px-2">
             <p className="text-[13px] font-bold text-[#FFD15C] leading-snug rotate-[-5deg] select-none">
@@ -1978,14 +2343,17 @@ function CafeDashboard() {
             />
           </div>
 
-          {/* Need help box */}
           <div className="rounded-2xl p-3 bg-white/5 border border-white/10 space-y-2 text-center">
             <div className="flex items-center justify-center gap-1.5 text-xs font-bold text-slate-300">
               <HelpCircle className="w-3.5 h-3.5 text-amber-400" />
               <span>Need Help?</span>
             </div>
             <p className="text-[10px] text-slate-400">Chat with us</p>
-            <button className="w-full py-2 rounded-xl bg-gradient-to-r from-[#F6AE2D] to-[#FCA019] text-[#131E3A] text-xs font-black flex items-center justify-center gap-1.5 shadow-sm transition hover:brightness-105">
+            <button
+              type="button"
+              suppressHydrationWarning
+              className="w-full py-2 rounded-xl bg-gradient-to-r from-[#F6AE2D] to-[#FCA019] text-[#131E3A] text-xs font-black flex items-center justify-center gap-1.5 shadow-sm transition hover:brightness-105"
+            >
               <MessageCircle className="w-3.5 h-3.5" />
               <span>Live Chat</span>
             </button>
@@ -1993,23 +2361,27 @@ function CafeDashboard() {
         </div>
       </aside>
 
-      {/* =====================================================
-          2. MAIN CONTENT AREA
-      ===================================================== */}
+      {/* MAIN CONTENT */}
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Top Header */}
         <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-100 px-6 sm:px-8 h-18 flex items-center justify-between gap-4 py-3">
           <div className="flex items-center gap-2.5 px-4 py-2 bg-[#F3F5FA] border border-slate-200/60 rounded-xl w-full max-w-md">
             <Search className="w-4 h-4 text-[#5D45F9] shrink-0" />
             <input
               type="text"
               placeholder="Search orders, menu, or customers..."
+              suppressHydrationWarning
+              data-lpignore="true"
+              autoComplete="off"
               className="w-full text-xs font-medium text-slate-800 placeholder-slate-400 bg-transparent focus:outline-none"
             />
           </div>
 
           <div className="flex items-center gap-4">
-            <button className="relative p-2.5 rounded-xl bg-[#F3F5FA] text-slate-600 hover:text-slate-900 transition">
+            <button
+              type="button"
+              suppressHydrationWarning
+              className="relative p-2.5 rounded-xl bg-[#F3F5FA] text-slate-600 hover:text-slate-900 transition"
+            >
               <Bell className="w-4 h-4 text-[#14234B]" />
               <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#E53935] text-[9px] font-black text-white flex items-center justify-center">
                 3
@@ -2035,16 +2407,10 @@ function CafeDashboard() {
           </div>
         </header>
 
-        {/* Dashboard Body */}
-        {/* Dashboard Body */}
-          <main className="p-5 sm:p-6 space-y-4 w-full">
-          {/* ===================================================
-              HERO BANNER + SPECIAL OFFER
-          =================================================== */}
+        <main className="p-5 sm:p-6 space-y-4 w-full">
+          {/* HERO BANNER + SPECIAL OFFER */}
           <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_260px] gap-4 items-stretch">
-            {/* HERO BANNER */}
             <div className="relative rounded-[26px] overflow-hidden bg-gradient-to-r from-[#FDE8D4] via-[#FCEFDE] to-[#FCE6D2] p-6 border border-orange-200/50 shadow-sm flex flex-col justify-between min-h-[190px]">
-              {/* Coffee Latte & Food Spread image on right */}
               <div className="absolute right-0 top-0 bottom-0 w-[42%] overflow-hidden pointer-events-none hidden md:block">
                 <img
                   src="https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=700&q=80"
@@ -2055,14 +2421,12 @@ function CafeDashboard() {
               </div>
 
               <div className="relative z-10 space-y-2.5 max-w-xl">
-                {/* Open Tag */}
                 <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#DCF9E8] text-[#0FAF53] text-[10px] font-black">
                   <CheckCircle2 className="w-3 h-3" />
                   Open
                 </span>
 
                 <div className="flex items-center gap-4 pt-1">
-                  {/* Black Circular Badge THE CAFE 24 */}
                   <div className="w-20 h-20 rounded-full bg-[#18141F] border-2 border-amber-300/30 flex flex-col items-center justify-center text-center text-white shadow-md shrink-0">
                     <span className="text-base leading-none">☕</span>
                     <span className="text-[10px] font-black tracking-tight leading-tight mt-0.5">
@@ -2084,7 +2448,8 @@ function CafeDashboard() {
                     <div className="flex items-center gap-1.5 text-[11px] text-slate-600 font-semibold mt-1">
                       <MapPin className="w-3.5 h-3.5 text-slate-500 shrink-0" />
                       <span>
-                        Tapkir Nagar Dehu-phata, MIT AOE College Road, Alandi 412105
+                        Tapkir Nagar Dehu-phata, MIT AOE College Road, Alandi
+                        412105
                       </span>
                     </div>
 
@@ -2102,21 +2467,15 @@ function CafeDashboard() {
                     </div>
 
                     <div className="flex items-center gap-3 text-[11px] text-slate-500 font-medium mt-1">
-                      <span>Contact: nhavta tithe</span>
+                      <span>Contact: 9822012024</span>
                       <span>|</span>
                       <span>Price Range: ₹200 - 400</span>
                     </div>
                   </div>
                 </div>
               </div>
-
-              {/* Doodle in banner */}
-              <div className="absolute right-[36%] top-5 hidden 2xl:block text-center rotate-[-8deg] text-[#3E2519] font-black text-sm select-none">
-                Good Food <br /> Good Vibes ⌣
-              </div>
             </div>
 
-            {/* SPECIAL OFFER CARD */}
             <div className="rounded-[26px] overflow-hidden bg-gradient-to-br from-[#5D42CE] to-[#472BB3] p-5 text-white shadow-sm flex flex-col justify-between">
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
@@ -2136,18 +2495,19 @@ function CafeDashboard() {
                 </div>
               </div>
 
-              <button className="w-full py-2.5 rounded-xl bg-[#F6AE2D] hover:bg-[#efa118] text-[#131E3A] text-xs font-black flex items-center justify-center gap-1.5 transition shadow-sm">
+              <button
+                type="button"
+                suppressHydrationWarning
+                className="w-full py-2.5 rounded-xl bg-[#F6AE2D] hover:bg-[#efa118] text-[#131E3A] text-xs font-black flex items-center justify-center gap-1.5 transition shadow-sm"
+              >
                 <span>View Offer</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </div>
           </div>
 
-          {/* ===================================================
-              4 STAT CARDS
-          =================================================== */}
+          {/* 4 STAT CARDS */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
-            {/* 1. Total Orders */}
             <div className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm relative overflow-hidden">
               <div className="w-8 h-8 rounded-xl bg-[#FFEAF3] text-[#EE3876] flex items-center justify-center mb-2">
                 <FileText className="w-4 h-4" />
@@ -2160,12 +2520,13 @@ function CafeDashboard() {
               </p>
             </div>
 
-            {/* 2. Pending Orders (Hourglass watermark) */}
             <div className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm relative overflow-hidden">
               <div className="w-8 h-8 rounded-xl bg-[#E8F3FF] text-[#2F80ED] flex items-center justify-center mb-2">
                 <Clock3 className="w-4 h-4" />
               </div>
-              <p className="text-[11px] font-bold text-slate-500">Pending Orders</p>
+              <p className="text-[11px] font-bold text-slate-500">
+                Pending Orders
+              </p>
               <h3 className="text-2xl font-black text-[#14234B] mt-0.5">10</h3>
               <p className="text-[10px] font-bold text-[#0FAF53] flex items-center gap-1 mt-1">
                 <TrendingUp className="w-3 h-3" /> 5%{" "}
@@ -2174,12 +2535,13 @@ function CafeDashboard() {
               <Hourglass className="absolute right-3 top-3 w-12 h-12 text-blue-100/70 pointer-events-none" />
             </div>
 
-            {/* 3. Completed Orders (Shopping Bag watermark) */}
             <div className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm relative overflow-hidden">
               <div className="w-8 h-8 rounded-xl bg-[#DCF9E8] text-[#0FAF53] flex items-center justify-center mb-2">
                 <CheckCircle2 className="w-4 h-4" />
               </div>
-              <p className="text-[11px] font-bold text-slate-500">Completed Orders</p>
+              <p className="text-[11px] font-bold text-slate-500">
+                Completed Orders
+              </p>
               <h3 className="text-2xl font-black text-[#14234B] mt-0.5">24</h3>
               <p className="text-[10px] font-bold text-[#0FAF53] flex items-center gap-1 mt-1">
                 <TrendingUp className="w-3 h-3" /> 18%{" "}
@@ -2188,12 +2550,13 @@ function CafeDashboard() {
               <ShoppingBag className="absolute right-3 top-3 w-12 h-12 text-emerald-100/70 pointer-events-none" />
             </div>
 
-            {/* 4. Today's Revenue (Trending graph watermark) */}
             <div className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm relative overflow-hidden">
               <div className="w-8 h-8 rounded-xl bg-[#F0EAFE] text-[#7E42F5] flex items-center justify-center font-black mb-2">
                 ₹
               </div>
-              <p className="text-[11px] font-bold text-slate-500">Today&apos;s Revenue</p>
+              <p className="text-[11px] font-bold text-slate-500">
+                Today&apos;s Revenue
+              </p>
               <h3 className="text-2xl font-black text-[#14234B] mt-0.5">₹8,450</h3>
               <p className="text-[10px] font-bold text-[#0FAF53] flex items-center gap-1 mt-1">
                 <TrendingUp className="w-3 h-3" /> 25%{" "}
@@ -2203,13 +2566,8 @@ function CafeDashboard() {
             </div>
           </div>
 
-          {/* ===================================================*/}
-          {/* MIDDLE ROW: RECENT ORDERS + SALES OVERVIEW + RIGHT COLUMN*/}
-            {/* ===================================================  */}
-          
-    
-          {/* Promo Banner: Keep Your Cafe Running Smoothly! */}
-           <div className="flex-1 rounded-2xl bg-gradient-to-r from-[#EEE7FE] to-[#F7EEFD] p-4 border border-purple-100 flex items-center justify-between relative overflow-hidden">
+          {/* MAIN 3-COLUMN DASHBOARD GRID */}
+          <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1.3fr)_minmax(0,0.9fr)_280px] gap-4 items-start">
             {/* 1. RECENT ORDERS TABLE */}
             <div className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm space-y-3">
               <div className="flex items-center justify-between pb-1">
@@ -2218,16 +2576,23 @@ function CafeDashboard() {
                     <FileText className="w-3.5 h-3.5" />
                   </div>
                   <div>
-                    <h3 className="text-xs font-black text-[#14234B]">Recent Orders</h3>
-                    <p className="text-[9px] text-slate-400">Latest orders from students</p>
+                    <h3 className="text-xs font-black text-[#14234B]">
+                      Recent Orders
+                    </h3>
+                    <p className="text-[9px] text-slate-400">
+                      Latest orders from students
+                    </p>
                   </div>
                 </div>
-                <button className="text-[10px] font-bold text-[#5D45F9] flex items-center gap-1 hover:underline">
+                <button
+                  type="button"
+                  suppressHydrationWarning
+                  className="text-[10px] font-bold text-[#5D45F9] flex items-center gap-1 hover:underline"
+                >
                   View All <ChevronRight className="w-3 h-3" />
                 </button>
               </div>
 
-              {/* Table */}
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs min-w-[480px]">
                   <thead>
@@ -2243,7 +2608,10 @@ function CafeDashboard() {
                   </thead>
                   <tbody className="divide-y divide-slate-50">
                     {recentOrders.map((ord) => (
-                      <tr key={ord.id} className="hover:bg-slate-50/50 transition">
+                      <tr
+                        key={ord.id}
+                        className="hover:bg-slate-50/50 transition"
+                      >
                         <td className="py-2.5 font-bold text-slate-500 text-[10px]">
                           {ord.id}
                         </td>
@@ -2267,7 +2635,11 @@ function CafeDashboard() {
                           {ord.time}
                         </td>
                         <td className="py-2.5 text-right">
-                          <button className="px-2 py-0.5 rounded-lg border border-purple-200 text-[#5D45F9] text-[9px] font-bold hover:bg-[#5D45F9] hover:text-white transition">
+                          <button
+                            type="button"
+                            suppressHydrationWarning
+                            className="px-2 py-0.5 rounded-lg border border-purple-200 text-[#5D45F9] text-[9px] font-bold hover:bg-[#5D45F9] hover:text-white transition"
+                          >
                             View
                           </button>
                         </td>
@@ -2277,16 +2649,21 @@ function CafeDashboard() {
                 </table>
               </div>
 
-              {/* Pagination */}
               <div className="flex items-center justify-between pt-2 text-[10px] text-slate-400">
                 <span>Showing 5 of 36 orders</span>
                 <div className="flex items-center gap-1">
-                  <button className="w-5 h-5 rounded-full border border-slate-200 text-slate-600 flex items-center justify-center">
+                  <button
+                    type="button"
+                    suppressHydrationWarning
+                    className="w-5 h-5 rounded-full border border-slate-200 text-slate-600 flex items-center justify-center"
+                  >
                     ‹
                   </button>
                   {[1, 2, 3, 4, 5].map((n) => (
                     <button
                       key={n}
+                      type="button"
+                      suppressHydrationWarning
                       onClick={() => setActivePage(n)}
                       className={`w-5 h-5 rounded-full font-bold flex items-center justify-center ${
                         activePage === n
@@ -2297,28 +2674,33 @@ function CafeDashboard() {
                       {n}
                     </button>
                   ))}
-                  <button className="w-5 h-5 rounded-full border border-slate-200 text-slate-600 flex items-center justify-center">
+                  <button
+                    type="button"
+                    suppressHydrationWarning
+                    className="w-5 h-5 rounded-full border border-slate-200 text-slate-600 flex items-center justify-center"
+                  >
                     ›
                   </button>
                 </div>
               </div>
             </div>
 
-            {/* 2. SALES OVERVIEW + KEEP RUNNING PROMO */}
-            {/* 2. SALES OVERVIEW + KEEP RUNNING PROMO */}
-              <div className="flex flex-col justify-between space-y-4">
-              {/* Sales Overview Card */}
+            {/* 2. SALES OVERVIEW + PROMO BANNER */}
+            <div className="flex flex-col justify-between space-y-4">
               <div className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm space-y-3">
                 <div className="flex items-center justify-between pb-1">
                   <h3 className="text-xs font-black text-[#14234B] flex items-center gap-1.5">
-                    <BarChart3 className="w-4 h-4 text-[#5D45F9]" /> Sales Overview
+                    <BarChart3 className="w-4 h-4 text-[#5D45F9]" /> Sales
+                    Overview
                   </h3>
-                  <select className="text-[10px] font-bold text-slate-700 bg-slate-50 border border-slate-200 rounded-lg px-2 py-0.5">
+                  <select
+                    suppressHydrationWarning
+                    className="text-[10px] font-bold text-slate-700 bg-slate-50 border border-slate-200 rounded-lg px-2 py-0.5"
+                  >
                     <option>This Week</option>
                   </select>
                 </div>
 
-                {/* Y-Axis numbers + Bars */}
                 <div className="flex items-end gap-2 pt-2 border-b border-slate-100 pb-2">
                   <div className="flex flex-col justify-between h-36 text-[8px] font-bold text-slate-400 pb-2">
                     <span>10K</span>
@@ -2335,12 +2717,10 @@ function CafeDashboard() {
                         className="flex-1 flex flex-col items-center justify-end h-full gap-1.5"
                       >
                         <div className="flex items-end gap-1 h-28 w-full justify-center">
-                          {/* Purple Total Sales */}
                           <div
                             className="w-1.5 rounded-t-sm bg-[#784BF6]"
                             style={{ height: b.salesHeight }}
                           />
-                          {/* Pink Orders */}
                           <div
                             className="w-1.5 rounded-t-sm bg-[#EE3876]"
                             style={{ height: b.orderHeight }}
@@ -2354,10 +2734,10 @@ function CafeDashboard() {
                   </div>
                 </div>
 
-                {/* Chart Legend */}
                 <div className="flex items-center justify-center gap-5 text-[9px] font-bold text-slate-600">
                   <span className="flex items-center gap-1">
-                    <span className="w-2 h-2 rounded-full bg-[#784BF6]" /> Total Sales
+                    <span className="w-2 h-2 rounded-full bg-[#784BF6]" /> Total
+                    Sales
                   </span>
                   <span className="flex items-center gap-1">
                     <span className="w-2 h-2 rounded-full bg-[#EE3876]" /> Orders
@@ -2365,9 +2745,7 @@ function CafeDashboard() {
                 </div>
               </div>
 
-              {/* Promo Banner: Keep Your Cafe Running Smoothly! */}
-              {/* Promo Banner: Keep Your Cafe Running Smoothly! */}
-              <div className="flex-1 rounded-2xl bg-gradient-to-r from-[#EEE7FE] to-[#F7EEFD] p-4 border border-purple-100 flex items-center justify-between relative overflow-hidden">
+              <div className="rounded-2xl bg-gradient-to-r from-[#EEE7FE] to-[#F7EEFD] p-4 border border-purple-100 flex items-center justify-between relative overflow-hidden">
                 <div className="space-y-1.5 max-w-[190px] z-10">
                   <h4 className="text-xs font-black text-[#3A1D8D] leading-snug rotate-[-2deg]">
                     Keep Your <br /> Cafe Running Smoothly!
@@ -2375,13 +2753,17 @@ function CafeDashboard() {
                   <p className="text-[9px] text-slate-500 font-medium">
                     Manage orders, update menu, track earnings and more.
                   </p>
-                  <button className="px-3 py-1.5 rounded-xl bg-[#5D45F9] hover:bg-[#4b35e0] text-white text-[10px] font-black flex items-center gap-1 shadow-sm transition">
+                  <button
+                    type="button"
+                    suppressHydrationWarning
+                    className="px-3 py-1.5 rounded-xl bg-[#5D45F9] hover:bg-[#4b35e0] text-white text-[10px] font-black flex items-center gap-1 shadow-sm transition"
+                  >
                     <span>Manage Menu</span>
                     <ArrowRight className="w-3 h-3" />
                   </button>
                 </div>
 
-                <div className="w-24 h-24 rounded-full overflow-hidden shadow-sm shrink-0 border-2 border-white">
+                <div className="w-20 h-20 rounded-full overflow-hidden shadow-sm shrink-0 border-2 border-white">
                   <img
                     src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=300&auto=format&fit=crop&q=80"
                     alt="Salad Bowl"
@@ -2393,7 +2775,6 @@ function CafeDashboard() {
 
             {/* 3. RIGHT COLUMN WIDGETS */}
             <div className="space-y-3.5">
-              {/* Restaurant Timings Card */}
               <div className="bg-white rounded-2xl p-3.5 border border-slate-100 shadow-sm space-y-2">
                 <div className="flex items-center gap-1.5 text-xs font-bold text-slate-500">
                   <Clock3 className="w-3.5 h-3.5 text-[#5D45F9]" />
@@ -2410,60 +2791,92 @@ function CafeDashboard() {
                 </div>
               </div>
 
-              {/* Quick Actions Card */}
               <div className="bg-white rounded-2xl p-3.5 border border-slate-100 shadow-sm space-y-2.5">
                 <h4 className="text-xs font-black text-[#14234B] flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5 text-amber-500" /> Quick Actions
+                  <Sparkles className="w-3.5 h-3.5 text-amber-500" /> Quick
+                  Actions
                 </h4>
 
                 <div className="space-y-1.5">
-                  <button className="w-full flex items-center justify-between p-2 rounded-xl border border-slate-100 hover:bg-slate-50 transition text-left">
+                  <button
+                    type="button"
+                    suppressHydrationWarning
+                    className="w-full flex items-center justify-between p-2 rounded-xl border border-slate-100 hover:bg-slate-50 transition text-left"
+                  >
                     <div className="flex items-center gap-2">
                       <div className="w-7 h-7 rounded-lg bg-[#DCF9E8] text-[#0FAF53] flex items-center justify-center shrink-0">
                         <Utensils className="w-3.5 h-3.5" />
                       </div>
                       <div>
-                        <p className="text-[10px] font-black text-slate-800">Update Menu</p>
-                        <p className="text-[8px] text-slate-400">Add / modify food items</p>
+                        <p className="text-[10px] font-black text-slate-800">
+                          Update Menu
+                        </p>
+                        <p className="text-[8px] text-slate-400">
+                          Add / modify food items
+                        </p>
                       </div>
                     </div>
                     <ChevronRight className="w-3 h-3 text-slate-400" />
                   </button>
 
-                  <button className="w-full flex items-center justify-between p-2 rounded-xl border border-slate-100 hover:bg-slate-50 transition text-left">
+                  <button
+                    type="button"
+                    suppressHydrationWarning
+                    className="w-full flex items-center justify-between p-2 rounded-xl border border-slate-100 hover:bg-slate-50 transition text-left"
+                  >
                     <div className="flex items-center gap-2">
                       <div className="w-7 h-7 rounded-lg bg-[#FFEAF3] text-[#EE3876] flex items-center justify-center shrink-0">
                         <ShoppingBag className="w-3.5 h-3.5" />
                       </div>
                       <div>
-                        <p className="text-[10px] font-black text-slate-800">Manage Orders</p>
-                        <p className="text-[8px] text-slate-400">View & update orders</p>
+                        <p className="text-[10px] font-black text-slate-800">
+                          Manage Orders
+                        </p>
+                        <p className="text-[8px] text-slate-400">
+                          View & update orders
+                        </p>
                       </div>
                     </div>
                     <ChevronRight className="w-3 h-3 text-slate-400" />
                   </button>
 
-                  <button className="w-full flex items-center justify-between p-2 rounded-xl border border-slate-100 hover:bg-slate-50 transition text-left">
+                  <button
+                    type="button"
+                    suppressHydrationWarning
+                    className="w-full flex items-center justify-between p-2 rounded-xl border border-slate-100 hover:bg-slate-50 transition text-left"
+                  >
                     <div className="flex items-center gap-2">
                       <div className="w-7 h-7 rounded-lg bg-[#F0EAFE] text-[#784BF6] flex items-center justify-center shrink-0">
                         <Star className="w-3.5 h-3.5" />
                       </div>
                       <div>
-                        <p className="text-[10px] font-black text-slate-800">View Reviews</p>
-                        <p className="text-[8px] text-slate-400">Check student feedback</p>
+                        <p className="text-[10px] font-black text-slate-800">
+                          View Reviews
+                        </p>
+                        <p className="text-[8px] text-slate-400">
+                          Check student feedback
+                        </p>
                       </div>
                     </div>
                     <ChevronRight className="w-3 h-3 text-slate-400" />
                   </button>
 
-                  <button className="w-full flex items-center justify-between p-2 rounded-xl border border-slate-100 hover:bg-slate-50 transition text-left">
+                  <button
+                    type="button"
+                    suppressHydrationWarning
+                    className="w-full flex items-center justify-between p-2 rounded-xl border border-slate-100 hover:bg-slate-50 transition text-left"
+                  >
                     <div className="flex items-center gap-2">
                       <div className="w-7 h-7 rounded-lg bg-[#FFF2DE] text-[#F09923] flex items-center justify-center shrink-0">
                         <Tag className="w-3.5 h-3.5" />
                       </div>
                       <div>
-                        <p className="text-[10px] font-black text-slate-800">Add Special Offer</p>
-                        <p className="text-[8px] text-slate-400">Attract more students</p>
+                        <p className="text-[10px] font-black text-slate-800">
+                          Add Special Offer
+                        </p>
+                        <p className="text-[8px] text-slate-400">
+                          Attract more students
+                        </p>
                       </div>
                     </div>
                     <ChevronRight className="w-3 h-3 text-slate-400" />
@@ -2471,20 +2884,26 @@ function CafeDashboard() {
                 </div>
               </div>
 
-              {/* Top Selling Items Card */}
               <div className="bg-white rounded-2xl p-3.5 border border-slate-100 shadow-sm space-y-2">
                 <div className="flex items-center justify-between">
                   <h4 className="text-xs font-black text-[#14234B] flex items-center gap-1">
                     <span>👑</span> Top Selling Items
                   </h4>
-                  <button className="text-[9px] font-bold text-[#5D45F9] hover:underline">
+                  <button
+                    type="button"
+                    suppressHydrationWarning
+                    className="text-[9px] font-bold text-[#5D45F9] hover:underline"
+                  >
                     View All →
                   </button>
                 </div>
 
                 <div className="space-y-1.5 pt-1">
                   {topSelling.map((item) => (
-                    <div key={item.name} className="flex items-center justify-between text-xs py-1 border-b border-slate-50 last:border-0">
+                    <div
+                      key={item.name}
+                      className="flex items-center justify-between text-xs py-1 border-b border-slate-50 last:border-0"
+                    >
                       <div className="flex items-center gap-2">
                         <img
                           src={item.img}
@@ -2505,9 +2924,7 @@ function CafeDashboard() {
             </div>
           </div>
 
-          {/* ===================================================
-              BOTTOM FULL WIDTH BANNER: FRESH INGREDIENTS
-          =================================================== */}
+          {/* BOTTOM FULL WIDTH BANNER */}
           <section className="relative rounded-2xl bg-gradient-to-r from-[#FFF2E0] via-[#FCEFDC] to-[#FBE7D4] border border-orange-200/60 p-4 flex flex-col md:flex-row items-center justify-between gap-4 shadow-sm overflow-hidden">
             <div className="flex items-center gap-3 z-10">
               <span className="text-2xl text-[#5D45F9]">♧</span>
@@ -2530,7 +2947,9 @@ function CafeDashboard() {
                   🛍️
                 </div>
                 <div>
-                  <p className="font-extrabold text-[#14234B] text-[11px]">More Orders</p>
+                  <p className="font-extrabold text-[#14234B] text-[11px]">
+                    More Orders
+                  </p>
                   <p className="text-[9px] text-slate-500">Bigger Reach</p>
                 </div>
               </div>
@@ -2542,7 +2961,9 @@ function CafeDashboard() {
                   🛡️
                 </div>
                 <div>
-                  <p className="font-extrabold text-[#14234B] text-[11px]">Quality Food</p>
+                  <p className="font-extrabold text-[#14234B] text-[11px]">
+                    Quality Food
+                  </p>
                   <p className="text-[9px] text-slate-500">Happy Customers</p>
                 </div>
               </div>
@@ -2554,13 +2975,19 @@ function CafeDashboard() {
                   📈
                 </div>
                 <div>
-                  <p className="font-extrabold text-[#14234B] text-[11px]">Grow Your Business</p>
+                  <p className="font-extrabold text-[#14234B] text-[11px]">
+                    Grow Your Business
+                  </p>
                   <p className="text-[9px] text-slate-500">With Studentica</p>
                 </div>
               </div>
             </div>
 
-            <button className="px-5 py-2.5 rounded-xl bg-[#5D45F9] hover:bg-[#4b35e0] text-white text-xs font-black flex items-center gap-1.5 transition shadow-sm z-10 shrink-0">
+            <button
+              type="button"
+              suppressHydrationWarning
+              className="px-5 py-2.5 rounded-xl bg-[#5D45F9] hover:bg-[#4b35e0] text-white text-xs font-black flex items-center gap-1.5 transition shadow-sm z-10 shrink-0"
+            >
               <BarChart3 className="w-3.5 h-3.5" />
               <span>View Reports →</span>
             </button>
@@ -2570,8 +2997,9 @@ function CafeDashboard() {
     </div>
   );
 }
+
 /* ============================================================
-   LAUNDRY DASHBOARD (COTTONSPA - EXACT SCREENSHOT LAYOUT)
+   LAUNDRY DASHBOARD (COTTONSPA)
 ============================================================ */
 
 function LaundryDashboard() {
@@ -2651,12 +3079,9 @@ function LaundryDashboard() {
 
   return (
     <div className="min-h-screen bg-[#F5F6FC] text-slate-900 font-sans flex antialiased">
-      {/* =====================================================
-          SIDEBAR
-      ===================================================== */}
+      {/* SIDEBAR */}
       <aside className="hidden lg:flex flex-col w-[240px] bg-[#121631] text-white shrink-0 sticky top-0 h-screen justify-between p-4 z-40 overflow-y-auto">
         <div className="space-y-6">
-          {/* Logo */}
           <Link href="/vendor" className="flex items-center gap-3 px-2 pt-2">
             <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-[#684bf5] to-[#996eff] flex items-center justify-center text-white shadow-lg shadow-purple-950/40">
               <GraduationCap className="w-6 h-6" />
@@ -2671,13 +3096,14 @@ function LaundryDashboard() {
             </div>
           </Link>
 
-          {/* Navigation */}
           <nav className="space-y-1.5">
             {sidebarLinks.map((item) => {
               const Icon = item.icon;
               return (
                 <button
                   key={item.label}
+                  type="button"
+                  suppressHydrationWarning
                   className={`flex w-full items-center justify-between px-4 py-3 rounded-2xl text-xs font-bold transition ${
                     item.active
                       ? "bg-[#5D45F9] text-white shadow-md shadow-purple-950/40"
@@ -2699,7 +3125,6 @@ function LaundryDashboard() {
           </nav>
         </div>
 
-        {/* Sidebar Art */}
         <div className="space-y-3 pb-2 text-center">
           <p className="text-[15px] font-black text-[#D379FA] rotate-[-7deg] leading-tight select-none">
             Clean Clothes <br /> Happy Students
@@ -2717,23 +3142,27 @@ function LaundryDashboard() {
         </div>
       </aside>
 
-      {/* =====================================================
-          MAIN BODY
-      ===================================================== */}
+      {/* MAIN BODY */}
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Header */}
         <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-100 px-6 sm:px-8 h-20 flex items-center justify-between gap-4">
           <div className="flex items-center gap-2.5 px-4 py-2.5 bg-[#F6F7FD] border border-slate-200/70 rounded-2xl w-full max-w-md">
             <Search className="w-4 h-4 text-[#5D45F9] shrink-0" />
             <input
               type="text"
               placeholder="Search orders, students..."
+              suppressHydrationWarning
+              data-lpignore="true"
+              autoComplete="off"
               className="w-full text-xs font-medium text-slate-800 placeholder-slate-400 bg-transparent focus:outline-none"
             />
           </div>
 
           <div className="flex items-center gap-4">
-            <button className="relative p-2.5 rounded-2xl bg-[#F6F7FD] text-slate-600 hover:text-slate-900 transition">
+            <button
+              type="button"
+              suppressHydrationWarning
+              className="relative p-2.5 rounded-2xl bg-[#F6F7FD] text-slate-600 hover:text-slate-900 transition"
+            >
               <Bell className="w-4 h-4 text-[#162758]" />
               <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#FA3E57] text-[9px] font-black text-white flex items-center justify-center">
                 3
@@ -2759,15 +3188,10 @@ function LaundryDashboard() {
           </div>
         </header>
 
-        {/* Dashboard Content */}
         <main className="p-5 sm:p-7 space-y-5 max-w-[1450px] w-full mx-auto">
-          {/* ===================================================
-              TOP ROW: HERO BANNER + TODAY'S STATUS
-          =================================================== */}
+          {/* HERO BANNER + TODAY'S STATUS */}
           <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_280px] gap-4 items-stretch">
-            {/* HERO BANNER */}
             <div className="relative rounded-[28px] overflow-hidden bg-gradient-to-r from-[#EDE8FF] via-[#F4F0FF] to-[#EAE3FF] p-6 sm:p-7 border border-purple-100/60 shadow-sm flex flex-col justify-between min-h-[200px]">
-              {/* Background Laundry Photo overlay */}
               <div className="absolute right-0 top-0 bottom-0 w-[48%] overflow-hidden pointer-events-none hidden md:block">
                 <img
                   src="https://images.unsplash.com/photo-1545173168-9f1947eebb7f?auto=format&fit=crop&w=800&q=80"
@@ -2784,7 +3208,6 @@ function LaundryDashboard() {
                 </span>
 
                 <div className="flex items-center gap-3 pt-1">
-                  {/* Washing Machine Icon Square */}
                   <div className="w-14 h-14 rounded-2xl bg-white border border-purple-100 shadow-md flex items-center justify-center text-[#5D45F9] shrink-0">
                     <WashingMachine className="w-8 h-8" />
                   </div>
@@ -2824,13 +3247,11 @@ function LaundryDashboard() {
                 </div>
               </div>
 
-              {/* Handwritten Note in Banner */}
               <div className="absolute right-[36%] top-6 hidden 2xl:block text-center rotate-[-10deg] text-[#6942EC] font-black text-xs select-none">
                 Clean <br /> Fresh <br /> On Time ⌣
               </div>
             </div>
 
-            {/* TODAY'S STATUS */}
             <div className="rounded-[28px] overflow-hidden bg-white border border-slate-100 shadow-sm flex flex-col justify-between">
               <div className="bg-gradient-to-r from-[#7B58FA] to-[#9963F9] p-4 text-white flex items-center gap-2">
                 <CalendarDays className="w-4 h-4" />
@@ -2854,9 +3275,7 @@ function LaundryDashboard() {
             </div>
           </div>
 
-          {/* ===================================================
-              4 STAT CARDS
-          =================================================== */}
+          {/* 4 STAT CARDS */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm space-y-2">
               <div className="w-10 h-10 rounded-2xl bg-[#FFEAF3] text-[#EE3876] flex items-center justify-center">
@@ -2907,47 +3326,52 @@ function LaundryDashboard() {
             </div>
           </div>
 
-          {/* ===================================================
-              MAIN MIDDLE GRID: ORDERS + OVERVIEW + RIGHT ACTIONS
-          =================================================== */}
+          {/* MAIN GRID */}
           <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1.3fr)_minmax(0,0.9fr)_280px] gap-4 items-start">
-            {/* 1. RECENT ORDERS TABLE */}
             <div className="bg-white rounded-[26px] p-5 border border-slate-100 shadow-sm space-y-4">
               <div className="flex items-center justify-between pb-1">
                 <h3 className="text-base font-black text-[#152758]">
                   Recent Orders
                 </h3>
-                <button className="text-xs font-bold text-[#5D45F9] flex items-center gap-1 hover:underline">
+                <button
+                  type="button"
+                  suppressHydrationWarning
+                  className="text-xs font-bold text-[#5D45F9] flex items-center gap-1 hover:underline"
+                >
                   View All <ArrowRight className="w-3 h-3" />
                 </button>
               </div>
 
-              {/* Filter Pills */}
               <div className="flex flex-wrap gap-1.5 text-xs font-bold">
-                {["All (18)", "Pending (3)", "In Progress (3)", "Completed (14)", "Cancelled (1)"].map(
-                  (tab) => {
-                    const rawTab = tab.split(" ")[0];
-                    const active =
-                      (rawTab === "All" && activeTab === "All") ||
-                      activeTab === rawTab;
-                    return (
-                      <button
-                        key={tab}
-                        onClick={() => setActiveTab(rawTab)}
-                        className={`px-3 py-1.5 rounded-full transition text-[11px] font-extrabold ${
-                          active
-                            ? "bg-[#5D45F9] text-white shadow-sm"
-                            : "bg-[#F3F4FB] text-slate-600 hover:bg-slate-200"
-                        }`}
-                      >
-                        {tab}
-                      </button>
-                    );
-                  }
-                )}
+                {[
+                  "All (18)",
+                  "Pending (3)",
+                  "In Progress (3)",
+                  "Completed (14)",
+                  "Cancelled (1)",
+                ].map((tab) => {
+                  const rawTab = tab.split(" ")[0];
+                  const active =
+                    (rawTab === "All" && activeTab === "All") ||
+                    activeTab === rawTab;
+                  return (
+                    <button
+                      key={tab}
+                      type="button"
+                      suppressHydrationWarning
+                      onClick={() => setActiveTab(rawTab)}
+                      className={`px-3 py-1.5 rounded-full transition text-[11px] font-extrabold ${
+                        active
+                          ? "bg-[#5D45F9] text-white shadow-sm"
+                          : "bg-[#F3F4FB] text-slate-600 hover:bg-slate-200"
+                      }`}
+                    >
+                      {tab}
+                    </button>
+                  );
+                })}
               </div>
 
-              {/* Table */}
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs min-w-[500px]">
                   <thead>
@@ -2963,7 +3387,10 @@ function LaundryDashboard() {
                   </thead>
                   <tbody className="divide-y divide-slate-50">
                     {filteredOrders.map((ord) => (
-                      <tr key={ord.id} className="hover:bg-slate-50/50 transition">
+                      <tr
+                        key={ord.id}
+                        className="hover:bg-slate-50/50 transition"
+                      >
                         <td className="py-3 font-black text-[#162758]">
                           {ord.id}
                         </td>
@@ -2987,7 +3414,11 @@ function LaundryDashboard() {
                           {ord.time}
                         </td>
                         <td className="py-3 text-right">
-                          <button className="px-2.5 py-1 rounded-full border border-purple-200 text-[#5D45F9] text-[10px] font-black hover:bg-[#5D45F9] hover:text-white transition">
+                          <button
+                            type="button"
+                            suppressHydrationWarning
+                            className="px-2.5 py-1 rounded-full border border-purple-200 text-[#5D45F9] text-[10px] font-black hover:bg-[#5D45F9] hover:text-white transition"
+                          >
                             View
                           </button>
                         </td>
@@ -2997,16 +3428,21 @@ function LaundryDashboard() {
                 </table>
               </div>
 
-              {/* Pagination */}
               <div className="flex items-center justify-between pt-2 text-xs text-slate-400">
                 <span>Showing 5 of 18 orders</span>
                 <div className="flex items-center gap-1">
-                  <button className="w-6 h-6 rounded-full border border-slate-200 text-slate-600 flex items-center justify-center text-xs">
+                  <button
+                    type="button"
+                    suppressHydrationWarning
+                    className="w-6 h-6 rounded-full border border-slate-200 text-slate-600 flex items-center justify-center text-xs"
+                  >
                     ‹
                   </button>
                   {[1, 2, 3, 4].map((n) => (
                     <button
                       key={n}
+                      type="button"
+                      suppressHydrationWarning
                       className={`w-6 h-6 rounded-full text-xs font-bold flex items-center justify-center ${
                         n === 1
                           ? "bg-[#5D45F9] text-white"
@@ -3016,27 +3452,31 @@ function LaundryDashboard() {
                       {n}
                     </button>
                   ))}
-                  <button className="w-6 h-6 rounded-full border border-slate-200 text-slate-600 flex items-center justify-center text-xs">
+                  <button
+                    type="button"
+                    suppressHydrationWarning
+                    className="w-6 h-6 rounded-full border border-slate-200 text-slate-600 flex items-center justify-center text-xs"
+                  >
                     ›
                   </button>
                 </div>
               </div>
             </div>
 
-            {/* 2. ORDERS OVERVIEW + KEEP RUNNING PROMO */}
             <div className="space-y-4">
-              {/* Chart Card */}
               <div className="bg-white rounded-[26px] p-5 border border-slate-100 shadow-sm space-y-4">
                 <div className="flex items-center justify-between pb-1">
                   <h3 className="text-sm font-black text-[#152758] flex items-center gap-1.5">
                     <Clock3 className="w-4 h-4 text-[#5D45F9]" /> Orders Overview
                   </h3>
-                  <select className="text-[10px] font-bold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1">
+                  <select
+                    suppressHydrationWarning
+                    className="text-[10px] font-bold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1"
+                  >
                     <option>This Week</option>
                   </select>
                 </div>
 
-                {/* Bar Chart Representation */}
                 <div className="h-44 flex items-end justify-between gap-2 pt-4 px-1 border-b border-slate-100">
                   {chartData.map((d) => (
                     <div
@@ -3044,17 +3484,14 @@ function LaundryDashboard() {
                       className="flex-1 flex flex-col items-center justify-end h-full gap-1.5"
                     >
                       <div className="flex items-end gap-1 h-32 w-full justify-center">
-                        {/* Completed (Green) */}
                         <div
                           className="w-1.5 rounded-t-sm bg-[#16B774]"
                           style={{ height: `${(d.completed / 20) * 100}%` }}
                         />
-                        {/* Pending (Amber) */}
                         <div
                           className="w-1.5 rounded-t-sm bg-[#F09923]"
                           style={{ height: `${(d.pending / 20) * 100}%` }}
                         />
-                        {/* Cancelled (Pink) */}
                         <div
                           className="w-1.5 rounded-t-sm bg-[#EE3876]"
                           style={{ height: `${(d.cancelled / 20) * 100}%` }}
@@ -3067,21 +3504,22 @@ function LaundryDashboard() {
                   ))}
                 </div>
 
-                {/* Legend */}
                 <div className="flex items-center justify-center gap-4 text-[10px] font-bold text-slate-600">
                   <span className="flex items-center gap-1">
-                    <span className="w-2 h-2 rounded-full bg-[#16B774]" /> Completed
+                    <span className="w-2 h-2 rounded-full bg-[#16B774]" />{" "}
+                    Completed
                   </span>
                   <span className="flex items-center gap-1">
-                    <span className="w-2 h-2 rounded-full bg-[#F09923]" /> Pending
+                    <span className="w-2 h-2 rounded-full bg-[#F09923]" />{" "}
+                    Pending
                   </span>
                   <span className="flex items-center gap-1">
-                    <span className="w-2 h-2 rounded-full bg-[#EE3876]" /> Cancelled
+                    <span className="w-2 h-2 rounded-full bg-[#EE3876]" />{" "}
+                    Cancelled
                   </span>
                 </div>
               </div>
 
-              {/* Promo Banner */}
               <div className="rounded-[26px] bg-gradient-to-r from-[#EEE9FE] to-[#F5EDFD] p-5 border border-purple-100 space-y-3 relative overflow-hidden">
                 <h4 className="text-sm font-black text-[#152758] leading-tight max-w-[180px]">
                   Keep Your Laundry Business Running Smoothly!
@@ -3099,7 +3537,11 @@ function LaundryDashboard() {
                   </span>
                 </div>
 
-                <button className="px-4 py-2 rounded-xl bg-[#5D45F9] hover:bg-[#4b35e0] text-white text-[11px] font-black flex items-center gap-1 shadow-sm transition">
+                <button
+                  type="button"
+                  suppressHydrationWarning
+                  className="px-4 py-2 rounded-xl bg-[#5D45F9] hover:bg-[#4b35e0] text-white text-[11px] font-black flex items-center gap-1 shadow-sm transition"
+                >
                   Update Services <ArrowRight className="w-3 h-3" />
                 </button>
 
@@ -3113,58 +3555,87 @@ function LaundryDashboard() {
               </div>
             </div>
 
-            {/* 3. RIGHT COLUMN WIDGETS */}
             <div className="space-y-4">
-              {/* Quick Actions */}
               <div className="bg-white rounded-[26px] p-5 border border-slate-100 shadow-sm space-y-3">
                 <h4 className="text-xs font-black text-[#152758] flex items-center gap-1.5">
                   <Zap className="w-3.5 h-3.5 text-[#5D45F9]" /> Quick Actions
                 </h4>
 
                 <div className="space-y-2">
-                  <button className="w-full flex items-center gap-3 p-2.5 rounded-2xl border border-slate-100 hover:bg-slate-50 transition text-left">
+                  <button
+                    type="button"
+                    suppressHydrationWarning
+                    className="w-full flex items-center gap-3 p-2.5 rounded-2xl border border-slate-100 hover:bg-slate-50 transition text-left"
+                  >
                     <div className="w-9 h-9 rounded-xl bg-[#FFF2DE] text-[#F09923] flex items-center justify-center shrink-0">
                       <Clock3 className="w-4 h-4" />
                     </div>
                     <div>
-                      <p className="text-xs font-black text-[#152857]">Update Timings</p>
-                      <p className="text-[10px] text-slate-400">Change your working hours</p>
+                      <p className="text-xs font-black text-[#152857]">
+                        Update Timings
+                      </p>
+                      <p className="text-[10px] text-slate-400">
+                        Change your working hours
+                      </p>
                     </div>
                   </button>
 
-                  <button className="w-full flex items-center gap-3 p-2.5 rounded-2xl border border-slate-100 hover:bg-slate-50 transition text-left">
+                  <button
+                    type="button"
+                    suppressHydrationWarning
+                    className="w-full flex items-center gap-3 p-2.5 rounded-2xl border border-slate-100 hover:bg-slate-50 transition text-left"
+                  >
                     <div className="w-9 h-9 rounded-xl bg-[#FFEAF3] text-[#EE3876] flex items-center justify-center shrink-0">
                       <ShoppingBag className="w-4 h-4" />
                     </div>
                     <div>
-                      <p className="text-xs font-black text-[#152857]">Manage Orders</p>
-                      <p className="text-[10px] text-slate-400">View & update order status</p>
+                      <p className="text-xs font-black text-[#152857]">
+                        Manage Orders
+                      </p>
+                      <p className="text-[10px] text-slate-400">
+                        View & update order status
+                      </p>
                     </div>
                   </button>
 
-                  <button className="w-full flex items-center gap-3 p-2.5 rounded-2xl border border-slate-100 hover:bg-slate-50 transition text-left">
+                  <button
+                    type="button"
+                    suppressHydrationWarning
+                    className="w-full flex items-center gap-3 p-2.5 rounded-2xl border border-slate-100 hover:bg-slate-50 transition text-left"
+                  >
                     <div className="w-9 h-9 rounded-xl bg-[#FDEAF7] text-[#D836A3] flex items-center justify-center shrink-0">
                       <Heart className="w-4 h-4" />
                     </div>
                     <div>
-                      <p className="text-xs font-black text-[#152857]">Add Special Offer</p>
-                      <p className="text-[10px] text-slate-400">Attract more students</p>
+                      <p className="text-xs font-black text-[#152857]">
+                        Add Special Offer
+                      </p>
+                      <p className="text-[10px] text-slate-400">
+                        Attract more students
+                      </p>
                     </div>
                   </button>
 
-                  <button className="w-full flex items-center gap-3 p-2.5 rounded-2xl border border-slate-100 hover:bg-slate-50 transition text-left">
+                  <button
+                    type="button"
+                    suppressHydrationWarning
+                    className="w-full flex items-center gap-3 p-2.5 rounded-2xl border border-slate-100 hover:bg-slate-50 transition text-left"
+                  >
                     <div className="w-9 h-9 rounded-xl bg-[#FFF2DE] text-[#F09923] flex items-center justify-center shrink-0">
                       <Star className="w-4 h-4" />
                     </div>
                     <div>
-                      <p className="text-xs font-black text-[#152857]">View Reviews</p>
-                      <p className="text-[10px] text-slate-400">See customer feedback</p>
+                      <p className="text-xs font-black text-[#152857]">
+                        View Reviews
+                      </p>
+                      <p className="text-[10px] text-slate-400">
+                        See customer feedback
+                      </p>
                     </div>
                   </button>
                 </div>
               </div>
 
-              {/* Laundry Timings */}
               <div className="bg-white rounded-[26px] p-5 border border-slate-100 shadow-sm space-y-3">
                 <div className="flex items-center gap-1.5 text-xs font-black text-[#5D45F9]">
                   <Clock3 className="w-4 h-4" /> Laundry Timings
@@ -3179,12 +3650,15 @@ function LaundryDashboard() {
                   </span>
                 </div>
 
-                <button className="w-full py-2.5 rounded-xl bg-[#5D45F9] text-white text-xs font-black hover:bg-[#4b35e0] transition">
+                <button
+                  type="button"
+                  suppressHydrationWarning
+                  className="w-full py-2.5 rounded-xl bg-[#5D45F9] text-white text-xs font-black hover:bg-[#4b35e0] transition"
+                >
                   Update Timings
                 </button>
               </div>
 
-              {/* Pricing */}
               <div className="bg-white rounded-[26px] p-5 border border-slate-100 shadow-sm space-y-3">
                 <div className="flex items-center gap-1.5 text-xs font-black text-[#EA7F12]">
                   <Tag className="w-4 h-4" /> Pricing
@@ -3192,23 +3666,29 @@ function LaundryDashboard() {
 
                 <div>
                   <h3 className="text-xl font-black text-[#152857]">
-                    ₹60 <span className="text-xs font-normal text-slate-500">per kg</span>
+                    ₹60{" "}
+                    <span className="text-xs font-normal text-slate-500">
+                      per kg
+                    </span>
                   </h3>
-                  <p className="text-[10px] text-slate-400 font-medium">(Starting from)</p>
+                  <p className="text-[10px] text-slate-400 font-medium">
+                    (Starting from)
+                  </p>
                 </div>
 
-                <button className="w-full py-2.5 rounded-xl bg-[#5D45F9] text-white text-xs font-black hover:bg-[#4b35e0] transition">
+                <button
+                  type="button"
+                  suppressHydrationWarning
+                  className="w-full py-2.5 rounded-xl bg-[#5D45F9] text-white text-xs font-black hover:bg-[#4b35e0] transition"
+                >
                   Update Price
                 </button>
               </div>
             </div>
           </div>
 
-          {/* ===================================================
-              BOTTOM SECTION: 4 QUICK STATS + GO GREEN BANNER
-          =================================================== */}
+          {/* BOTTOM SECTION */}
           <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_280px] gap-4 items-stretch">
-            {/* Quick Stats Grid */}
             <div className="bg-white rounded-[26px] p-5 border border-slate-100 shadow-sm space-y-4">
               <h4 className="text-xs font-black text-[#152857] flex items-center gap-1.5">
                 <Sparkles className="w-4 h-4 text-[#5D45F9]" /> Quick Stats
@@ -3220,9 +3700,13 @@ function LaundryDashboard() {
                     ₹
                   </div>
                   <div>
-                    <p className="text-[10px] text-slate-400 font-bold">Total Revenue</p>
+                    <p className="text-[10px] text-slate-400 font-bold">
+                      Total Revenue
+                    </p>
                     <p className="text-sm font-black text-[#152857]">₹8,450</p>
-                    <p className="text-[9px] text-[#11A866] font-bold">↑ 15% this week</p>
+                    <p className="text-[9px] text-[#11A866] font-bold">
+                      ↑ 15% this week
+                    </p>
                   </div>
                 </div>
 
@@ -3231,9 +3715,13 @@ function LaundryDashboard() {
                     🛍️
                   </div>
                   <div>
-                    <p className="text-[10px] text-slate-400 font-bold">Average Order Value</p>
+                    <p className="text-[10px] text-slate-400 font-bold">
+                      Average Order Value
+                    </p>
                     <p className="text-sm font-black text-[#152857]">₹235</p>
-                    <p className="text-[9px] text-[#11A866] font-bold">↑ 10% this week</p>
+                    <p className="text-[9px] text-[#11A866] font-bold">
+                      ↑ 10% this week
+                    </p>
                   </div>
                 </div>
 
@@ -3242,9 +3730,13 @@ function LaundryDashboard() {
                     👥
                   </div>
                   <div>
-                    <p className="text-[10px] text-slate-400 font-bold">Active Students</p>
+                    <p className="text-[10px] text-slate-400 font-bold">
+                      Active Students
+                    </p>
                     <p className="text-sm font-black text-[#152857]">142</p>
-                    <p className="text-[9px] text-[#11A866] font-bold">↑ 8% this week</p>
+                    <p className="text-[9px] text-[#11A866] font-bold">
+                      ↑ 8% this week
+                    </p>
                   </div>
                 </div>
 
@@ -3253,15 +3745,18 @@ function LaundryDashboard() {
                     ⏱️
                   </div>
                   <div>
-                    <p className="text-[10px] text-slate-400 font-bold">Repeat Customers</p>
+                    <p className="text-[10px] text-slate-400 font-bold">
+                      Repeat Customers
+                    </p>
                     <p className="text-sm font-black text-[#152857]">68</p>
-                    <p className="text-[9px] text-[#11A866] font-bold">↑ 12% this week</p>
+                    <p className="text-[9px] text-[#11A866] font-bold">
+                      ↑ 12% this week
+                    </p>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Go Green Save Water */}
             <div className="rounded-[26px] bg-gradient-to-r from-[#DCF9E8] to-[#E8FCEF] p-5 border border-emerald-100 flex items-center justify-between">
               <div className="space-y-1 max-w-[150px]">
                 <div className="w-7 h-7 rounded-xl bg-white text-[#11A866] flex items-center justify-center">
@@ -3285,4 +3780,3 @@ function LaundryDashboard() {
     </div>
   );
 }
-

@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import Navbar from "@/components/common/Navbar";
+{/*import Navbar from "@/components/common/Navbar";*/}
 import {
   Home,
   Grid,
@@ -40,7 +40,6 @@ export default function StudentLaundryPage() {
 
   const sidebarLinks = [
     { label: "Home", href: "/", icon: Home },
-    { label: "Services", href: "/student/services", icon: Grid },
     { label: "Mess", href: "/student/mess", icon: Utensils },
     { label: "Hostel / PG", href: "/student/pg", icon: Building },
     { label: "Restaurant", href: "/student/cafes", icon: Utensils },
@@ -49,7 +48,7 @@ export default function StudentLaundryPage() {
     { label: "Housekeeping", href: "/student/cleaning", icon: Sparkles },
     { label: "Roommate Finder", href: "/student/roommates", icon: Users },
     { label: "Freshers Pass", href: "/pass", icon: Award },
-    { label: "Notices", href: "/student/notices", icon: Bell },
+    { label: "about", href: "/student/about", icon: Bell },
     { label: "Profile", href: "/student/profile", icon: User },
     { label: "Settings", href: "/settings", icon: Settings },
   ];
@@ -190,7 +189,7 @@ export default function StudentLaundryPage() {
   return (
     <div className="min-h-screen bg-[#FAF9FD] text-slate-900 font-sans selection:bg-purple-100 selection:text-purple-700">
       {/* 1. TOP NAVBAR */}
-      <Navbar />
+     
 
       {/* 2. MAIN THREE-COLUMN WORKSPACE */}
       <div className="max-w-[1550px] mx-auto px-4 md:px-6 py-6 grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
@@ -500,12 +499,18 @@ export default function StudentLaundryPage() {
                   {/* View Details Button */}
                   <div className="pt-3">
                     <Link
-                      href={`/service/${item.id}`}
-                      className="w-full py-2 rounded-xl bg-[#6C47FF] hover:bg-[#5835e5] text-white text-[11px] font-bold flex items-center justify-center gap-1 transition shadow-sm shadow-purple-200"
-                    >
-                      View Details
-                      <ArrowRight className="w-3 h-3" />
-                    </Link>
+                         href={
+                          item.id === "cotton-spa" ||
+                          item.id === "cotton-spa" ||
+                          item.name?.toLowerCase().includes("cotton")
+                          ? "/student/laundry/cotton-spa"
+                           : `/service/${item.id}`
+                              }
+                              className="w-full py-2.5 rounded-xl bg-[#6C47FF] hover:bg-[#5835e5] text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition shadow-sm"
+                              >
+                           <span>View Details</span>
+                       <ArrowRight className="w-3.5 h-3.5" />
+                      </Link>
                   </div>
                 </div>
               ))}

@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import Navbar from "@/components/common/Navbar";
+{/*import Navbar from "@/components/common/Navbar";*/}
 import {
   GraduationCap,
   Search,
@@ -40,7 +40,6 @@ export default function StudentMessPage() {
 
   const sidebarLinks = [
     { label: "Home", href: "/", icon: HomeIcon },
-    { label: "Services", href: "/student/services", icon: Grid },
     { label: "Mess", href: "/student/mess", icon: Utensils, active: true },
     { label: "Hostel / PG", href: "/student/pg", icon: Building },
     { label: "Restaurant", href: "/student/cafes", icon: Utensils },
@@ -49,7 +48,7 @@ export default function StudentMessPage() {
     { label: "Housekeeping", href: "/student/cleaning", icon: Sparkles },
     { label: "Roommate Finder", href: "/student/roommates", icon: Users },
     { label: "Freshers Pass", href: "/pass", icon: Award },
-    { label: "Notices", href: "/student/notices", icon: Bell },
+    { label: "about", href: "/student/about", icon: Bell },
     { label: "Profile", href: "/student/profile", icon: User },
     { label: "Settings", href: "/settings", icon: Settings },
   ];
@@ -194,7 +193,7 @@ export default function StudentMessPage() {
   return (
     <div className="min-h-screen bg-[#FAF9FD] text-slate-900 font-sans selection:bg-purple-100 selection:text-purple-700">
       {/* 1. TOP NAVBAR */}
-      <Navbar />
+     
 
       {/* 2. HERO BANNER */}
       <section className="max-w-[1550px] mx-auto px-4 md:px-6 pt-6 pb-4">

@@ -1,702 +1,702 @@
 "use client";
+
 import React, { useState } from "react";
 import Link from "next/link";
-import Navbar from "@/components/common/Navbar";
 import {
-  GraduationCap,
-  Search,
-  Bell,
-  MapPin,
-  Star,
-  Sparkles,  
-  ShieldCheck,
+  Home,
+  LayoutGrid,
+  UtensilsCrossed,
+  Building2,
+  Utensils,
+  Coffee,
+  Shirt,
+  Sparkle,
+  Sparkles,
   Users,
   Award,
-  User,
-  Settings,  
-  ArrowRight,
+  Bell,
+  Settings,
+  MessageCircle,
+  Search,
+  Filter,
   Flame,
   Heart,
   PlusCircle,
-  ChevronLeft,
+  MapPin,
   ChevronRight,
+  ArrowRight,
   SlidersHorizontal,
-  ChevronDown,
-  Home as HomeIcon, 
-  Grid,
-  Utensils,
-  Building,
-  Coffee,
-  Shirt,
-  MessageCircle,
+  User,
 } from "lucide-react";
 
-export default function StudentRoommatesPage() {
+export default function RoommateFinderPage() {
+  const [activeTab, setActiveTab] = useState("find");
+  const [genderFilter, setGenderFilter] = useState("both");
+  const [foodFilter, setFoodFilter] = useState("both");
+  const [budgetVal, setBudgetVal] = useState(7000);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedGender, setSelectedGender] = useState("Any");
-  const [selectedBudget, setSelectedBudget] = useState("Any");
-  const [selectedFood, setSelectedFood] = useState("Any");
-  const [selectedSort, setSelectedSort] = useState("Most Relevant");
-  const [budgetSlider, setBudgetSlider] = useState(8000);
-  const [currentPage, setCurrentPage] = useState(1);
-
+  const roommate = [
+  {
+    id: 1,
+    name: "Aditi Sharma",
+    // ... other properties ...
+    href: "/student/roommates/quiz", // <--- Add this link
+  },
+  {
+    id: 2,
+    name: "Rohit Verma",
+    // ...
+    href: "/student/roommates/quiz",
+  },
+  // ... rest of profiles
+];
   const sidebarLinks = [
-    { label: "Home", href: "/", icon: HomeIcon },
-    { label: "Services", href: "/student/services", icon: Grid },
-    { label: "Mess", href: "/student/mess", icon: Utensils },
-    { label: "Hostel / PG", href: "/student/pg", icon: Building },
-    { label: "Restaurant", href: "/student/cafes", icon: Utensils },
-    { label: "Cafe", href: "/student/cafes", icon: Coffee },
-    { label: "Laundry", href: "/student/laundry", icon: Shirt },
-    { label: "Housekeeping", href: "/student/cleaning", icon: Sparkles },
-    { label: "Roommate Finder", href: "/student/roommates", icon: Users, active: true },
-    { label: "Freshers Pass", href: "/pass", icon: Award },
-    { label: "Notices", href: "/student/notices", icon: Bell },
-    { label: "Profile", href: "/student/profile", icon: User },
-    { label: "Settings", href: "/settings", icon: Settings },
+    { label: "Home", icon: Home, href: "/student", active: false },
+    { label: "Services", icon: LayoutGrid, href: "/student", active: false },
+    { label: "Mess", icon: UtensilsCrossed, href: "/student/mess", active: false },
+    { label: "Hostel / PG", icon: Building2, href: "/student/pg", active: false },
+    { label: "Restaurant", icon: Utensils, href: "/student/restaurant", active: false },
+    { label: "Cafe", icon: Coffee, href: "/student/cafes", active: false },
+    { label: "Laundry", icon: Shirt, href: "/student/laundry", active: false },
+    { label: "Housekeeping", icon: Sparkle, href: "/student/cleaning", active: false },
+    { label: "Roommate Finder", icon: Users, href: "/student/roommates", active: true },
+    { label: "Freshers Pass", icon: Award, href: "/pass", active: false },
+    { label: "Notices", icon: Bell, href: "/student/notices", active: false },
+    { label: "Profile", icon: User, href: "/student/profile", active: false },
+    { label: "Settings", icon: Settings, href: "/student/settings", active: false },
+  ];
+
+  const topCategories = [
+    {
+      id: "find",
+      title: "Find Roommates",
+      sub: "Based on your preferences",
+      icon: User,
+      color: "text-blue-500",
+      bg: "bg-blue-50",
+    },
+    {
+      id: "popular",
+      title: "Popular Matches",
+      sub: "See what others are choosing",
+      icon: Flame,
+      color: "text-rose-500",
+      bg: "bg-rose-50",
+    },
+    {
+      id: "my",
+      title: "My Matches",
+      sub: "View your saved profiles",
+      icon: Heart,
+      color: "text-emerald-500",
+      bg: "bg-emerald-50",
+    },
+    {
+      id: "post",
+      title: "Post Your Need",
+      sub: "Find roommates faster",
+      icon: PlusCircle,
+      color: "text-purple-500",
+      bg: "bg-purple-50",
+    },
   ];
 
   const roommates = [
     {
-      id: "aditi-sharma",
+      id: 1,
       name: "Aditi Sharma",
-      genderSymbol: "♀",
-      ageCollege: "20 • MIT AOE",
+      genderSign: "♀",
+      age: 20,
+      college: "MIT AOE",
+      rating: 4.7,
+      reviews: 12,
       badge: "Verified",
-      badgeColor: "bg-emerald-50 text-emerald-600 border border-emerald-200",
-      rating: "4.7",
-      reviews: "12",
-      genderText: "Female",
+      badgeStyle: "bg-emerald-100 text-emerald-700 border-emerald-200",
+      gender: "Female",
       food: "Veg",
       smoking: "Non-Smoker",
-      lookingNear: "MIT AOE",
+      location: "MIT AOE",
       budget: "₹6k - ₹8k/month",
       interests: "Music, Travel, Reading",
       quote: "Looking for a clean, friendly and respectful roommate.",
-      image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&auto=format&fit=crop&q=80",
+      img: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&auto=format&fit=crop&q=80",
     },
     {
-      id: "rohit-verma",
+      id: 2,
       name: "Rohit Verma",
-      genderSymbol: "♂",
-      ageCollege: "21 • MIT AOE",
+      genderSign: "♂",
+      age: 21,
+      college: "MIT AOE",
+      rating: 4.5,
+      reviews: 9,
       badge: "Popular",
-      badgeColor: "bg-rose-50 text-rose-600 border border-rose-200",
-      rating: "4.5",
-      reviews: "8",
-      genderText: "Male",
+      badgeStyle: "bg-rose-100 text-rose-700 border-rose-200",
+      gender: "Male",
       food: "Non-Veg",
       smoking: "Non-Smoker",
-      lookingNear: "Dehu Phata",
+      location: "Dehu Phata",
       budget: "₹5k - ₹7k/month",
       interests: "Sports, Gaming, Movies",
-      quote: "Easy going, clean and love meeting new people!",
-      image: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=500&auto=format&fit=crop&q=80",
+      quote: "Easy going, clean and love new people.",
+      img: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=300&auto=format&fit=crop&q=80",
     },
     {
-      id: "sneha-kulkarni",
+      id: 3,
       name: "Sneha Kulkarni",
-      genderSymbol: "♀",
-      ageCollege: "21 • MIT AOE",
+      genderSign: "♀",
+      age: 21,
+      college: "MIT AOE",
+      rating: 4.8,
+      reviews: 15,
       badge: "Verified",
-      badgeColor: "bg-emerald-50 text-emerald-600 border border-emerald-200",
-      rating: "4.8",
-      reviews: "15",
-      genderText: "Female",
+      badgeStyle: "bg-emerald-100 text-emerald-700 border-emerald-200",
+      gender: "Female",
       food: "Veg",
       smoking: "Non-Smoker",
-      lookingNear: "Vishweshwar Nagar",
+      location: "Vishweswar Nagar",
       budget: "₹5k - ₹7k/month",
       interests: "Coding, Books, Food",
       quote: "Looking for a peaceful and cooperative roommate.",
-      image: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=500&auto=format&fit=crop&q=80",
+      img: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=300&auto=format&fit=crop&q=80",
     },
     {
-      id: "karan-deshpande",
+      id: 4,
       name: "Karan Deshpande",
-      genderSymbol: "♂",
-      ageCollege: "22 • MIT AOE",
+      genderSign: "♂",
+      age: 22,
+      college: "MIT AOE",
+      rating: 4.3,
+      reviews: 4,
       badge: "New",
-      badgeColor: "bg-purple-50 text-[#6C47FF] border border-purple-200",
-      rating: "4.3",
-      reviews: "6",
-      genderText: "Male",
+      badgeStyle: "bg-purple-100 text-purple-700 border-purple-200",
+      gender: "Male",
       food: "Veg",
       smoking: "Non-Smoker",
-      lookingNear: "Alandi",
+      location: "Alandi",
       budget: "₹7k - ₹9k/month",
       interests: "Cricket, Gym, Web Series",
-      quote: "Fun, disciplined and always up for good conversations!",
-      image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500&auto=format&fit=crop&q=80",
+      quote: "Fun disciplined and always up for good conversations!",
+      img: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&auto=format&fit=crop&q=80",
     },
     {
-      id: "isha-patil",
+      id: 5,
       name: "Isha Patil",
-      genderSymbol: "♀",
-      ageCollege: "20 • MIT",
+      genderSign: "♀",
+      age: 20,
+      college: "MIT",
+      rating: 4.6,
+      reviews: 10,
       badge: "Verified",
-      badgeColor: "bg-emerald-50 text-emerald-600 border border-emerald-200",
-      rating: "4.6",
-      reviews: "10",
-      genderText: "Female",
+      badgeStyle: "bg-emerald-100 text-emerald-700 border-emerald-200",
+      gender: "Female",
       food: "Non-Veg",
       smoking: "Non-Smoker",
-      lookingNear: "Dehu Phata",
+      location: "Dehu Phata",
       budget: "₹5k - ₹7k/month",
       interests: "Art, Music, Cooking",
-      quote: "Love a clean space and good vibes only!",
-      image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=500&auto=format&fit=crop&q=80",
+      quote: "Love clean space and good vibes only!",
+      img: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=300&auto=format&fit=crop&q=80",
     },
     {
-      id: "siddharth-more",
+      id: 6,
       name: "Siddharth More",
-      genderSymbol: "♂",
-      ageCollege: "21 • AOE",
+      genderSign: "♂",
+      age: 21,
+      college: "AOE",
+      rating: 4.4,
+      reviews: 9,
       badge: "Popular",
-      badgeColor: "bg-rose-50 text-rose-600 border border-rose-200",
-      rating: "4.4",
-      reviews: "9",
-      genderText: "Male",
+      badgeStyle: "bg-rose-100 text-rose-700 border-rose-200",
+      gender: "Male",
       food: "Veg",
       smoking: "Non-Smoker",
-      lookingNear: "MIT Campus",
-      budget: "₹6k - ₹8k/month",
+      location: "MIT Campus",
+      budget: "₹4k - ₹5k/month",
       interests: "Tech, Football, Travel",
-      quote: "Looking for a chill and respectful roommate.",
-      image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=500&auto=format&fit=crop&q=80",
+      quote: "Looking for a peaceful, respectful roommate.",
+      img: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=300&auto=format&fit=crop&q=80",
     },
   ];
 
   return (
-    <div className="min-h-screen bg-[#FAF9FD] text-slate-900 font-sans selection:bg-purple-100 selection:text-purple-700">
-      {/* 1. TOP NAVBAR */}
-      <Navbar />
-
-      {/* 2. THREE-COLUMN WORKSPACE */}
-      <div className="max-w-[1550px] mx-auto px-4 md:px-6 py-6 grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
-        {/* LEFT COLUMN: FILTERS & QUIZ CARD */}
-        <aside className="xl:col-span-3 space-y-6">
-          {/* Still Confused Quiz Card */}
-          <div className="rounded-3xl p-5 bg-gradient-to-br from-purple-50 via-indigo-50/50 to-white border border-purple-100 shadow-sm space-y-3">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-purple-100 flex items-center justify-center text-xl shrink-0">
-                🏡
-              </div>
-              <div>
-                <h4 className="text-sm font-black text-slate-900">Still Confused?</h4>
-                <p className="text-[11px] text-slate-500 leading-tight">
-                  Take our quick quiz and get personalized matches!
-                </p>
-              </div>
+    <div className="min-h-screen bg-[#F4F6FC] text-slate-800 font-sans antialiased p-4 sm:p-6 lg:p-8">
+      <div className="w-full max-w-[1720px] mx-auto flex flex-col lg:flex-row gap-6 items-start">
+        
+        {/* =========================================================
+            1. LEFT COLUMN: FILTERS, QUIZ & MORE FEATURES
+        ========================================================= */}
+        <aside className="w-full lg:w-[300px] min-w-[280px] shrink-0 space-y-4">
+          
+          {/* Still Confused Quiz Box */}
+          <div className="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm text-center relative overflow-hidden">
+            <div className="w-16 h-16 mx-auto mb-2 flex items-center justify-center">
+              <span className="text-4xl">🏡</span>
             </div>
-            <button className="w-full py-2.5 rounded-xl bg-[#6C47FF] hover:bg-[#5835e5] text-white text-xs font-bold flex items-center justify-center gap-1.5 transition shadow-sm">
+            <h3 className="text-sm font-black text-slate-900 leading-tight">
+              Still Confused?
+            </h3>
+            <p className="text-[11px] text-slate-500 font-medium mt-1 leading-snug">
+              Take our quick quiz and <br /> get personalized matches!
+            </p>
+            <button
+              type="button"
+              className="mt-3.5 w-full py-2.5 rounded-xl bg-[#5D42CE] hover:bg-[#4d34b5] text-white text-xs font-black shadow-md shadow-indigo-200 transition flex items-center justify-center gap-1.5 cursor-pointer"
+            >
               <span>Take Compatibility Quiz</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
 
           {/* Quick Filters Box */}
-          <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm space-y-5">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h3 className="font-extrabold text-sm text-slate-900 flex items-center gap-2">
-                <SlidersHorizontal className="w-4 h-4 text-[#6C47FF]" />
-                Quick Filters
-              </h3>
-              <button className="text-xs font-bold text-[#6C47FF] hover:underline">
+          <div className="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm space-y-4">
+            <div className="flex items-center justify-between pb-1 border-b border-slate-50">
+              <h4 className="text-xs font-black text-slate-900 flex items-center gap-1.5">
+                <SlidersHorizontal className="w-3.5 h-3.5 text-[#5D42CE]" /> Quick Filters
+              </h4>
+              <button
+                type="button"
+                className="text-[10px] font-bold text-[#5D42CE] hover:underline cursor-pointer"
+              >
                 Clear All
               </button>
             </div>
 
             {/* Gender */}
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-slate-800 block">Gender</label>
-              <div className="flex items-center gap-4 text-xs font-semibold text-slate-600">
+            <div className="space-y-2 text-xs">
+              <label className="text-[11px] font-black text-slate-700 block">
+                Gender
+              </label>
+              <div className="flex items-center gap-3 text-xs font-semibold text-slate-600">
                 <label className="flex items-center gap-1.5 cursor-pointer">
-                  <input type="checkbox" className="rounded accent-[#6C47FF]" />
+                  <input
+                    type="radio"
+                    name="gender"
+                    checked={genderFilter === "boys"}
+                    onChange={() => setGenderFilter("boys")}
+                    className="accent-[#5D42CE] w-3.5 h-3.5"
+                  />
                   <span>Boys</span>
                 </label>
                 <label className="flex items-center gap-1.5 cursor-pointer">
-                  <input type="checkbox" className="rounded accent-[#6C47FF]" />
+                  <input
+                    type="radio"
+                    name="gender"
+                    checked={genderFilter === "girls"}
+                    onChange={() => setGenderFilter("girls")}
+                    className="accent-[#5D42CE] w-3.5 h-3.5"
+                  />
                   <span>Girls</span>
                 </label>
                 <label className="flex items-center gap-1.5 cursor-pointer">
-                  <input type="checkbox" defaultChecked className="rounded accent-[#6C47FF]" />
-                  <span className="text-[#6C47FF] font-bold">Both</span>
+                  <input
+                    type="radio"
+                    name="gender"
+                    checked={genderFilter === "both"}
+                    onChange={() => setGenderFilter("both")}
+                    className="accent-[#5D42CE] w-3.5 h-3.5"
+                  />
+                  <span>Both</span>
                 </label>
               </div>
             </div>
 
             {/* Food Preference */}
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-slate-800 block">Food Preference</label>
-              <div className="flex items-center gap-4 text-xs font-semibold text-slate-600">
+            <div className="space-y-2 text-xs">
+              <label className="text-[11px] font-black text-slate-700 block">
+                Food Preference
+              </label>
+              <div className="flex items-center gap-3 text-xs font-semibold text-slate-600">
                 <label className="flex items-center gap-1.5 cursor-pointer">
-                  <input type="checkbox" className="rounded accent-[#6C47FF]" />
+                  <input
+                    type="radio"
+                    name="food"
+                    checked={foodFilter === "veg"}
+                    onChange={() => setFoodFilter("veg")}
+                    className="accent-[#5D42CE] w-3.5 h-3.5"
+                  />
                   <span>Veg</span>
                 </label>
                 <label className="flex items-center gap-1.5 cursor-pointer">
-                  <input type="checkbox" className="rounded accent-[#6C47FF]" />
+                  <input
+                    type="radio"
+                    name="food"
+                    checked={foodFilter === "nonveg"}
+                    onChange={() => setFoodFilter("nonveg")}
+                    className="accent-[#5D42CE] w-3.5 h-3.5"
+                  />
                   <span>Non-Veg</span>
                 </label>
                 <label className="flex items-center gap-1.5 cursor-pointer">
-                  <input type="checkbox" defaultChecked className="rounded accent-[#6C47FF]" />
-                  <span className="text-[#6C47FF] font-bold">Both</span>
+                  <input
+                    type="radio"
+                    name="food"
+                    checked={foodFilter === "both"}
+                    onChange={() => setFoodFilter("both")}
+                    className="accent-[#5D42CE] w-3.5 h-3.5"
+                  />
+                  <span>Both</span>
                 </label>
               </div>
             </div>
 
-            {/* Budget Slider */}
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-slate-800 block">Budget (per month)</label>
+            {/* Budget Range */}
+            <div className="space-y-2 text-xs">
+              <div className="flex items-center justify-between">
+                <label className="text-[11px] font-black text-slate-700">
+                  Budget (per month)
+                </label>
+                <span className="text-[10px] font-black text-[#5D42CE]">
+                  ₹{budgetVal.toLocaleString()}
+                </span>
+              </div>
               <input
                 type="range"
                 min="3000"
                 max="10000"
                 step="500"
-                value={budgetSlider}
-                onChange={(e) => setBudgetSlider(e.target.value)}
-                className="w-full accent-[#6C47FF] cursor-pointer"
+                value={budgetVal}
+                onChange={(e) => setBudgetVal(Number(e.target.value))}
+                className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-[#5D42CE]"
               />
-              <div className="flex items-center justify-between text-[11px] font-bold text-slate-500">
+              <div className="flex justify-between text-[10px] text-slate-400 font-bold">
                 <span>₹3,000</span>
-                <span>₹{Number(budgetSlider).toLocaleString()}+</span>
+                <span>₹10,000+</span>
               </div>
             </div>
 
             {/* Room Type */}
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-slate-800 block">Room Type</label>
+            <div className="space-y-2 text-xs">
+              <label className="text-[11px] font-black text-slate-700 block">
+                Room Type
+              </label>
               <div className="grid grid-cols-2 gap-2 text-xs font-semibold text-slate-600">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" defaultChecked className="rounded accent-[#6C47FF]" />
+                <label className="flex items-center gap-1.5 cursor-pointer">
+                  <input type="checkbox" defaultChecked className="accent-[#5D42CE] rounded w-3.5 h-3.5" />
                   <span>Single Room</span>
                 </label>
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" defaultChecked className="rounded accent-[#6C47FF]" />
+                <label className="flex items-center gap-1.5 cursor-pointer">
+                  <input type="checkbox" defaultChecked className="accent-[#5D42CE] rounded w-3.5 h-3.5" />
                   <span>Shared Room</span>
                 </label>
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" defaultChecked className="rounded accent-[#6C47FF]" />
+                <label className="flex items-center gap-1.5 cursor-pointer">
+                  <input type="checkbox" defaultChecked className="accent-[#5D42CE] rounded w-3.5 h-3.5" />
                   <span>PG / Flat</span>
                 </label>
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" defaultChecked className="rounded accent-[#6C47FF]" />
+                <label className="flex items-center gap-1.5 cursor-pointer">
+                  <input type="checkbox" defaultChecked className="accent-[#5D42CE] rounded w-3.5 h-3.5" />
                   <span>Hostel</span>
                 </label>
               </div>
             </div>
 
             {/* Additional Preferences */}
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-slate-800 block">Additional Preferences</label>
-              <div className="space-y-2 text-xs font-semibold text-slate-600">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" className="rounded accent-[#6C47FF]" />
+            <div className="space-y-2 text-xs">
+              <label className="text-[11px] font-black text-slate-700 block">
+                Additional Preferences
+              </label>
+              <div className="space-y-1.5 text-xs font-semibold text-slate-600">
+                <label className="flex items-center gap-1.5 cursor-pointer">
+                  <input type="checkbox" className="accent-[#5D42CE] rounded w-3.5 h-3.5" />
                   <span>Working Professional</span>
                 </label>
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" defaultChecked className="rounded accent-[#6C47FF]" />
+                <label className="flex items-center gap-1.5 cursor-pointer">
+                  <input type="checkbox" defaultChecked className="accent-[#5D42CE] rounded w-3.5 h-3.5" />
                   <span>Study Friendly</span>
                 </label>
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" defaultChecked className="rounded accent-[#6C47FF]" />
+                <label className="flex items-center gap-1.5 cursor-pointer">
+                  <input type="checkbox" defaultChecked className="accent-[#5D42CE] rounded w-3.5 h-3.5" />
                   <span>No Smoking</span>
                 </label>
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" className="rounded accent-[#6C47FF]" />
+                <label className="flex items-center gap-1.5 cursor-pointer">
+                  <input type="checkbox" className="accent-[#5D42CE] rounded w-3.5 h-3.5" />
                   <span>Pet Friendly</span>
                 </label>
               </div>
             </div>
 
-            <button className="w-full py-3 rounded-2xl bg-[#6C47FF] hover:bg-[#5835e5] text-white text-xs font-extrabold shadow-md shadow-purple-200 transition">
-              Apply Filters
-            </button>
+            {/* Apply Button */}
+            <Link
+              href={person.href || "/student/roommates/quiz"}
+             className="w-full py-2 rounded-xl bg-[#5D42CE] hover:bg-[#4d34b5] text-white text-xs font-black shadow-sm transition flex items-center justify-center gap-1 cursor-pointer"
+                >
+              <span>View Profile</span>
+              <ArrowRight className="w-3 h-3" />
+              </Link>
           </div>
 
-          {/* Left Doodle Box */}
-          <div className="rounded-3xl p-5 bg-[#FFF4EE] border border-orange-100 text-center space-y-2 shadow-sm">
-            <div className="text-xs font-black text-rose-500 rotate-[-4deg]">
-              Better Roommates, Bigger Dreams! ♡
-            </div>
-            <div className="w-20 h-20 mx-auto rounded-2xl overflow-hidden bg-white shadow-sm flex items-center justify-center p-2">
-              <img
-                src="https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=300&auto=format&fit=crop&q=80"
-                alt="Roommates"
-                className="w-full h-full object-cover rounded-xl"
-              />
+          {/* More Features Section */}
+          <div className="space-y-2">
+            <h4 className="text-xs font-black text-slate-900 px-1">More Features</h4>
+            <div className="space-y-2">
+              <Link
+                href="#"
+                className="flex items-center justify-between p-3 rounded-2xl bg-white border border-slate-100 hover:border-purple-200 shadow-sm transition"
+              >
+                <div className="flex items-center gap-2.5">
+                  <div className="w-7 h-7 rounded-lg bg-amber-50 text-amber-500 flex items-center justify-center text-xs">
+                    📖
+                  </div>
+                  <div>
+                    <p className="text-[11px] font-black text-slate-900">View Roommate Stories</p>
+                    <p className="text-[9px] text-slate-400 font-medium">Real experiences, real connections</p>
+                  </div>
+                </div>
+                <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+              </Link>
+
+              <Link
+                href="#"
+                className="flex items-center justify-between p-3 rounded-2xl bg-white border border-slate-100 hover:border-purple-200 shadow-sm transition"
+              >
+                <div className="flex items-center gap-2.5">
+                  <div className="w-7 h-7 rounded-lg bg-rose-50 text-rose-500 flex items-center justify-center text-xs">
+                    🛡️
+                  </div>
+                  <div>
+                    <p className="text-[11px] font-black text-slate-900">Safety Tips</p>
+                    <p className="text-[9px] text-slate-400 font-medium">Stay safe while sharing</p>
+                  </div>
+                </div>
+                <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+              </Link>
+
+              <Link
+                href="#"
+                className="flex items-center justify-between p-3 rounded-2xl bg-white border border-slate-100 hover:border-purple-200 shadow-sm transition"
+              >
+                <div className="flex items-center gap-2.5">
+                  <div className="w-7 h-7 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center text-xs">
+                    💬
+                  </div>
+                  <div>
+                    <p className="text-[11px] font-black text-slate-900">Ask Community</p>
+                    <p className="text-[9px] text-slate-400 font-medium">Get guidance from other students</p>
+                  </div>
+                </div>
+                <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+              </Link>
             </div>
           </div>
         </aside>
 
-        {/* CENTER COLUMN: MAIN CONTENT */}
-        <main className="xl:col-span-7 space-y-6">
-          {/* HERO BANNER */}
-          <section className="relative rounded-[32px] bg-gradient-to-r from-[#FFF1F2] via-[#FDF2F8] to-[#F5F3FF] border border-rose-100/70 p-6 md:p-8 overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6 shadow-sm">
-            <div className="space-y-2 z-10 max-w-md">
-              <h1 className="text-3xl md:text-4xl font-black text-slate-950 tracking-tight leading-tight">
+        {/* =========================================================
+            2. CENTRAL COLUMN: BANNER, TABS, SEARCH & CARDS
+        ========================================================= */}
+        <div className="flex-1 min-w-0 space-y-5">
+          
+          {/* Hero Banner */}
+          <div className="relative rounded-[32px] overflow-hidden bg-gradient-to-r from-[#FCE8F3] via-[#F4E8FC] to-[#E9E4FD] p-6 sm:p-8 border border-purple-100/60 shadow-sm flex flex-col md:flex-row items-center justify-between gap-6 min-h-[175px]">
+            <div className="space-y-2 z-10 max-w-sm">
+              <h1 className="text-2xl sm:text-3xl font-black text-[#5D42CE] tracking-tight leading-tight">
                 Find your <br />
-                <span className="text-[#6C47FF]">perfect roommate ッ</span>
+                <span className="text-[#36257E]">perfect roommate ♡</span>
               </h1>
-              <p className="text-xs font-medium text-slate-600">
+              <p className="text-xs font-semibold text-slate-600 leading-snug">
                 Same college. Same dreams. <br />
                 Find someone who vibes with you!
               </p>
             </div>
 
-            {/* Room Graphic */}
-            <div className="relative z-10 flex items-center gap-4 shrink-0">
-              <div className="w-48 h-36 md:w-60 md:h-40 rounded-2xl overflow-hidden shadow-xl border-4 border-white bg-slate-100">
-                <img
-                  src="https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=600&auto=format&fit=crop&q=80"
-                  alt="Cozy student dorm room"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <div className="hidden sm:flex flex-col text-[11px] font-bold text-slate-700 space-y-1">
-                <span className="text-emerald-600">✓ Safe</span>
-                <span className="text-emerald-600">✓ Verified</span>
-                <span className="text-emerald-600">✓ Student Friendly</span>
-              </div>
+            <div className="relative z-10 w-full sm:w-72 h-36 rounded-2xl overflow-hidden shadow-md border-2 border-white shrink-0">
+              <img
+                src="https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=600&auto=format&fit=crop&q=80"
+                alt="Cozy student dorm room"
+                className="w-full h-full object-cover"
+              />
             </div>
-          </section>
 
-          {/* 4 TOP ACTION PILLS */}
-          <section className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <button className="flex items-center gap-3 p-3 rounded-2xl bg-white border border-slate-100 shadow-sm hover:border-[#6C47FF] transition text-left group">
-              <div className="w-9 h-9 rounded-xl bg-purple-50 text-[#6C47FF] flex items-center justify-center shrink-0">
-                <Users className="w-4 h-4" />
-              </div>
-              <div>
-                <h4 className="text-xs font-black text-slate-900 group-hover:text-[#6C47FF] transition">
-                  Find Roommates
-                </h4>
-                <p className="text-[10px] text-slate-400">Based on preferences</p>
-              </div>
-            </button>
+            <div className="hidden lg:block bg-amber-100 border border-amber-200 rounded-2xl p-3 text-[11px] font-black text-slate-800 rotate-2 shadow-sm shrink-0">
+              <p>✓ Safe</p>
+              <p>✓ Verified</p>
+              <p>✓ Student Friendly</p>
+              <div className="text-right text-base mt-1">⌣</div>
+            </div>
+          </div>
 
-            <button className="flex items-center gap-3 p-3 rounded-2xl bg-white border border-slate-100 shadow-sm hover:border-orange-500 transition text-left group">
-              <div className="w-9 h-9 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center shrink-0">
-                <Flame className="w-4 h-4" />
-              </div>
-              <div>
-                <h4 className="text-xs font-black text-slate-900 group-hover:text-orange-600 transition">
-                  Popular Matches
-                </h4>
-                <p className="text-[10px] text-slate-400">What others choose</p>
-              </div>
-            </button>
+          {/* Top Action Tabs */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
+            {topCategories.map((cat) => {
+              const Icon = cat.icon;
+              const isActive = activeTab === cat.id;
+              return (
+                <button
+                  key={cat.id}
+                  type="button"
+                  onClick={() => setActiveTab(cat.id)}
+                  className={`p-3.5 rounded-2xl bg-white border text-left transition shadow-sm flex items-center gap-3 cursor-pointer ${
+                    isActive
+                      ? "border-[#5D42CE] ring-2 ring-purple-100"
+                      : "border-slate-100 hover:border-slate-200"
+                  }`}
+                >
+                  <div className={`w-9 h-9 rounded-xl ${cat.bg} ${cat.color} flex items-center justify-center shrink-0`}>
+                    <Icon className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs font-black text-slate-900 truncate leading-tight">
+                      {cat.title}
+                    </p>
+                    <p className="text-[10px] text-slate-400 font-medium truncate mt-0.5">
+                      {cat.sub}
+                    </p>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
 
-            <button className="flex items-center gap-3 p-3 rounded-2xl bg-white border border-slate-100 shadow-sm hover:border-emerald-500 transition text-left group">
-              <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
-                <Heart className="w-4 h-4" />
-              </div>
-              <div>
-                <h4 className="text-xs font-black text-slate-900 group-hover:text-emerald-600 transition">
-                  My Matches
-                </h4>
-                <p className="text-[10px] text-slate-400">View saved profiles</p>
-              </div>
-            </button>
-
-            <button className="flex items-center gap-3 p-3 rounded-2xl bg-white border border-slate-100 shadow-sm hover:border-pink-500 transition text-left group">
-              <div className="w-9 h-9 rounded-xl bg-pink-50 text-pink-600 flex items-center justify-center shrink-0">
-                <PlusCircle className="w-4 h-4" />
-              </div>
-              <div>
-                <h4 className="text-xs font-black text-slate-900 group-hover:text-pink-600 transition">
-                  Post Your Need
-                </h4>
-                <p className="text-[10px] text-slate-400">Find matches faster</p>
-              </div>
-            </button>
-          </section>
-
-          {/* SEARCH & HORIZONTAL CONTROLS */}
-          <section className="bg-white rounded-2xl p-3 border border-slate-100 shadow-sm flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-2 px-3 py-2 bg-slate-50 border border-slate-200/70 rounded-xl flex-1 min-w-[180px]">
-              <Search className="w-4 h-4 text-slate-400" />
+          {/* Multi-Dropdown Filter Bar with Large Readable Options */}
+          <div className="bg-white rounded-2xl p-2.5 sm:p-3 border border-slate-100 shadow-sm flex flex-col lg:flex-row items-center gap-2.5">
+            <div className="flex-1 flex items-center gap-2 px-3 py-2 bg-slate-50 border border-slate-200/70 rounded-xl w-full">
+              <Search className="w-4 h-4 text-slate-400 shrink-0" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search by location, college or interest..."
-                className="w-full text-xs font-semibold text-slate-800 placeholder-slate-400 bg-transparent focus:outline-none"
+                className="w-full text-xs font-medium text-slate-800 placeholder-slate-400 bg-transparent focus:outline-none"
               />
             </div>
 
-            <div className="relative min-w-[110px]">
-              <select
-                value={selectedGender}
-                onChange={(e) => setSelectedGender(e.target.value)}
-                className="w-full text-xs font-semibold text-slate-700 bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2 appearance-none cursor-pointer focus:outline-none"
-              >
-                <option>Gender: Any</option>
-                <option>Boys</option>
-                <option>Girls</option>
+            <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 w-full lg:w-auto">
+              <select className="flex-1 lg:flex-initial text-sm font-bold text-slate-800 bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 focus:outline-none cursor-pointer">
+                <option className="text-sm font-bold py-2 bg-white text-slate-800">Gender: Any</option>
+                <option className="text-sm font-medium py-2 bg-white text-slate-700">Boys</option>
+                <option className="text-sm font-medium py-2 bg-white text-slate-700">Girls</option>
               </select>
-              <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-3 top-3 pointer-events-none" />
-            </div>
 
-            <div className="relative min-w-[110px]">
-              <select
-                value={selectedBudget}
-                onChange={(e) => setSelectedBudget(e.target.value)}
-                className="w-full text-xs font-semibold text-slate-700 bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2 appearance-none cursor-pointer focus:outline-none"
-              >
-                <option>Budget: Any</option>
-                <option>₹5k - ₹7k</option>
-                <option>₹7k - ₹9k</option>
+              <select className="flex-1 lg:flex-initial text-sm font-bold text-slate-800 bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 focus:outline-none cursor-pointer">
+                <option className="text-sm font-bold py-2 bg-white text-slate-800">Budget: Any</option>
+                <option className="text-sm font-medium py-2 bg-white text-slate-700">Under ₹5,000</option>
+                <option className="text-sm font-medium py-2 bg-white text-slate-700">₹5,000 - ₹8,000</option>
+                <option className="text-sm font-medium py-2 bg-white text-slate-700">₹8,000+</option>
               </select>
-              <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-3 top-3 pointer-events-none" />
-            </div>
 
-            <div className="relative min-w-[110px]">
-              <select
-                value={selectedFood}
-                onChange={(e) => setSelectedFood(e.target.value)}
-                className="w-full text-xs font-semibold text-slate-700 bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2 appearance-none cursor-pointer focus:outline-none"
-              >
-                <option>Food: Any</option>
-                <option>Veg</option>
-                <option>Non-Veg</option>
+              <select className="flex-1 lg:flex-initial text-sm font-bold text-slate-800 bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 focus:outline-none cursor-pointer">
+                <option className="text-sm font-bold py-2 bg-white text-slate-800">Food: Any</option>
+                <option className="text-sm font-medium py-2 bg-white text-slate-700">Veg</option>
+                <option className="text-sm font-medium py-2 bg-white text-slate-700">Non-Veg</option>
               </select>
-              <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-3 top-3 pointer-events-none" />
+
+              <select className="flex-1 lg:flex-initial text-sm font-bold text-slate-800 bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 focus:outline-none cursor-pointer">
+                <option className="text-sm font-bold py-2 bg-white text-slate-800">Room Type: Any</option>
+                <option className="text-sm font-medium py-2 bg-white text-slate-700">Single</option>
+                <option className="text-sm font-medium py-2 bg-white text-slate-700">Shared</option>
+              </select>
+
+              <button
+                type="button"
+                className="px-5 py-2.5 rounded-xl bg-[#5D42CE] hover:bg-[#4d34b5] text-white text-sm font-black shadow-sm transition flex items-center justify-center gap-1.5 cursor-pointer shrink-0"
+              >
+                <Search className="w-4 h-4" />
+                <span>Search</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Featured Roommates Header */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-1">
+            <div>
+              <h2 className="text-base font-black text-slate-900 flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-[#5D42CE]" /> Featured Roommates
+              </h2>
+              <p className="text-[11px] text-slate-400 font-medium">
+                Handpicked matches based on your profile and preferences
+              </p>
             </div>
 
-            <button className="px-5 py-2.5 rounded-xl bg-[#6C47FF] hover:bg-[#5835e5] text-white text-xs font-bold flex items-center gap-1.5 transition shadow-sm">
-              <Search className="w-3.5 h-3.5" />
-              Search
-            </button>
-          </section>
-
-          {/* ROOMMATE CARDS LIST */}
-          <section className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-[#6C47FF]" />
-                  Featured Roommates
-                </h3>
-                <p className="text-xs text-slate-500">
-                  Handpicked matches based on your profile and preferences
-                </p>
-              </div>
-
-              <div className="flex items-center gap-2 text-xs font-bold text-slate-500">
-                <span>Sort by</span>
-                <select
-                  value={selectedSort}
-                  onChange={(e) => setSelectedSort(e.target.value)}
-                  className="bg-white border border-slate-200 rounded-xl px-2.5 py-1 text-xs font-semibold text-slate-800 focus:outline-none cursor-pointer"
-                >
-                  <option>Most Relevant</option>
-                  <option>Rating: High to Low</option>
-                  <option>Budget: Low to High</option>
-                </select>
-              </div>
+            <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
+              <span>Sort by:</span>
+              <select className="bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-sm font-bold text-slate-800 focus:outline-none cursor-pointer">
+                <option className="text-sm font-semibold py-1.5 bg-white text-slate-800">Most Relevant</option>
+                <option className="text-sm font-semibold py-1.5 bg-white text-slate-700">Budget: Low to High</option>
+                <option className="text-sm font-semibold py-1.5 bg-white text-slate-700">Rating: High to Low</option>
+              </select>
             </div>
+          </div>
 
-            {/* 3-Column Responsive Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {roommates.map((person) => (
-                <div
-                  key={person.id}
-                  className="bg-white rounded-3xl p-4 border border-slate-100 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between group"
-                >
-                  <div className="space-y-3">
-                    {/* Header: Photo + Details */}
-                    <div className="flex items-start gap-3">
-                      <div className="relative w-20 h-20 rounded-2xl overflow-hidden shrink-0 bg-slate-100">
-                        <img
-                          src={person.image}
-                          alt={person.name}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                        />
-                      </div>
+          {/* Roommate Cards Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            {roommates.map((person) => (
+              <div
+                key={person.id}
+                className="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm hover:shadow-md transition flex flex-col justify-between space-y-3"
+              >
+                <div className="flex items-start gap-3">
+                  <div className="relative w-14 h-14 rounded-2xl overflow-hidden bg-slate-100 shrink-0 border border-slate-100">
+                    <img
+                      src={person.img}
+                      alt={person.name}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
 
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between">
-                          <span
-                            className={`text-[9px] font-black px-2 py-0.5 rounded-full ${person.badgeColor}`}
-                          >
-                            {person.badge}
-                          </span>
-                          <div className="flex items-center gap-1 text-[11px] font-bold text-amber-500">
-                            <Star className="w-3 h-3 fill-amber-500" />
-                            <span>{person.rating}</span>
-                            <span className="text-slate-400 font-normal">({person.reviews})</span>
-                          </div>
-                        </div>
-
-                        <h4 className="text-sm font-black text-slate-900 truncate mt-1">
-                          {person.name}{" "}
-                          <span className="text-xs font-normal text-slate-400">
-                            {person.genderSymbol}
-                          </span>
-                        </h4>
-                        <p className="text-[11px] text-slate-400">{person.ageCollege}</p>
-
-                        <div className="flex flex-wrap items-center gap-1.5 pt-1.5 text-[9px] font-bold text-slate-600">
-                          <span className="bg-slate-100 px-1.5 py-0.5 rounded-md">
-                            {person.genderText}
-                          </span>
-                          <span className="bg-slate-100 px-1.5 py-0.5 rounded-md">
-                            {person.food}
-                          </span>
-                          <span className="bg-slate-100 px-1.5 py-0.5 rounded-md">
-                            {person.smoking}
-                          </span>
-                        </div>
-                      </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center justify-between">
+                      <span className={`px-2 py-0.5 rounded-full text-[9px] font-black border ${person.badgeStyle}`}>
+                        {person.badge}
+                      </span>
+                      <span className="text-[11px] font-black text-amber-500 flex items-center gap-0.5">
+                        ★ {person.rating} <span className="text-slate-400 font-medium">({person.reviews})</span>
+                      </span>
                     </div>
 
-                    {/* Metadata */}
-                    <div className="space-y-1 text-[11px] text-slate-600 font-medium pt-1 border-t border-slate-50">
-                      <p className="flex items-center gap-1.5">
-                        <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                        <span>Looking near: <strong>{person.lookingNear}</strong></span>
-                      </p>
-                      <p className="flex items-center gap-1.5">
-                        <span className="text-slate-400 font-bold">₹</span>
-                        <span>Budget: <strong>{person.budget}</strong></span>
-                      </p>
-                      <p className="text-[10px] text-slate-500 truncate">
-                        Interests: {person.interests}
-                      </p>
-                    </div>
-
-                    {/* Quote */}
-                    <p className="text-[11px] italic text-slate-500 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-                      "{person.quote}"
+                    <h3 className="text-sm font-black text-slate-900 mt-1 flex items-center gap-1 truncate">
+                      {person.name}
+                      <span className="text-xs text-slate-400 font-normal">{person.genderSign}</span>
+                    </h3>
+                    <p className="text-[10px] text-slate-400 font-semibold">
+                      {person.age} • {person.college}
                     </p>
                   </div>
-
-                  {/* View Profile Button */}
-                  <div className="pt-3">
-                    <Link
-                      href={`/service/${person.id}`}
-                      className="w-full py-2 rounded-xl bg-[#6C47FF] hover:bg-[#5835e5] text-white text-xs font-bold flex items-center justify-center gap-1.5 transition shadow-sm shadow-purple-200"
-                    >
-                      View Profile
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </Link>
-                  </div>
                 </div>
-              ))}
-            </div>
 
-            {/* Pagination Controls */}
-            <div className="flex items-center justify-center gap-2 pt-4">
-              <button
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                className="w-8 h-8 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-50"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-              <button
-                onClick={() => setCurrentPage(1)}
-                className={`w-8 h-8 rounded-xl text-xs font-bold ${
-                  currentPage === 1
-                    ? "bg-[#6C47FF] text-white shadow-md shadow-purple-200"
-                    : "bg-white border border-slate-200 text-slate-700 hover:bg-slate-50"
-                }`}
-              >
-                1
-              </button>
-              <button
-                onClick={() => setCurrentPage(2)}
-                className={`w-8 h-8 rounded-xl text-xs font-bold ${
-                  currentPage === 2
-                    ? "bg-[#6C47FF] text-white shadow-md shadow-purple-200"
-                    : "bg-white border border-slate-200 text-slate-700 hover:bg-slate-50"
-                }`}
-              >
-                2
-              </button>
-              <button
-                onClick={() => setCurrentPage(3)}
-                className={`w-8 h-8 rounded-xl text-xs font-bold ${
-                  currentPage === 3
-                    ? "bg-[#6C47FF] text-white shadow-md shadow-purple-200"
-                    : "bg-white border border-slate-200 text-slate-700 hover:bg-slate-50"
-                }`}
-              >
-                3
-              </button>
-              <button
-                onClick={() => setCurrentPage((p) => p + 1)}
-                className="w-8 h-8 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-50"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
-          </section>
-
-          {/* MORE FEATURES PROMO TILES */}
-          <section className="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm space-y-3">
-            <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-400">
-              More Features
-            </h4>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              <Link
-                href="/stories"
-                className="p-3 rounded-2xl bg-slate-50 hover:bg-purple-50 transition border border-slate-100 flex items-center justify-between group"
-              >
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center text-xs">
-                    📖
-                  </div>
-                  <div>
-                    <h5 className="text-xs font-black text-slate-900 group-hover:text-[#6C47FF]">
-                      View Roommate Stories
-                    </h5>
-                    <p className="text-[10px] text-slate-400">Real experiences, real bonds</p>
-                  </div>
+                <div className="flex flex-wrap items-center gap-1.5 text-[10px] font-bold">
+                  <span className="px-2 py-0.5 rounded-lg bg-purple-50 text-purple-700">
+                    {person.gender}
+                  </span>
+                  <span className="px-2 py-0.5 rounded-lg bg-emerald-50 text-emerald-700">
+                    {person.food}
+                  </span>
+                  <span className="px-2 py-0.5 rounded-lg bg-slate-100 text-slate-600">
+                    {person.smoking}
+                  </span>
                 </div>
-                <ArrowRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-[#6C47FF] group-hover:translate-x-1 transition-transform" />
-              </Link>
 
-              <Link
-                href="/safety"
-                className="p-3 rounded-2xl bg-slate-50 hover:bg-purple-50 transition border border-slate-100 flex items-center justify-between group"
-              >
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center text-xs">
-                    🛡️
-                  </div>
-                  <div>
-                    <h5 className="text-xs font-black text-slate-900 group-hover:text-[#6C47FF]">
-                      Safety Tips
-                    </h5>
-                    <p className="text-[10px] text-slate-400">Stay safe while sharing</p>
-                  </div>
+                <div className="space-y-1.5 text-[11px] font-medium text-slate-600 pt-1 border-t border-slate-50">
+                  <p className="flex items-center gap-1.5">
+                    <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                    <span>Looking near: <strong className="text-slate-800">{person.location}</strong></span>
+                  </p>
+                  <p className="flex items-center gap-1.5">
+                    <span className="text-slate-400 font-black">₹</span>
+                    <span>Budget: <strong className="text-slate-800">{person.budget}</strong></span>
+                  </p>
+                  <p className="text-[10px] text-slate-500 truncate">
+                    Interests: <span className="font-semibold text-slate-700">{person.interests}</span>
+                  </p>
                 </div>
-                <ArrowRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-[#6C47FF] group-hover:translate-x-1 transition-transform" />
-              </Link>
 
-              <Link
-                href="/community"
-                className="p-3 rounded-2xl bg-slate-50 hover:bg-purple-50 transition border border-slate-100 flex items-center justify-between group"
-              >
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-xl bg-purple-100 text-[#6C47FF] flex items-center justify-center text-xs">
-                    💬
-                  </div>
-                  <div>
-                    <h5 className="text-xs font-black text-slate-900 group-hover:text-[#6C47FF]">
-                      Ask Community
-                    </h5>
-                    <p className="text-[10px] text-slate-400">Get student advice</p>
-                  </div>
+                <div className="p-2.5 rounded-xl bg-slate-50 text-[10px] italic text-slate-600 leading-snug">
+                  &ldquo;{person.quote}&rdquo;
                 </div>
-                <ArrowRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-[#6C47FF] group-hover:translate-x-1 transition-transform" />
-              </Link>
-            </div>
-          </section>
-        </main>
 
-        {/* RIGHT COLUMN: QUICK NAV SIDEBAR */}
+                <button
+                  type="button"
+                  className="w-full py-2 rounded-xl bg-[#5D42CE] hover:bg-[#4d34b5] text-white text-xs font-black shadow-sm transition flex items-center justify-center gap-1 cursor-pointer"
+                >
+                  <span>View Profile</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            ))}
+          </div>
+
+        </div>
+
+        {/* =========================================================
+            3. RIGHT COLUMN: QUICK NAV & LIVE CHAT ASIDE
+        ========================================================= */}
         <aside className="hidden xl:flex flex-col w-64 bg-white rounded-3xl p-5 border border-slate-100 shadow-sm shrink-0 sticky top-24 space-y-6">
           <div>
             <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-400 mb-3 px-2">
@@ -730,7 +730,7 @@ export default function StudentRoommatesPage() {
               <div>
                 <h4 className="text-xs font-black text-slate-900">Need Help?</h4>
                 <p className="text-[10px] text-slate-500">Chat with us</p>
-              </div>
+              </div> 
             </div>
             <Link
               href="/support"
@@ -741,49 +741,8 @@ export default function StudentRoommatesPage() {
             </Link>
           </div>
         </aside>
+
       </div>
-
-      {/* 3. FOOTER */}
-      <footer className="w-full bg-white border-t border-slate-100 py-8 px-6 mt-8">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-xs font-semibold text-slate-500">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-xl bg-[#6C47FF] flex items-center justify-center text-white">
-              <GraduationCap className="w-4 h-4" />
-            </div>
-            <div>
-              <span className="font-black text-slate-900 text-sm block">Studentica.</span>
-              <span className="text-[10px] text-slate-400">Campus Hub</span>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-6">
-            <Link href="/about" className="hover:text-slate-900 transition">About Us</Link>
-            <Link href="/support" className="hover:text-slate-900 transition">Help & Support</Link>
-            <Link href="/privacy" className="hover:text-slate-900 transition">Privacy Policy</Link>
-            <Link href="/terms" className="hover:text-slate-900 transition">Terms & Conditions</Link>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <span className="text-[11px] font-bold text-indigo-600 rotate-[-4deg]">
-              Good Rooms • Good People • Better College Life ッ
-            </span>
-            <div className="flex items-center gap-2">
-              <button className="w-7 h-7 rounded-full bg-purple-50 text-[#6C47FF] flex items-center justify-center text-xs">
-                IG
-              </button>
-              <button className="w-7 h-7 rounded-full bg-purple-50 text-[#6C47FF] flex items-center justify-center text-xs">
-                TG
-              </button>
-              <button className="w-7 h-7 rounded-full bg-purple-50 text-[#6C47FF] flex items-center justify-center text-xs">
-                YT
-              </button>
-              <button className="w-7 h-7 rounded-full bg-purple-50 text-[#6C47FF] flex items-center justify-center text-xs">
-                WA
-              </button>
-            </div>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }

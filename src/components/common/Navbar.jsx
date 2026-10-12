@@ -8,13 +8,13 @@ import { GraduationCap, Search } from "lucide-react";
 export default function Navbar() {
   const pathname = usePathname();
 
-  const navLinks = [
+  {/*const navLinks = [
     { label: "Home", href: "/" },
-    { label: "Services", href: "/student/services" },
+    { label: "about", href: "/student/services" },
     { label: "Fresher Pass", href: "/pass" },
     { label: "Profile", href: "/student/profile" },
-    { label: "Vendors", href: "/vendors" },
-  ];
+    
+  ];*/}
 
   return (
     <header className="sticky top-0 z-50 w-full bg-white/95 backdrop-blur-md border-b border-purple-50 px-6 h-20 flex items-center justify-between">
@@ -59,6 +59,8 @@ export default function Navbar() {
       {/* Right Controls: Search, Login, Get Started */}
       <div className="flex items-center gap-3">
         <button
+          type="button"
+          suppressHydrationWarning
           aria-label="Search"
           className="p-2 text-slate-500 hover:text-slate-900 rounded-full hover:bg-slate-100 transition"
         >
@@ -66,6 +68,8 @@ export default function Navbar() {
         </button>
 
         <Link
+          type="button"
+          suppressHydrationWarning
           href="/login"
           className="px-5 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-50 border border-slate-200 rounded-xl transition bg-white"
         >
@@ -73,6 +77,8 @@ export default function Navbar() {
         </Link>
 
         <Link
+          type="button"
+          suppressHydrationWarning
           href="/register"
           className="px-5 py-2.5 text-xs font-bold text-white bg-[#6C47FF] hover:bg-[#5835e5] rounded-xl shadow-md shadow-purple-200 transition"
         >

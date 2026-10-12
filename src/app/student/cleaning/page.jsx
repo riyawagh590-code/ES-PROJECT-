@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import Navbar from "@/components/common/Navbar";
+{/*import Navbar from "@/components/common/Navbar";*/}
 import {
   GraduationCap,
   Search,
@@ -37,16 +37,14 @@ export default function StudentCleaningPage() {
 
   const sidebarLinks = [
     { label: "Home", href: "/", icon: HomeIcon },
-    { label: "Services", href: "/student/services", icon: Grid },
     { label: "Mess", href: "/student/mess", icon: Utensils },
     { label: "Hostel / PG", href: "/student/pg", icon: Building },
-    { label: "Restaurant", href: "/student/cafes", icon: Utensils },
     { label: "Cafe", href: "/student/cafes", icon: Coffee },
     { label: "Laundry", href: "/student/laundry", icon: Shirt },
     { label: "Housekeeping", href: "/student/cleaning", icon: Sparkles, active: true },
     { label: "Roommate Finder", href: "/student/roommates", icon: Users },
     { label: "Freshers Pass", href: "/pass", icon: Award },
-    { label: "Notices", href: "/student/notices", icon: Bell },
+    { label: "about", href: "/student/about", icon: Bell },
     { label: "Profile", href: "/student/profile", icon: User },
     { label: "Settings", href: "/settings", icon: Settings },
   ];
@@ -157,7 +155,7 @@ export default function StudentCleaningPage() {
   return (
     <div className="min-h-screen bg-[#FAF9FD] text-slate-900 font-sans selection:bg-purple-100 selection:text-purple-700">
       {/* 1. TOP NAVBAR */}
-      <Navbar />
+      
 
       {/* 2. HERO BANNER */}
       <section className="max-w-[1550px] mx-auto px-4 md:px-6 pt-5 pb-4">
@@ -325,6 +323,7 @@ export default function StudentCleaningPage() {
                       <span>{day}</span>
                     </label>
                   ))}
+            
                 </div>
               </div>
 
@@ -340,6 +339,9 @@ export default function StudentCleaningPage() {
                   ))}
                 </div>
               </div>
+              <button className="w-full py-3 rounded-2xl bg-[#6C47FF] hover:bg-[#5835e5] text-white text-xs font-extrabold shadow-md shadow-purple-200 transition">
+              Apply Filters
+            </button>
             </div>
 
             {/* Bottom Doodle Box */}
@@ -483,11 +485,11 @@ export default function StudentCleaningPage() {
                     {/* View Details Button */}
                     <div className="pt-3">
                       <Link
-                        href={`/service/${staff.id}`}
-                        className="w-full py-2 px-3 rounded-xl bg-[#6C47FF] hover:bg-[#5835e5] text-white text-xs font-bold flex items-center justify-center gap-1.5 transition shadow-sm shadow-purple-200"
-                      >
-                        View Details
-                        <ArrowRight className="w-3.5 h-3.5" />
+                       href="/student/cleaning/shital-patil"
+                      className="w-full py-2.5 rounded-xl bg-[#6C47FF] hover:bg-[#5835e5] text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition shadow-sm"
+                       >
+                      <span>View Details</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
                       </Link>
                     </div>
                   </div>

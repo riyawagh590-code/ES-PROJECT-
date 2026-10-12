@@ -145,9 +145,9 @@ export default function StudentDashboardPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#F8F9FD] text-slate-900 font-sans selection:bg-purple-100 selection:text-purple-700">
+    <div className="min-h-screen bg-[#F8F9FD] text-slate-900 font-sans selection:bg-purple-100 selection:text-purple-700 flex flex-col">
       {/* 1. TOP HEADER */}
-      <header className="sticky top-0 z-40 w-full bg-white/95 backdrop-blur-md border-b border-purple-50 px-6 h-20 flex items-center justify-between">
+      <header className="sticky top-0 z-40 w-full bg-white/95 backdrop-blur-md border-b border-purple-50 px-6 sm:px-8 h-20 flex items-center justify-between">
         <Link href="/student" className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-2xl bg-[#6C47FF] flex items-center justify-center text-white shadow-md shadow-purple-200">
             <GraduationCap className="w-6 h-6" />
@@ -162,7 +162,6 @@ export default function StudentDashboardPage() {
           </div>
         </Link>
 
-        {/* Center Nav Tabs */}
         {/* Center Nav Tabs */}
         <nav className="hidden md:flex items-center gap-2 bg-slate-100/70 p-1.5 rounded-2xl border border-slate-200/50">
           <Link
@@ -194,6 +193,7 @@ export default function StudentDashboardPage() {
             Profile
           </Link>
         </nav>
+
         {/* Right Search & Profile */}
         <div className="flex items-center gap-4">
           <div className="hidden lg:flex items-center gap-2 px-3 py-2 bg-slate-100/80 rounded-xl w-60 border border-slate-200/50">
@@ -203,11 +203,18 @@ export default function StudentDashboardPage() {
               value={searchVal}
               onChange={(e) => setSearchVal(e.target.value)}
               placeholder="Search services, amenities..."
+              suppressHydrationWarning
+              data-lpignore="true"
+              autoComplete="off"
               className="w-full text-xs font-medium text-slate-800 placeholder-slate-400 bg-transparent focus:outline-none"
             />
           </div>
 
-          <button className="relative p-2.5 rounded-xl bg-slate-100 text-slate-600 hover:text-slate-900 hover:bg-slate-200/70 transition">
+          <button
+            type="button"
+            suppressHydrationWarning
+            className="relative p-2.5 rounded-xl bg-slate-100 text-slate-600 hover:text-slate-900 hover:bg-slate-200/70 transition"
+          >
             <Bell className="w-4 h-4" />
             <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-pink-500 text-[9px] font-black text-white flex items-center justify-center">
               3
@@ -228,9 +235,10 @@ export default function StudentDashboardPage() {
         </div>
       </header>
 
-      <div className="flex w-full">
+      {/* BODY WRAPPER: Constrained max-width prevents ultra-wide stretching */}
+      <div className="flex flex-1 w-full max-w-[1500px] mx-auto">
         {/* 2. LEFT SIDEBAR */}
-        <aside className="w-56 bg-white border-r border-slate-100 hidden md:flex flex-col justify-between py-6 px-4 shrink-0 min-h-[calc(100vh-80px)]">
+        <aside className="w-60 bg-white border-r border-slate-100 hidden md:flex flex-col justify-between py-6 px-4 shrink-0 sticky top-20 h-[calc(100vh-80px)]">
           <div className="space-y-1.5">
             {menuItems.map((item, idx) => {
               const Icon = item.icon;
@@ -270,11 +278,11 @@ export default function StudentDashboardPage() {
         </aside>
 
         {/* 3. MAIN DASHBOARD CONTENT */}
-        <main className="flex-1 p-6 md:p-8 space-y-8 overflow-y-auto">
+        <main className="flex-1 min-w-0 p-6 md:p-8 space-y-7">
           {/* Top Row: Hero Banner & Right Greeting Card */}
-          <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
+          <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-stretch">
             {/* Banner (8 Cols) */}
-            <div className="xl:col-span-8 relative bg-gradient-to-r from-[#203a74] via-[#2a5298] to-[#1e3c72] rounded-[32px] overflow-hidden p-8 md:p-10 text-white shadow-xl shadow-blue-900/10 min-h-[300px] flex flex-col justify-between">
+            <div className="xl:col-span-8 relative bg-gradient-to-r from-[#203a74] via-[#2a5298] to-[#1e3c72] rounded-[32px] overflow-hidden p-7 md:p-9 text-white shadow-xl shadow-blue-900/10 min-h-[260px] flex flex-col justify-between">
               <div className="absolute inset-0 opacity-20 pointer-events-none mix-blend-overlay">
                 <img
                   src="https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=1200&auto=format&fit=crop&q=80"
@@ -284,23 +292,23 @@ export default function StudentDashboardPage() {
               </div>
 
               {/* Student cutout on banner */}
-              <div className="absolute bottom-0 right-4 md:right-8 w-[220px] md:w-[280px] h-[92%] hidden sm:block pointer-events-none z-10">
+              <div className="absolute bottom-0 right-4 md:right-8 w-[200px] md:w-[250px] h-[92%] hidden sm:block pointer-events-none z-10">
                 <img
                   src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=600&auto=format&fit=crop&q=80"
                   alt="Student smiling"
                   className="w-full h-full object-cover object-top rounded-t-[32px]"
                 />
-                <div className="absolute top-8 -left-12 rotate-[-8deg] text-xs font-bold text-pink-200">
+                <div className="absolute top-6 -left-10 rotate-[-8deg] text-xs font-bold text-pink-200">
                   Better Services <br /> Bigger Smiles ッ
                 </div>
               </div>
 
-              <div className="relative z-20 space-y-4 max-w-md">
+              <div className="relative z-20 space-y-3 max-w-md">
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-xs font-semibold text-white">
                   <span>Welcome Back, {studentName}! 👋</span>
                 </div>
 
-                <h1 className="text-3xl md:text-5xl font-black tracking-tight leading-tight">
+                <h1 className="text-2xl md:text-4xl font-black tracking-tight leading-tight">
                   Your Campus Life, <br />
                   <span className="text-[#FF4DB8]">Our Priority!</span>
                 </h1>
@@ -310,7 +318,7 @@ export default function StudentDashboardPage() {
                 </p>
               </div>
 
-              <div className="relative z-20 flex flex-wrap items-center gap-3 pt-6">
+              <div className="relative z-20 flex flex-wrap items-center gap-2.5 pt-4">
                 <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/20 backdrop-blur-md text-emerald-300 border border-emerald-400/30 text-xs font-semibold">
                   <ShieldCheck className="w-4 h-4" />
                   Trusted Services
@@ -327,16 +335,16 @@ export default function StudentDashboardPage() {
             </div>
 
             {/* Right Side Column (4 Cols) */}
-            <div className="xl:col-span-4 space-y-4">
-              <div className="bg-gradient-to-br from-[#4F46E5] to-[#7C3AED] rounded-[32px] p-6 text-white shadow-xl shadow-indigo-500/10">
-                <div className="mb-4">
+            <div className="xl:col-span-4 flex flex-col justify-between">
+              <div className="bg-gradient-to-br from-[#4F46E5] to-[#7C3AED] rounded-[32px] p-6 text-white shadow-xl shadow-indigo-500/10 h-full flex flex-col justify-between space-y-4">
+                <div>
                   <h3 className="text-base font-extrabold flex items-center gap-1.5">
                     Good Morning, {studentName}! ☀️
                   </h3>
                   <p className="text-xs text-white/70">Keep going, you&apos;re doing great!</p>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3 mb-4">
+                <div className="grid grid-cols-2 gap-3">
                   <div className="bg-white rounded-2xl p-3.5 text-slate-800">
                     <div className="flex items-center gap-2 text-indigo-600 mb-1">
                       <Calendar className="w-4 h-4" />
@@ -370,7 +378,7 @@ export default function StudentDashboardPage() {
             </div>
           </div>
 
-          {/* Middle Row: Services Grid (8 Cols) & Quick Links (4 Cols) */}
+          {/* Middle Row: Services Grid & Quick Links */}
           <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
             {/* Services Grid (8 Cols) */}
             <div className="xl:col-span-8 space-y-4">
@@ -390,7 +398,7 @@ export default function StudentDashboardPage() {
                 </Link>
               </div>
 
-              {/* 6 Service Cards Grid */}
+              {/* 6 Service Cards Grid (3 Columns on md/lg) */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {services.map((item, idx) => {
                   const Icon = item.icon;
@@ -400,7 +408,8 @@ export default function StudentDashboardPage() {
                       className="bg-white rounded-3xl p-3.5 border border-slate-100 shadow-sm hover:shadow-lg transition-all flex flex-col justify-between group"
                     >
                       <div>
-                        <div className="relative w-full h-36 rounded-2xl overflow-hidden mb-3">
+                        {/* Properly scaled card image height */}
+                        <div className="relative w-full h-40 rounded-2xl overflow-hidden mb-3">
                           <img
                             src={item.img}
                             alt={item.title}
@@ -412,7 +421,7 @@ export default function StudentDashboardPage() {
                             {item.badge}
                           </span>
                           <div
-                            className={`absolute -bottom-3 left-4 w-9 h-9 rounded-2xl ${item.iconBg} flex items-center justify-center shadow-md`}
+                            className={`absolute -bottom-2.5 left-3.5 w-8 h-8 rounded-xl ${item.iconBg} flex items-center justify-center shadow-md`}
                           >
                             <Icon className="w-4 h-4" />
                           </div>
@@ -462,7 +471,7 @@ export default function StudentDashboardPage() {
                       </div>
                       <div>
                         <p className="text-xs font-bold text-slate-900 leading-tight">Book a Service</p>
-                        <p className="text-[10px] text-slate-400">Mess, Laundry, Cleaning & more</p>
+                        <p className="text-[10px] text-slate-400">Mess, Laundry, Cleaning &amp; more</p>
                       </div>
                     </div>
                     <ChevronRight className="w-4 h-4 text-slate-400" />
@@ -493,7 +502,7 @@ export default function StudentDashboardPage() {
                         <Headphones className="w-4 h-4" />
                       </div>
                       <div>
-                        <p className="text-xs font-bold text-slate-900 leading-tight">Help & Support</p>
+                        <p className="text-xs font-bold text-slate-900 leading-tight">Help &amp; Support</p>
                         <p className="text-[10px] text-slate-400">Get assistance, 24/7</p>
                       </div>
                     </div>
