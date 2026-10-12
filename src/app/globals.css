@@ -22,19 +22,28 @@
 }
 
 /* =========================================================
-   BODY
-   IMPORTANT:
-   DO NOT ADD * { margin: 0; padding: 0; }
-   Tailwind Preflight handles the reset.
+   GLOBAL RESET & OVERFLOW DEFENSE (SITE-WIDE MOBILE RESCUE)
 ========================================================= */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
 
 html {
   scroll-behavior: smooth;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 html,
 body {
   min-height: 100%;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 body {
@@ -48,6 +57,12 @@ body {
 
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Ensure all textual elements wrap cleanly on narrow screens */
+p, h1, h2, h3, h4, h5, h6, span, a {
+  overflow-wrap: break-word;
+  word-break: normal;
 }
 
 /* =========================================================
@@ -76,6 +91,7 @@ select,
 textarea {
   font: inherit;
   outline: none;
+  max-width: 100%;
 }
 
 input::placeholder,
@@ -88,12 +104,16 @@ select option {
 }
 
 /* =========================================================
-   IMAGES
+   IMAGES & MEDIA (MOBILE READY)
 ========================================================= */
 
-img {
+img,
+svg,
+video,
+canvas {
   display: block;
   max-width: 100%;
+  height: auto;
 }
 
 /* =========================================================
@@ -141,16 +161,6 @@ textarea:focus-visible {
 }
 
 /* =========================================================
-   MOBILE
-========================================================= */
-
-@media (max-width: 640px) {
-  body {
-    overflow-x: hidden;
-  }
-}
-
-/* =========================================================
    REDUCED MOTION
 ========================================================= */
 
@@ -168,12 +178,15 @@ textarea:focus-visible {
     scroll-behavior: auto !important;
   }
 }
+
 /* =========================================================
    STUDENTICA - FRESHER PASS
    ========================================================= */
 
 .pass-page {
   min-height: 100vh;
+  width: 100%;
+  max-width: 100%;
   background: #fbf9ff;
   color: #142b5c;
   overflow-x: hidden;
@@ -185,9 +198,9 @@ textarea:focus-visible {
    ========================================================= */
 
 .pass-header {
-  height: 72px;
+  min-height: 72px;
   width: 100%;
-  padding: 0 5.2%;
+  padding: 10px 5.2%;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -206,8 +219,8 @@ textarea:focus-visible {
 }
 
 .pass-logo-icon {
-  width: 48px;
-  height: 42px;
+  width: 44px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -225,6 +238,7 @@ textarea:focus-visible {
     8% 70%,
     8% 23%
   );
+  flex-shrink: 0;
 }
 
 .pass-logo-icon span {
@@ -233,8 +247,8 @@ textarea:focus-visible {
 }
 
 .pass-logo-name {
-  font-size: 23px;
-  line-height: 1;
+  font-size: 21px;
+  line-height: 1.1;
   font-weight: 800;
   letter-spacing: -0.7px;
   color: #152a59;
@@ -245,15 +259,15 @@ textarea:focus-visible {
 }
 
 .pass-logo-subtitle {
-  margin-top: 4px;
-  font-size: 12px;
+  margin-top: 3px;
+  font-size: 11px;
   color: #61739a;
 }
 
 .pass-nav {
   display: flex;
   align-items: center;
-  gap: 38px;
+  gap: 32px;
   height: 100%;
 }
 
@@ -292,7 +306,7 @@ textarea:focus-visible {
 .pass-header-actions {
   display: flex;
   align-items: center;
-  gap: 13px;
+  gap: 10px;
 }
 
 .pass-search-button {
@@ -302,6 +316,7 @@ textarea:focus-visible {
   background: transparent;
   position: relative;
   cursor: pointer;
+  flex-shrink: 0;
 }
 
 .pass-search-button::before {
@@ -329,16 +344,17 @@ textarea:focus-visible {
 
 .pass-login-button,
 .pass-get-started {
-  height: 40px;
-  padding: 0 25px;
+  height: 38px;
+  padding: 0 18px;
   border-radius: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
   text-decoration: none;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
   transition: 0.2s ease;
+  white-space: nowrap;
 }
 
 .pass-login-button {
@@ -358,7 +374,7 @@ textarea:focus-visible {
     #6d3de5,
     #8550ef
   );
-  min-width: 124px;
+  min-width: 110px;
   box-shadow: 0 8px 20px rgba(111, 61, 229, 0.2);
 }
 
@@ -406,7 +422,7 @@ textarea:focus-visible {
 }
 
 .pass-hero-content {
-  width: 90%;
+  width: 92%;
   max-width: 1380px;
   margin: 0 auto;
   min-height: 310px;
@@ -420,7 +436,7 @@ textarea:focus-visible {
 .pass-hero-left {
   position: relative;
   z-index: 3;
-  padding: 28px 0 24px;
+  padding: 24px 0;
 }
 
 .pass-badge-row {
@@ -441,7 +457,7 @@ textarea:focus-visible {
   background: #e8ddff;
   color: #5430ba;
   border-radius: 18px;
-  padding: 7px 13px;
+  padding: 6px 12px;
   font-weight: 700;
 }
 
@@ -451,9 +467,9 @@ textarea:focus-visible {
 
 .pass-hero-left h1 {
   margin: 0;
-  font-size: clamp(44px, 5vw, 65px);
-  line-height: 0.98;
-  letter-spacing: -2.7px;
+  font-size: clamp(32px, 5.5vw, 62px);
+  line-height: 1.05;
+  letter-spacing: -1.5px;
   color: #152a59;
   font-weight: 900;
 }
@@ -464,9 +480,9 @@ textarea:focus-visible {
 
 .pass-hero-description {
   max-width: 520px;
-  margin: 17px 0 0;
+  margin: 15px 0 0;
   color: #334e7c;
-  font-size: 15px;
+  font-size: clamp(14px, 2vw, 15px);
   line-height: 1.55;
 }
 
@@ -474,6 +490,7 @@ textarea:focus-visible {
   display: flex;
   gap: 12px;
   margin-top: 17px;
+  flex-wrap: wrap;
 }
 
 .pass-mini-benefits div {
@@ -487,6 +504,7 @@ textarea:focus-visible {
 
 .pass-mini-benefits svg {
   color: #7540e6;
+  flex-shrink: 0;
 }
 
 /* =========================================================
@@ -495,7 +513,7 @@ textarea:focus-visible {
 
 .pass-hero-center {
   height: 100%;
-  min-height: 310px;
+  min-height: 280px;
   position: relative;
   display: flex;
   justify-content: center;
@@ -503,13 +521,14 @@ textarea:focus-visible {
 }
 
 .pass-student-image-wrap {
-  width: 360px;
+  width: 100%;
+  max-width: 340px;
   height: 285px;
   overflow: hidden;
   border-radius: 50% 50% 18px 18px;
   position: relative;
   background: #e8ddff;
-  margin-top: 26px;
+  margin-top: 20px;
 }
 
 .pass-student-image {
@@ -524,7 +543,7 @@ textarea:focus-visible {
   position: absolute;
   z-index: 4;
   color: #6338df;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 800;
   line-height: 1.2;
 }
@@ -547,9 +566,9 @@ textarea:focus-visible {
 
 .pass-crown-doodle {
   position: absolute;
-  right: 42px;
-  top: 25px;
-  font-size: 42px;
+  right: 20px;
+  top: 20px;
+  font-size: 36px;
   color: #e94c8d;
   transform: rotate(-15deg);
 }
@@ -561,52 +580,51 @@ textarea:focus-visible {
 .pass-promotion {
   position: relative;
   z-index: 3;
-  padding: 28px 35px;
-  border-radius: 48% 12% 50% 10%;
+  padding: 24px 28px;
+  border-radius: 24px;
   background:
     linear-gradient(
       110deg,
       rgba(255, 245, 255, 0.92),
       rgba(251, 236, 255, 0.75)
     );
-  transform: rotate(-1deg);
 }
 
 .promotion-small {
   color: #402778;
-  font-size: 17px;
+  font-size: 15px;
   font-weight: 800;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
 .promotion-small span {
-  margin-left: 10px;
+  margin-left: 8px;
 }
 
 .pass-promotion h2 {
   margin: 0;
   color: #172c5c;
-  font-size: 27px;
-  line-height: 1.15;
+  font-size: 24px;
+  line-height: 1.2;
 }
 
 .pass-promotion h2 strong {
   color: #7140df;
-  font-size: 34px;
+  font-size: 30px;
 }
 
 .pass-promotion p {
   margin: 4px 0 0;
-  font-size: 23px;
+  font-size: 20px;
   color: #172c5c;
   font-weight: 700;
 }
 
 .promotion-arrow {
   position: absolute;
-  right: 25px;
-  bottom: 12px;
-  font-size: 42px;
+  right: 20px;
+  bottom: 10px;
+  font-size: 34px;
   color: #6839dc;
   transform: rotate(-18deg);
 }
@@ -619,7 +637,7 @@ textarea:focus-visible {
   width: 100%;
   position: relative;
   z-index: 5;
-  margin-top: -4px;
+  margin-top: 10px;
   padding: 0 4% 25px;
 }
 
@@ -628,14 +646,14 @@ textarea:focus-visible {
   max-width: 1400px;
   margin: 0 auto;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 20px;
 }
 
 .pass-card {
   min-height: 455px;
   border-radius: 20px;
-  padding: 25px 24px 20px;
+  padding: 24px 20px 20px;
   background: rgba(255, 255, 255, 0.95);
   position: relative;
   border: 1px solid #e5e1ef;
@@ -670,10 +688,10 @@ textarea:focus-visible {
 
 .pass-card-tag {
   position: absolute;
-  top: -15px;
-  right: 30px;
-  height: 31px;
-  padding: 0 15px;
+  top: -14px;
+  right: 20px;
+  height: 28px;
+  padding: 0 12px;
   border-radius: 18px;
   display: flex;
   align-items: center;
@@ -697,21 +715,22 @@ textarea:focus-visible {
 }
 
 .pass-card-top {
-  height: 63px;
+  height: 56px;
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
 }
 
 .pass-plan-icon {
-  width: 59px;
-  height: 59px;
-  border-radius: 17px;
+  width: 52px;
+  height: 52px;
+  border-radius: 15px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: #6540dc;
   background: #eee8ff;
+  flex-shrink: 0;
 }
 
 .pass-card-starter .pass-plan-icon {
@@ -730,8 +749,8 @@ textarea:focus-visible {
 }
 
 .plan-new {
-  padding: 7px 13px;
-  border-radius: 16px;
+  padding: 6px 11px;
+  border-radius: 14px;
   color: #16986b;
   background: #dcf7ed;
   font-size: 11px;
@@ -739,36 +758,36 @@ textarea:focus-visible {
 }
 
 .pass-card h3 {
-  margin: 13px 0 4px;
-  font-size: 23px;
+  margin: 12px 0 4px;
+  font-size: 21px;
   color: #162b5b;
   letter-spacing: -0.5px;
 }
 
 .pass-plan-subtitle {
   margin: 0;
-  min-height: 37px;
+  min-height: 36px;
   font-size: 13px;
   line-height: 1.4;
   color: #405b88;
 }
 
 .pass-price-row {
-  margin-top: 18px;
+  margin-top: 16px;
   display: flex;
   align-items: baseline;
   color: #152b5c;
 }
 
 .rupee {
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 800;
 }
 
 .pass-price {
-  font-size: 38px;
+  font-size: 34px;
   font-weight: 900;
-  letter-spacing: -1.8px;
+  letter-spacing: -1.5px;
 }
 
 .per-month {
@@ -779,8 +798,8 @@ textarea:focus-visible {
 .saving-badge {
   align-self: flex-start;
   margin-top: 4px;
-  padding: 6px 10px;
-  border-radius: 14px;
+  padding: 5px 9px;
+  border-radius: 12px;
   color: #7650c7;
   background: #f0e9ff;
   font-size: 10px;
@@ -800,8 +819,8 @@ textarea:focus-visible {
 .pass-features {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  margin-top: 18px;
+  gap: 11px;
+  margin-top: 16px;
   flex: 1;
 }
 
@@ -811,14 +830,14 @@ textarea:focus-visible {
   gap: 9px;
   color: #172f62;
   font-size: 13px;
-  line-height: 1.25;
+  line-height: 1.3;
 }
 
 .check-circle {
-  flex: 0 0 19px;
-  width: 19px;
-  height: 19px;
-  margin-top: -2px;
+  flex: 0 0 18px;
+  width: 18px;
+  height: 18px;
+  margin-top: 1px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -841,9 +860,9 @@ textarea:focus-visible {
 
 .pass-choose-button {
   width: 100%;
-  height: 49px;
+  height: 46px;
   margin-top: 20px;
-  border-radius: 25px;
+  border-radius: 23px;
   border: 1.5px solid #7caeff;
   background: white;
   color: #2536aa;
@@ -886,11 +905,10 @@ textarea:focus-visible {
    ========================================================= */
 
 .why-pass-section {
-  width: 93%;
+  width: 92%;
   max-width: 1380px;
-  min-height: 105px;
   margin: 0 auto 20px;
-  padding: 17px 28px;
+  padding: 20px 24px;
   border-radius: 20px;
   background:
     linear-gradient(
@@ -899,9 +917,9 @@ textarea:focus-visible {
       #f8f1ff
     );
   display: grid;
-  grid-template-columns: 230px 1fr;
+  grid-template-columns: 210px 1fr;
   align-items: center;
-  gap: 25px;
+  gap: 20px;
   position: relative;
   overflow: hidden;
 }
@@ -911,14 +929,14 @@ textarea:focus-visible {
   color: #5c32bf;
   display: flex;
   flex-direction: column;
-  font-size: 21px;
+  font-size: 20px;
   font-weight: 700;
   font-style: italic;
-  line-height: 1.05;
+  line-height: 1.1;
 }
 
 .why-pass-heading strong {
-  font-size: 22px;
+  font-size: 21px;
 }
 
 .why-arrow {
@@ -932,14 +950,15 @@ textarea:focus-visible {
 .why-pass-items {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
 }
 
 .why-pass-item {
   min-height: 55px;
-  padding: 0 20px;
+  padding: 0 14px;
   display: flex;
   align-items: center;
-  gap: 13px;
+  gap: 12px;
   border-left: 1px solid #ddd1fa;
 }
 
@@ -948,19 +967,19 @@ textarea:focus-visible {
 }
 
 .why-pass-icon {
-  width: 47px;
-  height: 47px;
+  width: 42px;
+  height: 42px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   color: #6d40d8;
   background: #e5d9ff;
-  flex: 0 0 47px;
+  flex: 0 0 42px;
 }
 
 .why-pass-item h4 {
-  margin: 0 0 4px;
+  margin: 0 0 3px;
   color: #243b6d;
   font-size: 13px;
 }
@@ -968,8 +987,8 @@ textarea:focus-visible {
 .why-pass-item p {
   margin: 0;
   color: #63779e;
-  font-size: 10px;
-  line-height: 1.4;
+  font-size: 11px;
+  line-height: 1.35;
 }
 
 /* =========================================================
@@ -985,26 +1004,26 @@ textarea:focus-visible {
 }
 
 .pass-bottom-doodle span {
-  font-size: 30px;
+  font-size: 26px;
   display: block;
   transform: rotate(-15deg);
 }
 
 .pass-bottom-doodle div {
-  width: 55px;
-  height: 30px;
+  width: 48px;
+  height: 26px;
   border-bottom: 2px dashed #7440df;
   border-radius: 50%;
   transform: rotate(-20deg);
 }
 
 /* =========================================================
-   RESPONSIVE
+   RESPONSIVE MEDIA QUERIES
    ========================================================= */
 
 @media (max-width: 1200px) {
   .pass-nav {
-    gap: 20px;
+    gap: 16px;
   }
 
   .pass-hero-content {
@@ -1029,13 +1048,13 @@ textarea:focus-visible {
 
   .why-pass-item:nth-child(3) {
     border-left: none;
-    margin-top: 15px;
+    margin-top: 10px;
   }
 }
 
 @media (max-width: 850px) {
   .pass-header {
-    padding: 0 20px;
+    padding: 10px 16px;
   }
 
   .pass-nav {
@@ -1047,9 +1066,10 @@ textarea:focus-visible {
   }
 
   .pass-hero-content {
-    width: 90%;
+    width: 92%;
     grid-template-columns: 1fr;
     text-align: center;
+    gap: 24px;
   }
 
   .pass-hero-left {
@@ -1067,18 +1087,20 @@ textarea:focus-visible {
 
   .pass-mini-benefits {
     justify-content: center;
-    flex-wrap: wrap;
   }
 
   .pass-hero-center {
-    min-height: 300px;
+    min-height: 250px;
   }
 
   .pass-student-image-wrap {
-    width: 330px;
+    width: 290px;
+    height: 250px;
   }
 
-  .hero-doodle {
+  .hero-doodle,
+  .pass-crown-doodle,
+  .why-arrow {
     display: none;
   }
 
@@ -1097,7 +1119,7 @@ textarea:focus-visible {
   .why-pass-item {
     border-left: none;
     border-top: 1px solid #ddd1fa;
-    padding: 15px 5px;
+    padding: 12px 0;
   }
 
   .why-pass-item:first-child {
@@ -1111,7 +1133,7 @@ textarea:focus-visible {
   }
 
   .pass-logo-name {
-    font-size: 19px;
+    font-size: 18px;
   }
 
   .pass-logo-subtitle {
@@ -1120,23 +1142,30 @@ textarea:focus-visible {
 
   .pass-get-started {
     min-width: auto;
-    padding: 0 15px;
+    padding: 0 14px;
+    height: 36px;
+    font-size: 12px;
   }
 
   .pass-hero-left h1 {
-    font-size: 42px;
+    font-size: 34px;
+    letter-spacing: -1px;
   }
 
   .pass-hero-description {
-    font-size: 14px;
+    font-size: 13px;
   }
 
   .pass-student-image-wrap {
-    width: 270px;
-    height: 240px;
+    width: 240px;
+    height: 210px;
   }
 
   .why-pass-section {
-    padding: 18px;
+    padding: 16px;
+  }
+
+  .pass-bottom-doodle {
+    display: none;
   }
 }

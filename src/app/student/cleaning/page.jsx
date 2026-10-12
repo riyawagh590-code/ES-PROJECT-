@@ -42,7 +42,7 @@ export default function StudentCleaningPage() {
     { label: "Cafe", href: "/student/cafes", icon: Coffee },
     { label: "Laundry", href: "/student/laundry", icon: Shirt },
     { label: "Housekeeping", href: "/student/cleaning", icon: Sparkles, active: true },
-    { label: "Roommate Finder", href: "/student/roommates", icon: Users },
+    { label: "Roommate Finder", href: "/student/roomates", icon: Users },
     { label: "Freshers Pass", href: "/pass", icon: Award },
     { label: "about", href: "/student/about", icon: Bell },
     { label: "Profile", href: "/student/profile", icon: User },

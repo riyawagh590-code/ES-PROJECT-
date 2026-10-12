@@ -27,7 +27,7 @@ export default function CompatibilityQuizPage() {
       {/* Top Bar: Back to Roommate Page Button */}
       <div className="max-w-[1380px] mx-auto mb-5">
         <Link
-          href="/student/roommates"
+          href="/student/roomates"
           className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#5938B8] hover:bg-[#4d2fa3] text-white text-xs font-bold shadow-md transition-all cursor-pointer"
         >
           <ArrowLeft className="w-4 h-4 shrink-0" />

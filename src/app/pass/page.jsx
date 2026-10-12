@@ -29,10 +29,10 @@ const plans = [
     theme: "starter",
     button: "Choose Starter",
     features: [
-      "Mess & Food Discounts",
-      "Laundry Offers",
-      "Cafe Deals",
-      "Campus Events Access",
+      "5% off on  messs bills",
+      "5% off on laundry services",
+      "5% off on cafebills",
+      "Access to PG & hostel complete details"
     ],
   },
   {
@@ -46,11 +46,11 @@ const plans = [
     theme: "campus",
     button: "Choose Campus Pass",
     features: [
-      "All Starter Benefits",
-      "PG & Hostel Discounts",
-      "Roommate Finder Access",
-      "Exclusive Campus Perks",
-      "Priority Support",
+      "10% off on  messs bills",
+      "10% off on laundry services",
+      "10% off on cafebills",
+      "Access to PG & hostel complete details",
+      "Enable roomate matching feature"
     ],
   },
   {
@@ -64,11 +64,11 @@ const plans = [
     theme: "pro",
     button: "Choose Pro Pass",
     features: [
-      "All Campus Benefits",
-      "Unlimited Laundry (Monthly)",
-      "Special Cafe & Restaurant Deals",
-      "Weekend & Event Access",
-      "Fresher Pass Exclusive Offers",
+      "10% off on  messs bills",
+      "10% off on laundry services",
+      "10% off on cafebills",
+      "2 discounted housekeeping service per month upto fixed discount limit",
+      ""
     ],
   },
   {
@@ -83,10 +83,9 @@ const plans = [
     button: "Choose Elite Pass",
     features: [
       "All Pro Benefits",
-      "Free Room Cleaning (Monthly)",
-      "Premium Cafe & Dining Offers",
-      "Exclusive Events & Workshops",
-      "VIP Support",
+      "Free Room Cleaning -1 times",
+      "5% off on single PG monthly booking",
+      "free basic cleaning laundry services- 2 times ",
     ],
   },
 ];
@@ -141,22 +140,7 @@ export default function FresherPassPage() {
 
         <nav className="pass-nav">
           <Link href="/">Home</Link>
-          <Link href="/student/services">Services</Link>
-
-          <Link
-            href="/pass"
-            className="pass-nav-active"
-          >
-            Fresher Pass
-          </Link>
-
-          <Link href="/student/roomate">
-            Roommate Finder
-          </Link>
-
-          <Link href="/about">
-            About
-          </Link>
+          
         </nav>
 
         <div className="pass-header-actions">
@@ -166,20 +150,6 @@ export default function FresherPassPage() {
           >
             <span></span>
           </button>
-
-          <Link
-            href="/login"
-            className="pass-login-button"
-          >
-            Login
-          </Link>
-
-          <Link
-            href="/register"
-            className="pass-get-started"
-          >
-            Get Started
-          </Link>
         </div>
       </header>
 

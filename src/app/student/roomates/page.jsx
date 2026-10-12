@@ -35,31 +35,16 @@ export default function RoommateFinderPage() {
   const [foodFilter, setFoodFilter] = useState("both");
   const [budgetVal, setBudgetVal] = useState(7000);
   const [searchQuery, setSearchQuery] = useState("");
-  const roommate = [
-  {
-    id: 1,
-    name: "Aditi Sharma",
-    // ... other properties ...
-    href: "/student/roommates/quiz", // <--- Add this link
-  },
-  {
-    id: 2,
-    name: "Rohit Verma",
-    // ...
-    href: "/student/roommates/quiz",
-  },
-  // ... rest of profiles
-];
+
   const sidebarLinks = [
     { label: "Home", icon: Home, href: "/student", active: false },
     { label: "Services", icon: LayoutGrid, href: "/student", active: false },
     { label: "Mess", icon: UtensilsCrossed, href: "/student/mess", active: false },
     { label: "Hostel / PG", icon: Building2, href: "/student/pg", active: false },
-    { label: "Restaurant", icon: Utensils, href: "/student/restaurant", active: false },
     { label: "Cafe", icon: Coffee, href: "/student/cafes", active: false },
     { label: "Laundry", icon: Shirt, href: "/student/laundry", active: false },
     { label: "Housekeeping", icon: Sparkle, href: "/student/cleaning", active: false },
-    { label: "Roommate Finder", icon: Users, href: "/student/roommates", active: true },
+    { label: "Roommate Finder", icon: Users, href: "/student/roomates", active: true },
     { label: "Freshers Pass", icon: Award, href: "/pass", active: false },
     { label: "Notices", icon: Bell, href: "/student/notices", active: false },
     { label: "Profile", icon: User, href: "/student/profile", active: false },
@@ -120,6 +105,7 @@ export default function RoommateFinderPage() {
       interests: "Music, Travel, Reading",
       quote: "Looking for a clean, friendly and respectful roommate.",
       img: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&auto=format&fit=crop&q=80",
+      href: "/student/roomates/quiz",
     },
     {
       id: 2,
@@ -139,6 +125,7 @@ export default function RoommateFinderPage() {
       interests: "Sports, Gaming, Movies",
       quote: "Easy going, clean and love new people.",
       img: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=300&auto=format&fit=crop&q=80",
+      href: "/student/roommates/quiz",
     },
     {
       id: 3,
@@ -158,6 +145,7 @@ export default function RoommateFinderPage() {
       interests: "Coding, Books, Food",
       quote: "Looking for a peaceful and cooperative roommate.",
       img: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=300&auto=format&fit=crop&q=80",
+      href: "/student/roommates/quiz",
     },
     {
       id: 4,
@@ -177,6 +165,7 @@ export default function RoommateFinderPage() {
       interests: "Cricket, Gym, Web Series",
       quote: "Fun disciplined and always up for good conversations!",
       img: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&auto=format&fit=crop&q=80",
+      href: "/student/roommates/quiz",
     },
     {
       id: 5,
@@ -196,6 +185,7 @@ export default function RoommateFinderPage() {
       interests: "Art, Music, Cooking",
       quote: "Love clean space and good vibes only!",
       img: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=300&auto=format&fit=crop&q=80",
+      href: "/student/roommates/quiz",
     },
     {
       id: 6,
@@ -215,6 +205,7 @@ export default function RoommateFinderPage() {
       interests: "Tech, Football, Travel",
       quote: "Looking for a peaceful, respectful roommate.",
       img: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=300&auto=format&fit=crop&q=80",
+      href: "/student/roommates/quiz",
     },
   ];
 
@@ -223,7 +214,7 @@ export default function RoommateFinderPage() {
       <div className="w-full max-w-[1720px] mx-auto flex flex-col lg:flex-row gap-6 items-start">
         
         {/* =========================================================
-            1. LEFT COLUMN: FILTERS, QUIZ & MORE FEATURES
+            LEFT COLUMN: FILTERS, QUIZ & MORE FEATURES
         ========================================================= */}
         <aside className="w-full lg:w-[300px] min-w-[280px] shrink-0 space-y-4">
           
@@ -238,13 +229,13 @@ export default function RoommateFinderPage() {
             <p className="text-[11px] text-slate-500 font-medium mt-1 leading-snug">
               Take our quick quiz and <br /> get personalized matches!
             </p>
-            <button
-              type="button"
+            <Link
+              href="/student/roomates/quiz"
               className="mt-3.5 w-full py-2.5 rounded-xl bg-[#5D42CE] hover:bg-[#4d34b5] text-white text-xs font-black shadow-md shadow-indigo-200 transition flex items-center justify-center gap-1.5 cursor-pointer"
             >
               <span>Take Compatibility Quiz</span>
               <ArrowRight className="w-3.5 h-3.5" />
-            </button>
+            </Link>
           </div>
 
           {/* Quick Filters Box */}
@@ -415,16 +406,16 @@ export default function RoommateFinderPage() {
             </div>
 
             {/* Apply Button */}
-            <Link
-              href={person.href || "/student/roommates/quiz"}
-             className="w-full py-2 rounded-xl bg-[#5D42CE] hover:bg-[#4d34b5] text-white text-xs font-black shadow-sm transition flex items-center justify-center gap-1 cursor-pointer"
-                >
-              <span>View Profile</span>
-              <ArrowRight className="w-3 h-3" />
-              </Link>
+            <button
+              type="button"
+              className="w-full py-2.5 rounded-xl bg-[#5D42CE] hover:bg-[#4d34b5] text-white text-xs font-black shadow-sm transition flex items-center justify-center gap-1.5 cursor-pointer"
+            >
+              <Filter className="w-3.5 h-3.5" />
+              <span>Apply Filters</span>
+            </button>
           </div>
 
-          {/* More Features Section */}
+          {/* More Features */}
           <div className="space-y-2">
             <h4 className="text-xs font-black text-slate-900 px-1">More Features</h4>
             <div className="space-y-2">
@@ -480,7 +471,7 @@ export default function RoommateFinderPage() {
         </aside>
 
         {/* =========================================================
-            2. CENTRAL COLUMN: BANNER, TABS, SEARCH & CARDS
+            CENTRAL COLUMN: HERO BANNER, TABS, SEARCH & CARDS
         ========================================================= */}
         <div className="flex-1 min-w-0 space-y-5">
           
@@ -545,7 +536,7 @@ export default function RoommateFinderPage() {
             })}
           </div>
 
-          {/* Multi-Dropdown Filter Bar with Large Readable Options */}
+          {/* Multi-Dropdown Filter Bar */}
           <div className="bg-white rounded-2xl p-2.5 sm:p-3 border border-slate-100 shadow-sm flex flex-col lg:flex-row items-center gap-2.5">
             <div className="flex-1 flex items-center gap-2 px-3 py-2 bg-slate-50 border border-slate-200/70 rounded-xl w-full">
               <Search className="w-4 h-4 text-slate-400 shrink-0" />
@@ -681,13 +672,14 @@ export default function RoommateFinderPage() {
                   &ldquo;{person.quote}&rdquo;
                 </div>
 
-                <button
-                  type="button"
+                {/* View Profile Link using person.href */}
+                <Link
+                  href={person.href || "/student/roomates/quiz"}
                   className="w-full py-2 rounded-xl bg-[#5D42CE] hover:bg-[#4d34b5] text-white text-xs font-black shadow-sm transition flex items-center justify-center gap-1 cursor-pointer"
                 >
                   <span>View Profile</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </button>
+                  <ArrowRight className="w-3 h-3" />
+                </Link>
               </div>
             ))}
           </div>
@@ -695,7 +687,7 @@ export default function RoommateFinderPage() {
         </div>
 
         {/* =========================================================
-            3. RIGHT COLUMN: QUICK NAV & LIVE CHAT ASIDE
+            RIGHT COLUMN: QUICK NAV & LIVE CHAT ASIDE
         ========================================================= */}
         <aside className="hidden xl:flex flex-col w-64 bg-white rounded-3xl p-5 border border-slate-100 shadow-sm shrink-0 sticky top-24 space-y-6">
           <div>
@@ -723,14 +715,13 @@ export default function RoommateFinderPage() {
             </nav>
           </div>
 
-          {/* Need Help Live Chat Card */}
           <div className="rounded-2xl p-4 bg-purple-50 border border-purple-100 space-y-3">
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
               <div>
                 <h4 className="text-xs font-black text-slate-900">Need Help?</h4>
                 <p className="text-[10px] text-slate-500">Chat with us</p>
-              </div> 
+              </div>
             </div>
             <Link
               href="/support"

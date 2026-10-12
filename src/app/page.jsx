@@ -80,7 +80,7 @@ const categories = [
     price: "Find Now",
     badge: "Trending",
     image: "/images/roommate.jpg",
-    href: "/student/roomate",
+    href: "/student/roomates",
     icon: Users,
     accent: "pink",
   },
@@ -169,12 +169,7 @@ export default function StudentServicesPage() {
   </Link>
 
   {/* Roommate Finder */}
-  <Link
-    href="/roommate"
-    className="text-sm font-medium text-slate-600 hover:text-slate-900 transition"
-  >
-    Roommate Finder
-  </Link>
+  
 
   {/* About */}
   <Link

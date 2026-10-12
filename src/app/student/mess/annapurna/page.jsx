@@ -50,12 +50,12 @@ export default function AnnapurnaDetailsPage() {
               className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-bold bg-[#F3EFFF] text-[#6C47FF] shadow-sm shadow-purple-100 transition"
             >
               <LayoutDashboard className="w-4 h-4 shrink-0 text-[#6C47FF]" />
-              <span>Dashboard</span>
+              <span>dashboard</span>
             </Link>
 
             {/* My Bookings */}
             <Link
-              href="/bookings"
+              href="/student/bookings"
               className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-bold text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition"
             >
               <CalendarDays className="w-4 h-4 shrink-0 text-slate-400" />
@@ -77,8 +77,16 @@ export default function AnnapurnaDetailsPage() {
               className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-bold text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition"
             >
               <Settings className="w-4 h-4 shrink-0 text-slate-400" />
-              <span>Settings</span>
+              <span>profile</span>
             </Link>
+            <Link
+              href="/pass"
+              className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-bold text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition"
+            >
+              <Settings className="w-4 h-4 shrink-0 text-slate-400" />
+              <span>freshers pass</span>
+            </Link>
+            
           </nav>
         </div>
 
@@ -96,30 +104,8 @@ export default function AnnapurnaDetailsPage() {
       <div className="flex-1 flex flex-col min-w-0">
         <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-100 px-6 sm:px-10 h-20 flex items-center justify-between gap-4">
           <div className="flex items-center gap-2 bg-[#F4F5F9] p-1.5 rounded-2xl border border-slate-200/50">
-            <Link
-              href="/student"
-              className="px-4 py-2 rounded-xl text-xs font-extrabold text-[#6C47FF] bg-[#EAE4FE] shadow-sm transition"
-            >
-              Home
-            </Link>
-            <Link
-              href="/bookings"
-              className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 transition"
-            >
-              My Bookings
-            </Link>
-            <Link
-              href="/pass"
-              className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 transition"
-            >
-              Freshers Pass
-            </Link>
-            <Link
-              href="/student/profile"
-              className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 transition"
-            >
-              Profile
-            </Link>
+            
+            
           </div>
 
           <div className="flex items-center gap-4">

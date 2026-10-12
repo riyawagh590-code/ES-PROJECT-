@@ -54,13 +54,7 @@ export default function StudentDashboardPage() {
     }
   }, []);
 
-  const menuItems = [
-    { label: "Dashboard", icon: LayoutDashboard, href: "/student", active: true },
-    { label: "My Bookings", icon: CalendarDays, href: "/bookings", active: false },
-    { label: "Wallet", icon: Wallet, href: "/student/wallet", active: false },
-    { label: "Support", icon: Headphones, href: "/support", active: false },
-    { label: "Settings", icon: Settings, href: "/student/settings", active: false },
-  ];
+  
 
   const services = [
     {
@@ -140,7 +134,7 @@ export default function StudentDashboardPage() {
       icon: UserCheck,
       iconBg: "bg-[#F43F5E] text-white",
       img: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=600&auto=format&fit=crop&q=80",
-      href: "/student/roommates",
+      href: "/student/roomates",
     },
   ];
 
@@ -172,7 +166,7 @@ export default function StudentDashboardPage() {
             Home
           </Link>
           <Link
-            href="/bookings"
+            href="/student/bookings"
             className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:text-slate-900 transition"
           >
             <CalendarDays className="w-4 h-4" />
@@ -238,44 +232,7 @@ export default function StudentDashboardPage() {
       {/* BODY WRAPPER: Constrained max-width prevents ultra-wide stretching */}
       <div className="flex flex-1 w-full max-w-[1500px] mx-auto">
         {/* 2. LEFT SIDEBAR */}
-        <aside className="w-60 bg-white border-r border-slate-100 hidden md:flex flex-col justify-between py-6 px-4 shrink-0 sticky top-20 h-[calc(100vh-80px)]">
-          <div className="space-y-1.5">
-            {menuItems.map((item, idx) => {
-              const Icon = item.icon;
-              return (
-                <Link
-                  key={idx}
-                  href={item.href}
-                  className={`flex items-center gap-3.5 px-4 py-3 rounded-2xl text-xs font-bold transition-all ${
-                    item.active
-                      ? "bg-purple-50 text-[#6C47FF] shadow-sm shadow-purple-100"
-                      : "text-slate-500 hover:text-slate-900 hover:bg-slate-50"
-                  }`}
-                >
-                  <Icon className={`w-4 h-4 ${item.active ? "text-[#6C47FF]" : "text-slate-400"}`} />
-                  {item.label}
-                </Link>
-              );
-            })}
-          </div>
-
-          <div className="relative pt-6 border-t border-slate-100 text-center">
-            <div className="mb-2 text-[#4F46E5] font-bold text-[11px] leading-tight rotate-[-4deg] pointer-events-none select-none">
-              Happy <br />
-              Campus Life <br />
-              Starts Here!
-              <div className="text-sm mt-0.5">☺ ✦</div>
-            </div>
-
-            <div className="w-full h-36 rounded-2xl overflow-hidden bg-gradient-to-t from-purple-100 via-pink-50 to-transparent flex items-end justify-center p-2">
-              <img
-                src="https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=400&auto=format&fit=crop&q=80"
-                alt="Campus Clocktower"
-                className="w-full h-32 object-cover rounded-xl shadow-sm"
-              />
-            </div>
-          </div>
-        </aside>
+    
 
         {/* 3. MAIN DASHBOARD CONTENT */}
         <main className="flex-1 min-w-0 p-6 md:p-8 space-y-7">

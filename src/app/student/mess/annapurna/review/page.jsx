@@ -57,46 +57,10 @@ export default function AnnapurnaReviewPage() {
 
           {/* Navigation Menu */}
           <nav className="space-y-1 pt-1">
-            <Link
-              href="/student"
-              className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-bold text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition"
-            >
-              <LayoutDashboard className="w-4 h-4 text-slate-400" />
-              <span>Dashboard</span>
-            </Link>
-
-            <Link
-              href="/bookings"
-              className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-bold text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition"
-            >
-              <CalendarDays className="w-4 h-4 text-slate-400" />
-              <span>My Bookings</span>
-            </Link>
-
-            <button
-              type="button"
-              className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-bold text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition text-left"
-            >
-              <Star className="w-4 h-4 text-slate-400" />
-              <span>Rate Us</span>
-            </button>
 
             {/* Active State Pill */}
-            <div className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-bold bg-[#ECE7FE] text-[#6C47FF] shadow-sm">
-              <div className="flex items-center gap-3">
-                <MessageSquarePlus className="w-4 h-4 text-[#6C47FF]" />
-                <span>Add Review</span>
-              </div>
-              <span className="w-2 h-2 rounded-full bg-[#6C47FF]" />
-            </div>
-
-            <Link
-              href="/student/profile"
-              className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-bold text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition"
-            >
-              <Settings className="w-4 h-4 text-slate-400" />
-              <span>Settings</span>
-            </Link>
+            
+           
           </nav>
         </div>
 
@@ -117,30 +81,7 @@ export default function AnnapurnaReviewPage() {
         {/* Top Navbar */}
         <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-100 px-6 sm:px-10 h-20 flex items-center justify-between gap-4">
           <div className="flex items-center gap-2 bg-[#F3F5FA] p-1.5 rounded-2xl border border-slate-200/50">
-            <Link
-              href="/student"
-              className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 transition"
-            >
-              Home
-            </Link>
-            <Link
-              href="/bookings"
-              className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 transition"
-            >
-              My Bookings
-            </Link>
-            <Link
-              href="/pass"
-              className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 transition"
-            >
-              Freshers Pass
-            </Link>
-            <Link
-              href="/student/profile"
-              className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 transition"
-            >
-              Profile
-            </Link>
+            
           </div>
 
           <div className="flex items-center gap-4">
