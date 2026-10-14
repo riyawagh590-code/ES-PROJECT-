@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   GraduationCap,
   LayoutDashboard,
@@ -19,10 +20,138 @@ import {
   Droplet,
   Wifi,
   Heart,
+  Check,
 } from "lucide-react";
 
 export default function AnnapurnaDetailsPage() {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState("Monthly");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [bookedPlan, setBookedPlan] = useState(null);
+
+  // Dynamic Menu State (Owner synchronized)
+  const defaultMenu = {
+    breakfast: {
+      timing: "08:00 AM - 10:00 AM",
+      items: ["Poha - Upma", "Upma - Dosa", "Unlimited Chai / Coffee"],
+    },
+    lunch: {
+      timing: "12:00 PM - 03:00 PM",
+      items: ["Paneer - Tomato", "Tomato, Chapati, Rice", "[Special: Gulab Jamun on Sunday]"],
+    },
+    dinner: {
+      timing: "07:00 PM - 10:00 PM",
+      items: ["Chole", "Veg Pulav, Roti, Salad", "[Healthy Buttermilk Included]"],
+    },
+  };
+  const [menu, setMenu] = useState(defaultMenu);
+
+  // Dynamic Reviews State
+  const defaultReviews = [
+    {
+      id: "rev-mes-1",
+      reviewer: "Snehal K.",
+      avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80",
+      reviewText: "Very good! Highly recommended homestyle food.",
+      rating: 5,
+      date: "Oct 12, 2026",
+    },
+    {
+      id: "rev-mes-2",
+      reviewer: "Abhishek S.",
+      avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80",
+      reviewText: "Healthy meal, feels just like home food.",
+      rating: 4.8,
+      date: "Oct 9, 2026",
+    },
+  ];
+  const [reviewsList, setReviewsList] = useState(defaultReviews);
+
+  // Load live menu updates and reviews from localStorage
+  useEffect(() => {
+    try {
+      // 1. Check for owner menu updates
+      const savedMenu = localStorage.getItem("annapurna_menu");
+      if (savedMenu) {
+        setMenu(JSON.parse(savedMenu));
+      }
+
+      // 2. Check for student reviews
+      const storedReviews = JSON.parse(localStorage.getItem("student_reviews") || "[]");
+      const messReviews = storedReviews
+        .filter(
+          (r) =>
+            !r.vendor ||
+            r.vendor.toLowerCase().includes("annapurna") ||
+            r.service?.toLowerCase().includes("mess")
+        )
+        .map((r) => ({
+          id: r.id,
+          reviewer: r.reviewer || (r.anonymous ? "Anonymous Student" : "Riya Wagh"),
+          avatar: r.anonymous
+            ? "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=80"
+            : "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80",
+          reviewText: r.reviewText,
+          rating: r.rating || 5,
+          date: r.date || "Just now",
+        }));
+
+      if (messReviews.length > 0) {
+        setReviewsList([...messReviews, ...defaultReviews]);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }, []);
+
+  // Pricing structure based on plan
+  const planDetails = {
+    Monthly: {
+      price: "₹1,900",
+      unit: "/month",
+      rateSubtext: "Daily: ₹80/meal (Save 20%)",
+      meals: "Unlimited Veg Meals",
+    },
+    Weekly: {
+      price: "₹550",
+      unit: "/week",
+      rateSubtext: "Valid for 7 days (14 meals)",
+      meals: "14 Meals Pass",
+    },
+    Daily: {
+      price: "₹80",
+      unit: "/thali",
+      rateSubtext: "Single Meal Ticket (Lunch or Dinner)",
+      meals: "1 Full Veg Thali",
+    },
+  };
+
+  const handleBookPass = () => {
+    const selected = planDetails[activeTab];
+    const newBooking = {
+      id: `BK-MES-${Date.now()}`,
+      service: "Mess",
+      vendor: "Annapurna Mess",
+      item: `Annapurna ${activeTab} Pass`,
+      price: `${selected.price} ${selected.unit}`,
+      slot: activeTab === "Daily" ? "Valid for Today's Meal" : "Valid till 30 days",
+      status: "Confirmed",
+      date: new Date().toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      }),
+    };
+
+    try {
+      const existing = JSON.parse(localStorage.getItem("student_bookings") || "[]");
+      localStorage.setItem("student_bookings", JSON.stringify([newBooking, ...existing]));
+      setBookedPlan({ ...selected, tab: activeTab });
+      setIsModalOpen(true);
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#F4F6FC] text-[#14244A] font-sans flex antialiased">
@@ -44,16 +173,14 @@ export default function AnnapurnaDetailsPage() {
           </Link>
 
           <nav className="space-y-1 pt-2">
-            {/* Dashboard */}
             <Link
               href="/student"
-              className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-bold bg-[#F3EFFF] text-[#6C47FF] shadow-sm shadow-purple-100 transition"
+              className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-bold text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition"
             >
-              <LayoutDashboard className="w-4 h-4 shrink-0 text-[#6C47FF]" />
-              <span>dashboard</span>
+              <LayoutDashboard className="w-4 h-4 shrink-0 text-slate-400" />
+              <span>Dashboard</span>
             </Link>
 
-            {/* My Bookings */}
             <Link
               href="/student/bookings"
               className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-bold text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition"
@@ -62,31 +189,31 @@ export default function AnnapurnaDetailsPage() {
               <span>My Bookings</span>
             </Link>
 
-            {/* Rating & Review */}
             <Link
               href="/student/mess/annapurna/review"
-              className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-bold text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition"
+              className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-bold bg-[#6C47FF] text-white shadow-md shadow-purple-200 transition"
             >
-              <MessageSquarePlus className="w-4 h-4 shrink-0 text-slate-400" />
-              <span>Rating &amp; Review</span>
+              <div className="flex items-center gap-3">
+                <MessageSquarePlus className="w-4 h-4 shrink-0 text-white" />
+                <span>Rating &amp; Review</span>
+              </div>
+              <span className="text-xs">✍️</span>
             </Link>
 
-            {/* Settings */}
             <Link
               href="/student/profile"
               className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-bold text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition"
             >
               <Settings className="w-4 h-4 shrink-0 text-slate-400" />
-              <span>profile</span>
+              <span>Profile</span>
             </Link>
             <Link
               href="/pass"
               className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-bold text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition"
             >
               <Settings className="w-4 h-4 shrink-0 text-slate-400" />
-              <span>freshers pass</span>
+              <span>Freshers Pass</span>
             </Link>
-            
           </nav>
         </div>
 
@@ -103,10 +230,7 @@ export default function AnnapurnaDetailsPage() {
       {/* 2. MAIN BODY */}
       <div className="flex-1 flex flex-col min-w-0">
         <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-100 px-6 sm:px-10 h-20 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-2 bg-[#F4F5F9] p-1.5 rounded-2xl border border-slate-200/50">
-            
-            
-          </div>
+          <div className="flex items-center gap-2 bg-[#F4F5F9] p-1.5 rounded-2xl border border-slate-200/50" />
 
           <div className="flex items-center gap-4">
             <div className="hidden md:flex items-center gap-2 px-3.5 py-2 bg-[#F3F5FA] rounded-xl w-64 border border-slate-200/60">
@@ -174,7 +298,7 @@ export default function AnnapurnaDetailsPage() {
                 </span>
 
                 <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#FFF5DC] text-[#D98200] text-xs font-black">
-                  4.5 ★ <span className="text-slate-500 font-medium">(120 reviews)</span>
+                  4.5 ★ <span className="text-slate-500 font-medium">({reviewsList.length * 50 + 20} reviews)</span>
                 </span>
 
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/80 border border-slate-200/60 text-slate-600 text-xs font-semibold">
@@ -218,6 +342,7 @@ export default function AnnapurnaDetailsPage() {
                 </div>
               </div>
 
+              {/* Dynamic Pricing Box */}
               <div className="lg:col-span-3 bg-white rounded-3xl p-5 border border-slate-100 shadow-sm flex flex-col justify-between">
                 <div className="space-y-3">
                   <div className="flex items-center bg-[#F3F5FA] p-1 rounded-xl text-xs font-bold text-slate-500">
@@ -228,7 +353,7 @@ export default function AnnapurnaDetailsPage() {
                         onClick={() => setActiveTab(t)}
                         className={`flex-1 py-1.5 rounded-lg text-center transition ${
                           activeTab === t
-                            ? "bg-white text-[#14244A] shadow-sm"
+                            ? "bg-white text-[#14244A] shadow-sm font-extrabold"
                             : "hover:text-slate-800"
                         }`}
                       >
@@ -239,10 +364,13 @@ export default function AnnapurnaDetailsPage() {
 
                   <div>
                     <h3 className="text-3xl font-black text-[#14244A] tracking-tight">
-                      ₹1,900<span className="text-sm font-semibold text-slate-400">/month</span>
+                      {planDetails[activeTab].price}
+                      <span className="text-sm font-semibold text-slate-400">
+                        {planDetails[activeTab].unit}
+                      </span>
                     </h3>
                     <p className="text-xs font-bold text-slate-600 mt-1">
-                      Daily: ₹80/meal
+                      {planDetails[activeTab].rateSubtext}
                     </p>
                   </div>
                 </div>
@@ -250,16 +378,21 @@ export default function AnnapurnaDetailsPage() {
                 <div className="space-y-2.5 pt-4">
                   <button
                     type="button"
-                    className="w-full py-3 rounded-2xl bg-[#6C47FF] hover:bg-[#5835E5] text-white text-xs font-black shadow-md shadow-purple-200 transition active:scale-[0.99]"
+                    onClick={handleBookPass}
+                    className="w-full py-3 rounded-2xl bg-[#6C47FF] hover:bg-[#5835E5] text-white text-xs font-black shadow-md shadow-purple-200 transition active:scale-[0.99] flex items-center justify-center gap-1.5"
                   >
-                    Book Monthly Pass
+                    <span>Book {activeTab} Pass</span>
                   </button>
 
                   <div className="flex items-center justify-between text-[11px] font-bold">
-                    <span className="text-[#0FAF53]">🌱 Save 20% with Monthly Pass!</span>
-                    <span className="text-slate-500 hover:text-slate-900 cursor-pointer underline">
-                      Book Daily Pass
-                    </span>
+                    <span className="text-[#0FAF53]">🌱 Student Verified Food</span>
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab(activeTab === "Daily" ? "Monthly" : "Daily")}
+                      className="text-slate-500 hover:text-slate-900 cursor-pointer underline"
+                    >
+                      {activeTab === "Daily" ? "Switch to Monthly" : "Book Daily (₹80)"}
+                    </button>
                   </div>
 
                   <div className="flex items-center justify-center gap-3 pt-1 border-t border-slate-100 text-[10px] font-black text-slate-500">
@@ -272,28 +405,37 @@ export default function AnnapurnaDetailsPage() {
             </div>
           </div>
 
-          {/* MENU SECTION */}
+          {/* TODAY'S MENU (Owner synced) */}
           <div className="space-y-3.5">
-            <h2 className="text-lg font-black text-[#14244A]">Today&apos;s Menu</h2>
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-black text-[#14244A]">Today&apos;s Menu</h2>
+              <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full">
+                ● Live Updates from Kitchen
+              </span>
+            </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              {/* Breakfast */}
               <div className="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm space-y-3">
                 <div className="flex items-center gap-3">
                   <div className="w-11 h-11 rounded-2xl bg-[#FFF1D9] flex items-center justify-center text-xl">
                     🥞
                   </div>
                   <div>
-                    <h3 className="text-sm font-black text-[#14244A]">Breakfast Card</h3>
-                    <p className="text-[11px] text-slate-400 font-bold">08:00 AM - 10:00 AM</p>
+                    <h3 className="text-sm font-black text-[#14244A]">Breakfast</h3>
+                    <p className="text-[11px] text-slate-400 font-bold">{menu.breakfast.timing}</p>
                   </div>
                 </div>
                 <div className="pt-2 text-xs font-bold text-slate-700 space-y-1.5 border-t border-slate-50">
-                  <p>• Poha &nbsp;&nbsp; - Upma</p>
-                  <p>• Upma &nbsp; - Dosa</p>
-                  <p className="text-[#6C47FF]">• Unlimited Chai / Coffee</p>
+                  {menu.breakfast.items.map((it, idx) => (
+                    <p key={idx} className={idx === menu.breakfast.items.length - 1 ? "text-[#6C47FF]" : ""}>
+                      • {it}
+                    </p>
+                  ))}
                 </div>
               </div>
 
+              {/* Lunch */}
               <div className="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm space-y-3">
                 <div className="flex items-center gap-3">
                   <div className="w-11 h-11 rounded-2xl bg-[#FFEAF0] flex items-center justify-center text-xl">
@@ -301,16 +443,19 @@ export default function AnnapurnaDetailsPage() {
                   </div>
                   <div>
                     <h3 className="text-sm font-black text-[#14244A]">Lunch</h3>
-                    <p className="text-[11px] text-slate-400 font-bold">12:00 PM - 03:00 PM</p>
+                    <p className="text-[11px] text-slate-400 font-bold">{menu.lunch.timing}</p>
                   </div>
                 </div>
                 <div className="pt-2 text-xs font-bold text-slate-700 space-y-1.5 border-t border-slate-50">
-                  <p>• Paneer - Tomato</p>
-                  <p>• Tomato, Chapati, Rice</p>
-                  <p className="text-[#E11D48]">• [Special: Gulab Jamun on Sunday]</p>
+                  {menu.lunch.items.map((it, idx) => (
+                    <p key={idx} className={idx === menu.lunch.items.length - 1 ? "text-[#E11D48]" : ""}>
+                      • {it}
+                    </p>
+                  ))}
                 </div>
               </div>
 
+              {/* Dinner */}
               <div className="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm space-y-3">
                 <div className="flex items-center gap-3">
                   <div className="w-11 h-11 rounded-2xl bg-[#EAF0FE] flex items-center justify-center text-xl">
@@ -318,13 +463,15 @@ export default function AnnapurnaDetailsPage() {
                   </div>
                   <div>
                     <h3 className="text-sm font-black text-[#14244A]">Dinner</h3>
-                    <p className="text-[11px] text-slate-400 font-bold">07:00 PM - 10:00 PM</p>
+                    <p className="text-[11px] text-slate-400 font-bold">{menu.dinner.timing}</p>
                   </div>
                 </div>
                 <div className="pt-2 text-xs font-bold text-slate-700 space-y-1.5 border-t border-slate-50">
-                  <p>• Chole</p>
-                  <p>• Veg Pulav, Roti, Salad</p>
-                  <p className="text-[#0FAF53]">• [Healthy Buttermilk Included]</p>
+                  {menu.dinner.items.map((it, idx) => (
+                    <p key={idx} className={idx === menu.dinner.items.length - 1 ? "text-[#0FAF53]" : ""}>
+                      • {it}
+                    </p>
+                  ))}
                 </div>
               </div>
             </div>
@@ -392,45 +539,47 @@ export default function AnnapurnaDetailsPage() {
               </div>
             </div>
 
+            {/* Dynamic Student Reviews Card */}
             <div className="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm space-y-3">
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-black text-[#14244A]">Student Reviews</h3>
-                <span className="text-xs font-bold text-rose-500 flex items-center gap-1">
-                  <Heart className="w-3.5 h-3.5 fill-rose-500" /> 40
-                </span>
+                <Link
+                  href="/student/mess/annapurna/review"
+                  className="text-xs font-bold text-[#6C47FF] hover:underline"
+                >
+                  + Add
+                </Link>
               </div>
 
-              <div className="space-y-1 text-xs">
-                <p className="font-bold text-slate-800">
-                  ① <span className="font-black">Very good</span> (Highly recommended!)
-                </p>
-                <p className="font-bold text-slate-800">
-                  ② <span className="font-black">Healthy meal</span> (Feels like home!)
-                </p>
+              <div className="space-y-2 max-h-[140px] overflow-y-auto pr-1">
+                {reviewsList.map((rev) => (
+                  <div key={rev.id} className="text-xs space-y-0.5 border-b border-slate-50 pb-1.5 last:border-none">
+                    <p className="font-bold text-slate-800 leading-snug">
+                      &quot;{rev.reviewText}&quot;
+                    </p>
+                    <div className="flex items-center justify-between text-[10px] text-slate-400 font-semibold">
+                      <span className="text-amber-500 font-bold">★ {rev.rating}/5</span>
+                      <span>- {rev.reviewer}</span>
+                    </div>
+                  </div>
+                ))}
               </div>
 
               <div className="flex items-center justify-between pt-2 border-t border-slate-50">
                 <div className="text-amber-400 text-xs tracking-wider">
                   ★★★★★
-                  <div className="text-[10px] text-slate-400 font-semibold">120 Verified ratings</div>
+                  <div className="text-[10px] text-slate-400 font-semibold">{reviewsList.length + 118} Verified ratings</div>
                 </div>
 
                 <div className="flex -space-x-2">
-                  <img
-                    className="w-7 h-7 rounded-full ring-2 ring-white object-cover"
-                    src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80"
-                    alt="reviewer 1"
-                  />
-                  <img
-                    className="w-7 h-7 rounded-full ring-2 ring-white object-cover"
-                    src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80"
-                    alt="reviewer 2"
-                  />
-                  <img
-                    className="w-7 h-7 rounded-full ring-2 ring-white object-cover"
-                    src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&auto=format&fit=crop&q=80"
-                    alt="reviewer 3"
-                  />
+                  {reviewsList.slice(0, 3).map((r, i) => (
+                    <img
+                      key={i}
+                      className="w-7 h-7 rounded-full ring-2 ring-white object-cover"
+                      src={r.avatar}
+                      alt={r.reviewer}
+                    />
+                  ))}
                 </div>
               </div>
             </div>
@@ -475,27 +624,74 @@ export default function AnnapurnaDetailsPage() {
             <div className="lg:col-span-9 bg-white rounded-3xl p-4 sm:p-5 border border-slate-100 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
               <div className="flex items-center gap-3">
                 <h3 className="text-lg font-black text-[#14244A] tracking-tight">
-                  Book Monthly Pass →
+                  Book {activeTab} Pass →
                 </h3>
               </div>
 
               <div className="flex items-center gap-5">
                 <div className="text-right">
-                  <span className="text-xl font-black text-[#14244A]">₹1,900</span>
-                  <span className="text-xs text-slate-400 font-semibold"> / month</span>
+                  <span className="text-xl font-black text-[#14244A]">{planDetails[activeTab].price}</span>
+                  <span className="text-xs text-slate-400 font-semibold"> {planDetails[activeTab].unit}</span>
                 </div>
 
                 <button
                   type="button"
-                  className="px-7 py-3 rounded-2xl bg-[#6C47FF] hover:bg-[#5835E5] text-white text-xs font-black shadow-md shadow-purple-200 transition active:scale-[0.99]"
+                  onClick={handleBookPass}
+                  className="px-7 py-3 rounded-2xl bg-[#6C47FF] hover:bg-[#5835E5] text-white text-xs font-black shadow-md shadow-purple-200 transition active:scale-[0.99] cursor-pointer"
                 >
-                  Book Monthly Pass
+                  Book {activeTab} Pass
                 </button>
               </div>
             </div>
           </div>
         </main>
       </div>
+
+      {/* CONFIRMATION MODAL */}
+      {isModalOpen && bookedPlan && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-[32px] p-8 max-w-md w-full shadow-2xl border border-slate-100 space-y-6 text-center animate-in fade-in zoom-in-95 duration-200">
+            <div className="w-16 h-16 rounded-3xl bg-emerald-100 text-emerald-600 mx-auto flex items-center justify-center text-3xl shadow-sm">
+              🍲
+            </div>
+
+            <div className="space-y-2">
+              <h3 className="text-xl font-black text-[#14244A]">
+                Pass Booked Successfully!
+              </h3>
+              <p className="text-xs font-semibold text-slate-500 leading-relaxed">
+                You have activated the <span className="text-slate-900 font-bold">{bookedPlan.tab} Meal Pass</span> ({bookedPlan.meals}) for{" "}
+                <span className="text-slate-900 font-bold">{bookedPlan.price}</span>.
+              </p>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-purple-50 text-left text-xs font-bold text-[#6C47FF] space-y-1">
+              <p>✦ Status: Active Meal Pass Token Generated</p>
+              <p className="text-slate-500 font-semibold text-[11px]">
+                Show digital QR code at Annapurna Mess counter during lunch/dinner.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setIsModalOpen(false)}
+                className="flex-1 py-3 rounded-2xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 transition"
+              >
+                Close
+              </button>
+
+              <button
+                type="button"
+                onClick={() => router.push("/student/bookings")}
+                className="flex-1 py-3 rounded-2xl bg-[#6C47FF] hover:bg-[#5835E5] text-white text-xs font-black shadow-md shadow-purple-200 transition"
+              >
+                View in My Bookings
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

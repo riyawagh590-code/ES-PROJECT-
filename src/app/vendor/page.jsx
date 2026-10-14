@@ -1,6 +1,6 @@
 "use client";
 
-import React, { Suspense, useEffect, useState } from "react";
+import React, { Suspense, useEffect, useState,useCallback } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import {
@@ -47,6 +47,9 @@ import {
   HelpCircle,
   Pencil,
   Hourglass,
+  Save,
+  Check,
+  X,
 } from "lucide-react";
 
 const DEMO_VENDORS = {
@@ -225,6 +228,14 @@ export default function VendorDashboardPage() {
 ============================================================ */
 
 function CleaningDashboard() {
+  const [isTimingModalOpen, setIsTimingModalOpen] = useState(false);
+  const [timingSavedSuccess, setTimingSavedSuccess] = useState(false);
+
+  // Dynamic Working Hours & Location States
+  const [workingHours, setWorkingHours] = useState("9:00 AM - 5:00 PM");
+  const [workingDays, setWorkingDays] = useState("Monday - Saturday");
+  const [preferredLocations, setPreferredLocations] = useState("Alandi, Moshi, Dehu Phata");
+
   const sidebarLinks = [
     { label: "Dashboard", icon: LayoutDashboard, href: "#", active: true },
     { label: "Bookings", icon: Calendar, href: "#", badge: "6" },
@@ -237,48 +248,169 @@ function CleaningDashboard() {
     { label: "Settings", icon: Settings, href: "#" },
   ];
 
-  const upcomingBookings = [
+  const staticBookings = [
     {
+      id: "stat-1",
       date: "16 Sep 2026",
       time: "10:00 AM - 12:00 PM",
       location: "Alandi",
       workType: "Room Cleaning",
       status: "Confirmed",
+      isStudentBooking: false,
       statusStyle: "bg-emerald-50 text-emerald-600 border border-emerald-200",
     },
     {
+      id: "stat-2",
       date: "17 Sep 2026",
       time: "09:00 AM - 11:00 AM",
       location: "Moshi",
       workType: "Kitchen Cleaning",
       status: "Pending",
+      isStudentBooking: false,
       statusStyle: "bg-amber-50 text-amber-600 border border-amber-200",
     },
     {
+      id: "stat-3",
       date: "18 Sep 2026",
       time: "02:00 PM - 04:00 PM",
       location: "Dehu Phata",
       workType: "Bathroom Cleaning",
       status: "Confirmed",
+      isStudentBooking: false,
       statusStyle: "bg-emerald-50 text-emerald-600 border border-emerald-200",
     },
     {
+      id: "stat-4",
       date: "20 Sep 2026",
       time: "11:00 AM - 01:00 PM",
       location: "Alandi",
       workType: "Full House Cleaning",
       status: "Pending",
+      isStudentBooking: false,
       statusStyle: "bg-amber-50 text-amber-600 border border-amber-200",
     },
     {
+      id: "stat-5",
       date: "22 Sep 2026",
       time: "09:00 AM - 11:00 AM",
       location: "Moshi",
       workType: "Room Cleaning",
       status: "Confirmed",
+      isStudentBooking: false,
       statusStyle: "bg-emerald-50 text-emerald-600 border border-emerald-200",
     },
   ];
+
+  const [upcomingBookings, setUpcomingBookings] = useState(staticBookings);
+
+  // Sync Student Bookings & Working Timings from localStorage
+  const refreshCleaningData = useCallback(() => {
+    if (typeof window === "undefined") return;
+
+    try {
+      // 1. Sync custom timings if saved
+      const savedTimings = localStorage.getItem("shital_patil_timings");
+      if (savedTimings) {
+        const parsed = JSON.parse(savedTimings);
+        if (parsed.hours) setWorkingHours(parsed.hours);
+        if (parsed.days) setWorkingDays(parsed.days);
+        if (parsed.locations) setPreferredLocations(parsed.locations);
+      }
+
+      // 2. Sync dynamic bookings from students
+      const stored = JSON.parse(localStorage.getItem("student_bookings") || "[]");
+      const dynamicHousekeeping = stored
+        .filter(
+          (b) =>
+            b.service === "Housekeeping" ||
+            (b.vendor && b.vendor.toLowerCase().includes("shital")) ||
+            (b.id && b.id.includes("HSK"))
+        )
+        .map((b) => ({
+          id: b.id,
+          originalId: b.id,
+          date: b.scheduledDate || b.day || "Upcoming",
+          time: b.slot || "Session Slot",
+          location: b.location || "Ganesh Colony",
+          workType: "Deep Cleaning (Session)",
+          studentName: b.student || "Riya Wagh (Student)",
+          status: b.vendorConfirmed ? "Confirmed" : "Pending",
+          isStudentBooking: true,
+          statusStyle: b.vendorConfirmed
+            ? "bg-emerald-50 text-emerald-600 border border-emerald-200 font-bold"
+            : "bg-amber-50 text-amber-600 border border-amber-200 font-bold",
+        }));
+
+      setUpcomingBookings([...dynamicHousekeeping, ...staticBookings]);
+    } catch (e) {
+      console.error(e);
+    }
+  }, []);
+
+  useEffect(() => {
+    refreshCleaningData();
+    window.addEventListener("storage", refreshCleaningData);
+    window.addEventListener("focus", refreshCleaningData);
+
+    return () => {
+      window.removeEventListener("storage", refreshCleaningData);
+      window.removeEventListener("focus", refreshCleaningData);
+    };
+  }, [refreshCleaningData]);
+
+  // Handle Shital Patil Approving the Student Booking
+  const handleApproveBooking = (booking) => {
+    // 1. Instant UI update
+    setUpcomingBookings((prev) =>
+      prev.map((b) =>
+        b.id === booking.id
+          ? {
+              ...b,
+              status: "Confirmed",
+              statusStyle: "bg-emerald-50 text-emerald-600 border border-emerald-200 font-bold",
+            }
+          : b
+      )
+    );
+
+    // 2. Persist to student_bookings in localStorage
+    try {
+      const stored = JSON.parse(localStorage.getItem("student_bookings") || "[]");
+      const updated = stored.map((b) => {
+        if (b.id === booking.id || b.id === booking.originalId) {
+          return {
+            ...b,
+            status: "Confirmed",
+            vendorConfirmed: true,
+          };
+        }
+        return b;
+      });
+      localStorage.setItem("student_bookings", JSON.stringify(updated));
+      window.dispatchEvent(new Event("storage"));
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  // Handle Saving Updated Timings from Modal
+  const handleSaveTimings = (e) => {
+    e.preventDefault();
+    const payload = {
+      hours: workingHours,
+      days: workingDays,
+      locations: preferredLocations,
+    };
+
+    localStorage.setItem("shital_patil_timings", JSON.stringify(payload));
+    window.dispatchEvent(new Event("storage"));
+
+    setTimingSavedSuccess(true);
+    setTimeout(() => {
+      setTimingSavedSuccess(false);
+      setIsTimingModalOpen(false);
+    }, 1000);
+  };
 
   const scheduleDays = [
     { day: "Mon", active: true },
@@ -296,29 +428,26 @@ function CleaningDashboard() {
       rating: "5.0",
       comment: "Very punctual and does excellent work. Highly recommended!",
       date: "12 Sep 2026",
-      avatar:
-        "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=120&auto=format&fit=crop&q=80",
+      avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=120&auto=format&fit=crop&q=80",
     },
     {
       name: "Sneha Kadam",
       rating: "4.5",
       comment: "Clean and professional. Very polite.",
       date: "08 Sep 2026",
-      avatar:
-        "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=120&auto=format&fit=crop&q=80",
+      avatar: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=120&auto=format&fit=crop&q=80",
     },
     {
       name: "Rohan Patil",
       rating: "4.8",
       comment: "Great service! Will book again.",
       date: "28 Aug 2026",
-      avatar:
-        "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=120&auto=format&fit=crop&q=80",
+      avatar: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=120&auto=format&fit=crop&q=80",
     },
   ];
 
   return (
-    <div className="min-h-screen bg-[#F5F4FE] text-slate-900 font-sans flex antialiased">
+    <div className="min-h-screen bg-[#F5F4FE] text-slate-900 font-sans flex antialiased relative">
       {/* SIDEBAR */}
       <aside className="hidden lg:flex flex-col w-64 bg-[#140E36] text-white shrink-0 sticky top-0 h-screen justify-between p-5 z-40 overflow-y-auto">
         <div className="space-y-6">
@@ -340,10 +469,13 @@ function CleaningDashboard() {
             {sidebarLinks.map((item, idx) => {
               const Icon = item.icon;
               return (
-                <Link
+                <button
                   key={idx}
-                  href={item.href}
-                  className={`flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-bold transition-all ${
+                  type="button"
+                  onClick={() => {
+                    if (item.label.includes("Availability")) setIsTimingModalOpen(true);
+                  }}
+                  className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-bold transition-all text-left ${
                     item.active
                       ? "bg-[#6C47FF] text-white shadow-md shadow-purple-900/40"
                       : "text-purple-200/70 hover:bg-white/10 hover:text-white"
@@ -355,10 +487,10 @@ function CleaningDashboard() {
                   </div>
                   {item.badge && (
                     <span className="w-5 h-5 rounded-full bg-rose-500 text-white text-[10px] font-black flex items-center justify-center">
-                      {item.badge}
+                      {upcomingBookings.length}
                     </span>
                   )}
-                </Link>
+                </button>
               );
             })}
           </nav>
@@ -386,8 +518,7 @@ function CleaningDashboard() {
             <p className="text-[10px] text-purple-300/70">Chat with us</p>
             <button
               type="button"
-              suppressHydrationWarning
-              className="w-full py-2 rounded-xl bg-[#6C47FF] hover:bg-[#5835e5] text-white text-xs font-extrabold flex items-center justify-center gap-1.5 transition shadow-sm"
+              className="w-full py-2 rounded-xl bg-[#6C47FF] hover:bg-[#5835e5] text-white text-xs font-extrabold flex items-center justify-center gap-1.5 transition shadow-sm cursor-pointer"
             >
               <MessageCircle className="w-3.5 h-3.5" />
               Live Chat
@@ -404,9 +535,6 @@ function CleaningDashboard() {
             <input
               type="text"
               placeholder="Search bookings, staff, or services..."
-              suppressHydrationWarning
-              data-lpignore="true"
-              autoComplete="off"
               className="w-full text-xs font-medium text-slate-800 placeholder-slate-400 bg-transparent focus:outline-none"
             />
           </div>
@@ -414,27 +542,34 @@ function CleaningDashboard() {
           <div className="flex items-center gap-4">
             <button
               type="button"
-              suppressHydrationWarning
+              onClick={refreshCleaningData}
+              className="text-xs font-bold text-[#6C47FF] bg-purple-50 px-3.5 py-2 rounded-xl hover:bg-purple-100 transition cursor-pointer"
+            >
+              Sync Bookings 🔄
+            </button>
+
+            <button
+              type="button"
               className="relative p-2.5 rounded-2xl bg-slate-50 text-slate-600 hover:text-slate-900 transition border border-slate-200/60"
             >
               <Bell className="w-4 h-4" />
               <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-rose-500 text-[9px] font-black text-white flex items-center justify-center">
-                3
+                {upcomingBookings.filter((b) => b.status === "Pending").length}
               </span>
             </button>
 
             <div className="flex items-center gap-3 pl-3 border-l border-slate-200">
               <img
-                src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=160&auto=format&fit=crop&q=80"
-                alt="Rohit Sharma"
+                src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=160&auto=format&fit=crop&q=80"
+                alt="Shital Patil"
                 className="w-10 h-10 rounded-2xl object-cover ring-2 ring-purple-100"
               />
               <div className="hidden sm:block text-left">
                 <p className="text-xs font-black text-slate-900 leading-tight">
-                  Rohit Sharma
+                  Shital Patil
                 </p>
                 <p className="text-[10px] text-slate-400 font-semibold">
-                  Vendor Owner
+                  Housekeeping Staff
                 </p>
               </div>
               <ChevronDown className="w-4 h-4 text-slate-400" />
@@ -465,16 +600,13 @@ function CleaningDashboard() {
                   <h1 className="text-2xl sm:text-3xl font-black text-slate-900 leading-tight flex items-center gap-2">
                     Shital Patil
                     <span className="text-xs font-bold text-amber-500 flex items-center gap-1">
-                      ★ 4.6{" "}
-                      <span className="text-slate-400 font-normal">
-                        (124 reviews)
-                      </span>
+                      ★ 4.6 <span className="text-slate-400 font-normal">(124 reviews)</span>
                     </span>
                   </h1>
 
                   <p className="text-xs font-semibold text-slate-600 flex items-center gap-1.5">
                     <Award className="w-3.5 h-3.5 text-[#6C47FF]" />
-                    Professional Housekeeping Staff
+                    Professional Housekeeping Staff • Rate: ₹300/session
                   </p>
 
                   <div className="flex flex-wrap items-center gap-3 text-[11px] font-semibold text-slate-600 pt-1">
@@ -482,8 +614,8 @@ function CleaningDashboard() {
                       <Phone className="w-3 h-3 text-slate-400" /> 9000010002
                     </span>
                     <span>•</span>
-                    <span className="text-slate-500">
-                      Available at your service
+                    <span className="text-purple-700 font-bold">
+                      Working Hours: {workingHours}
                     </span>
                   </div>
 
@@ -528,10 +660,10 @@ function CleaningDashboard() {
 
               <button
                 type="button"
-                suppressHydrationWarning
-                className="w-full py-2.5 rounded-xl bg-white/20 hover:bg-white/30 text-white text-xs font-black flex items-center justify-center gap-1.5 transition border border-white/20 mt-4 backdrop-blur-sm"
+                onClick={() => setIsTimingModalOpen(true)}
+                className="w-full py-2.5 rounded-xl bg-white text-[#C834A8] text-xs font-black flex items-center justify-center gap-1.5 transition mt-4 shadow-md hover:bg-slate-50 cursor-pointer"
               >
-                <span>View Offer</span>
+                <span>Update Timings</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </div>
@@ -544,13 +676,10 @@ function CleaningDashboard() {
                 <p className="text-xs font-extrabold text-slate-500 flex items-center gap-1.5">
                   <span className="text-rose-500">📅</span> Total Bookings
                 </p>
-                <h3 className="text-2xl font-black text-slate-950 mt-1">48</h3>
+                <h3 className="text-2xl font-black text-slate-950 mt-1">{upcomingBookings.length}</h3>
                 <p className="text-[11px] font-bold text-emerald-600 flex items-center gap-1 mt-1">
                   <TrendingUp className="w-3.5 h-3.5" />
-                  <span>12%</span>
-                  <span className="text-slate-400 font-medium">
-                    vs last month
-                  </span>
+                  <span>Live Synced</span>
                 </p>
               </div>
             </div>
@@ -560,8 +689,8 @@ function CleaningDashboard() {
                 <p className="text-xs font-extrabold text-slate-500 flex items-center gap-1.5">
                   <span className="text-blue-500">🕒</span> Working Hours
                 </p>
-                <h3 className="text-lg font-black text-slate-950 mt-1">
-                  9:00 AM - 5:00 PM
+                <h3 className="text-sm font-black text-slate-950 mt-1">
+                  {workingHours}
                 </h3>
                 <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full mt-1">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
@@ -573,15 +702,11 @@ function CleaningDashboard() {
             <div className="bg-white rounded-3xl p-5 border border-purple-100/50 shadow-sm flex items-center justify-between">
               <div>
                 <p className="text-xs font-extrabold text-slate-500 flex items-center gap-1.5">
-                  <span className="text-purple-500">₹</span> Charges / Hour
+                  <span className="text-purple-500">₹</span> Charges / Session
                 </p>
                 <h3 className="text-2xl font-black text-slate-950 mt-1">₹300</h3>
-                <p className="text-[11px] font-bold text-emerald-600 flex items-center gap-1 mt-1">
-                  <TrendingUp className="w-3.5 h-3.5" />
-                  <span>5%</span>
-                  <span className="text-slate-400 font-medium">
-                    vs last month
-                  </span>
+                <p className="text-[11px] font-bold text-slate-400 mt-1">
+                  1-2 hrs per session
                 </p>
               </div>
             </div>
@@ -595,9 +720,7 @@ function CleaningDashboard() {
                 <p className="text-[11px] font-bold text-emerald-600 flex items-center gap-1 mt-1">
                   <TrendingUp className="w-3.5 h-3.5" />
                   <span>8%</span>
-                  <span className="text-slate-400 font-medium">
-                    vs last month
-                  </span>
+                  <span className="text-slate-400 font-medium">vs last month</span>
                 </p>
               </div>
             </div>
@@ -607,15 +730,18 @@ function CleaningDashboard() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
             <div className="lg:col-span-6 bg-white rounded-3xl p-6 border border-purple-100/50 shadow-sm space-y-4">
               <div className="flex items-center justify-between pb-2 border-b border-slate-50">
-                <h3 className="text-sm font-black text-slate-900 flex items-center gap-2">
-                  <span className="text-rose-500">📅</span> Upcoming Bookings
-                </h3>
+                <div>
+                  <h3 className="text-sm font-black text-slate-900 flex items-center gap-2">
+                    <span className="text-rose-500">📅</span> Upcoming Bookings
+                  </h3>
+                  <p className="text-[10px] text-slate-400">Review and approve incoming student appointments</p>
+                </div>
                 <button
                   type="button"
-                  suppressHydrationWarning
-                  className="text-xs font-bold text-[#6C47FF] hover:underline"
+                  onClick={refreshCleaningData}
+                  className="text-xs font-bold text-[#6C47FF] hover:underline cursor-pointer"
                 >
-                  View All →
+                  Refresh 🔄
                 </button>
               </div>
 
@@ -623,7 +749,7 @@ function CleaningDashboard() {
                 <table className="w-full text-left text-xs">
                   <thead>
                     <tr className="text-slate-400 font-bold border-b border-slate-100 pb-2">
-                      <th className="pb-2 font-bold">Date & Time</th>
+                      <th className="pb-2 font-bold">Date &amp; Time</th>
                       <th className="pb-2 font-bold">Location</th>
                       <th className="pb-2 font-bold">Work Type</th>
                       <th className="pb-2 font-bold">Status</th>
@@ -631,38 +757,57 @@ function CleaningDashboard() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-50">
-                    {upcomingBookings.map((b, idx) => (
-                      <tr key={idx} className="hover:bg-slate-50/50 transition">
-                        <td className="py-3">
-                          <p className="font-black text-slate-900">{b.date}</p>
-                          <p className="text-[10px] text-slate-400 font-medium">
-                            {b.time}
-                          </p>
-                        </td>
-                        <td className="py-3 font-semibold text-slate-700">
-                          {b.location}
-                        </td>
-                        <td className="py-3 font-semibold text-slate-700">
-                          {b.workType}
-                        </td>
-                        <td className="py-3">
-                          <span
-                            className={`text-[10px] font-black px-2 py-0.5 rounded-full ${b.statusStyle}`}
-                          >
-                            {b.status}
-                          </span>
-                        </td>
-                        <td className="py-3 text-right">
-                          <button
-                            type="button"
-                            suppressHydrationWarning
-                            className="px-2.5 py-1 rounded-xl bg-purple-50 text-[#6C47FF] text-[10px] font-black hover:bg-[#6C47FF] hover:text-white transition"
-                          >
-                            Details
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
+                    {upcomingBookings.map((b, idx) => {
+                      const isPending = b.status === "Pending" || b.status === "Pending Approval";
+
+                      return (
+                        <tr key={b.id || idx} className="hover:bg-slate-50/50 transition">
+                          <td className="py-3">
+                            <p className="font-black text-slate-900">{b.date}</p>
+                            <p className="text-[10px] text-slate-400 font-medium">
+                              {b.time}
+                            </p>
+                            {b.studentName && (
+                              <p className="text-[9px] text-[#6C47FF] font-bold">
+                                {b.studentName}
+                              </p>
+                            )}
+                          </td>
+                          <td className="py-3 font-semibold text-slate-700">
+                            {b.location}
+                          </td>
+                          <td className="py-3 font-semibold text-slate-700">
+                            {b.workType}
+                          </td>
+                          <td className="py-3">
+                            <span
+                              className={`text-[10px] font-black px-2 py-0.5 rounded-full ${b.statusStyle}`}
+                            >
+                              {b.status}
+                            </span>
+                          </td>
+                          <td className="py-3 text-right">
+                            {isPending && b.isStudentBooking ? (
+                              <button
+                                type="button"
+                                onClick={() => handleApproveBooking(b)}
+                                className="px-3 py-1 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-black shadow-xs transition active:scale-95 cursor-pointer whitespace-nowrap"
+                              >
+                                Approve ✓
+                              </button>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => alert(`Booking Details: ${b.workType} at ${b.location} (${b.date} • ${b.time})`)}
+                                className="px-2.5 py-1 rounded-xl bg-purple-50 text-[#6C47FF] text-[10px] font-black hover:bg-[#6C47FF] hover:text-white transition cursor-pointer"
+                              >
+                                Details
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -675,10 +820,10 @@ function CleaningDashboard() {
                 </h3>
                 <button
                   type="button"
-                  suppressHydrationWarning
-                  className="text-[11px] font-bold text-[#6C47FF] hover:underline"
+                  onClick={() => setIsTimingModalOpen(true)}
+                  className="text-[11px] font-bold text-[#6C47FF] hover:underline cursor-pointer"
                 >
-                  View Calendar →
+                  Edit Hours →
                 </button>
               </div>
 
@@ -703,29 +848,21 @@ function CleaningDashboard() {
                   <Clock className="w-4 h-4 text-slate-400 mt-0.5 shrink-0" />
                   <div>
                     <p className="font-bold text-slate-900">Working Hours</p>
-                    <p className="text-[11px] text-slate-500">
-                      9:00 AM - 5:00 PM
-                    </p>
+                    <p className="text-[11px] text-slate-500 font-semibold">{workingHours}</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-2.5">
                   <CalendarDays className="w-4 h-4 text-slate-400 mt-0.5 shrink-0" />
                   <div>
                     <p className="font-bold text-slate-900">Working Days</p>
-                    <p className="text-[11px] text-slate-500">
-                      Monday - Saturday
-                    </p>
+                    <p className="text-[11px] text-slate-500 font-semibold">{workingDays}</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-2.5">
                   <MapPin className="w-4 h-4 text-slate-400 mt-0.5 shrink-0" />
                   <div>
-                    <p className="font-bold text-slate-900">
-                      Preferred Locations
-                    </p>
-                    <p className="text-[11px] text-slate-500">
-                      Alandi, Moshi, Dehu Phata
-                    </p>
+                    <p className="font-bold text-slate-900">Preferred Locations</p>
+                    <p className="text-[11px] text-slate-500 font-semibold">{preferredLocations}</p>
                   </div>
                 </div>
               </div>
@@ -737,77 +874,65 @@ function CleaningDashboard() {
               </h4>
 
               <div className="space-y-2">
-                <Link
-                  href="#"
-                  className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 hover:bg-purple-50 transition border border-slate-100"
+                <button
+                  type="button"
+                  onClick={() => setIsTimingModalOpen(true)}
+                  className="w-full flex items-center justify-between p-3 rounded-2xl bg-slate-50 hover:bg-purple-50 transition border border-slate-100 text-left cursor-pointer"
                 >
                   <div className="flex items-center gap-2.5">
                     <span className="text-base">📅</span>
                     <div>
-                      <p className="text-xs font-black text-slate-900">
-                        Update Availability
-                      </p>
-                      <p className="text-[9px] text-slate-400">
-                        Set your working hours
-                      </p>
+                      <p className="text-xs font-black text-slate-900">Update Availability</p>
+                      <p className="text-[9px] text-slate-400">Set your working hours</p>
                     </div>
                   </div>
                   <ChevronRight className="w-4 h-4 text-slate-400" />
-                </Link>
+                </button>
 
-                <Link
-                  href="#"
-                  className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 hover:bg-purple-50 transition border border-slate-100"
+                <button
+                  type="button"
+                  onClick={refreshCleaningData}
+                  className="w-full flex items-center justify-between p-3 rounded-2xl bg-slate-50 hover:bg-purple-50 transition border border-slate-100 text-left cursor-pointer"
                 >
                   <div className="flex items-center gap-2.5">
                     <span className="text-base">📋</span>
                     <div>
-                      <p className="text-xs font-black text-slate-900">
-                        Manage Bookings
-                      </p>
-                      <p className="text-[9px] text-slate-400">
-                        View & update bookings
-                      </p>
+                      <p className="text-xs font-black text-slate-900">Sync Bookings</p>
+                      <p className="text-[9px] text-slate-400">View latest bookings</p>
                     </div>
                   </div>
                   <ChevronRight className="w-4 h-4 text-slate-400" />
-                </Link>
+                </button>
 
-                <Link
-                  href="#"
-                  className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 hover:bg-purple-50 transition border border-slate-100"
+                <button
+                  type="button"
+                  onClick={() => alert("Earnings report for this month: ₹12,600")}
+                  className="w-full flex items-center justify-between p-3 rounded-2xl bg-slate-50 hover:bg-purple-50 transition border border-slate-100 text-left cursor-pointer"
                 >
                   <div className="flex items-center gap-2.5">
                     <span className="text-base">₹</span>
                     <div>
-                      <p className="text-xs font-black text-slate-900">
-                        View Earnings
-                      </p>
-                      <p className="text-[9px] text-slate-400">
-                        Check your earnings
-                      </p>
+                      <p className="text-xs font-black text-slate-900">View Earnings</p>
+                      <p className="text-[9px] text-slate-400">Check your earnings</p>
                     </div>
                   </div>
                   <ChevronRight className="w-4 h-4 text-slate-400" />
-                </Link>
+                </button>
 
-                <Link
-                  href="#"
-                  className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 hover:bg-purple-50 transition border border-slate-100"
+                <button
+                  type="button"
+                  onClick={() => setIsTimingModalOpen(true)}
+                  className="w-full flex items-center justify-between p-3 rounded-2xl bg-slate-50 hover:bg-purple-50 transition border border-slate-100 text-left cursor-pointer"
                 >
                   <div className="flex items-center gap-2.5">
                     <span className="text-base">👤</span>
                     <div>
-                      <p className="text-xs font-black text-slate-900">
-                        Update Profile
-                      </p>
-                      <p className="text-[9px] text-slate-400">
-                        Edit your details
-                      </p>
+                      <p className="text-xs font-black text-slate-900">Update Profile</p>
+                      <p className="text-[9px] text-slate-400">Edit your details &amp; hours</p>
                     </div>
                   </div>
                   <ChevronRight className="w-4 h-4 text-slate-400" />
-                </Link>
+                </button>
               </div>
             </div>
           </div>
@@ -817,27 +942,18 @@ function CleaningDashboard() {
             <div className="lg:col-span-3 bg-white rounded-3xl p-5 border border-purple-100/50 shadow-sm flex flex-col justify-between">
               <div className="flex items-center justify-between pb-2">
                 <h4 className="text-xs font-black text-slate-900 flex items-center gap-1.5">
-                  <BarChart3 className="w-3.5 h-3.5 text-[#6C47FF]" /> Earnings
-                  Overview
+                  <BarChart3 className="w-3.5 h-3.5 text-[#6C47FF]" /> Earnings Overview
                 </h4>
-                <select
-                  suppressHydrationWarning
-                  className="text-[10px] font-bold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-2 py-0.5"
-                >
+                <select className="text-[10px] font-bold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-2 py-0.5">
                   <option>This Month</option>
                 </select>
               </div>
 
               <div>
                 <p className="text-xl font-black text-slate-950">
-                  ₹12,600{" "}
-                  <span className="text-[11px] font-bold text-emerald-600">
-                    ↑ 18%
-                  </span>
+                  ₹12,600 <span className="text-[11px] font-bold text-emerald-600">↑ 18%</span>
                 </p>
-                <p className="text-[10px] text-slate-400 font-medium">
-                  vs last month
-                </p>
+                <p className="text-[10px] text-slate-400 font-medium">vs last month</p>
               </div>
 
               <div className="pt-3">
@@ -881,10 +997,10 @@ function CleaningDashboard() {
               </div>
               <button
                 type="button"
-                suppressHydrationWarning
-                className="w-full py-2 rounded-xl bg-[#6C47FF] hover:bg-[#5835e5] text-white text-xs font-bold flex items-center justify-center gap-1 transition"
+                onClick={() => setIsTimingModalOpen(true)}
+                className="w-full py-2 rounded-xl bg-[#6C47FF] hover:bg-[#5835e5] text-white text-xs font-bold flex items-center justify-center gap-1 transition cursor-pointer"
               >
-                <span>Update Profile</span>
+                <span>Update Availability</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </div>
@@ -895,32 +1011,20 @@ function CleaningDashboard() {
               </h4>
               <div className="space-y-2 text-xs">
                 <div>
-                  <p className="text-[10px] text-slate-400 font-bold">
-                    Contact Number
-                  </p>
+                  <p className="text-[10px] text-slate-400 font-bold">Contact Number</p>
                   <p className="font-extrabold text-slate-800">9000010002</p>
                 </div>
                 <div>
-                  <p className="text-[10px] text-slate-400 font-bold">
-                    Charges per Hour
-                  </p>
+                  <p className="text-[10px] text-slate-400 font-bold">Charges per Session</p>
                   <p className="font-extrabold text-slate-800">₹300</p>
                 </div>
                 <div>
-                  <p className="text-[10px] text-slate-400 font-bold">
-                    Working Hours
-                  </p>
-                  <p className="font-extrabold text-slate-800">
-                    9:00 AM - 5:00 PM
-                  </p>
+                  <p className="text-[10px] text-slate-400 font-bold">Working Hours</p>
+                  <p className="font-extrabold text-slate-800">{workingHours}</p>
                 </div>
                 <div>
-                  <p className="text-[10px] text-slate-400 font-bold">
-                    Working Days
-                  </p>
-                  <p className="font-extrabold text-slate-800">
-                    Monday - Saturday
-                  </p>
+                  <p className="text-[10px] text-slate-400 font-bold">Working Days</p>
+                  <p className="font-extrabold text-slate-800">{workingDays}</p>
                 </div>
               </div>
             </div>
@@ -933,8 +1037,7 @@ function CleaningDashboard() {
                   </h4>
                   <button
                     type="button"
-                    suppressHydrationWarning
-                    className="text-[10px] font-bold text-[#6C47FF] hover:underline"
+                    className="text-[10px] font-bold text-[#6C47FF] hover:underline cursor-pointer"
                   >
                     View All →
                   </button>
@@ -981,6 +1084,98 @@ function CleaningDashboard() {
           </div>
         </main>
       </div>
+
+      {/* TIMING & AVAILABILITY MODAL */}
+      {isTimingModalOpen && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-in fade-in duration-150">
+          <div className="bg-white rounded-[32px] p-6 sm:p-7 max-w-md w-full border border-slate-100 shadow-2xl space-y-5 animate-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div className="flex items-center gap-2.5">
+                <div className="w-10 h-10 rounded-2xl bg-purple-100 text-[#6C47FF] flex items-center justify-center text-xl">
+                  🧹
+                </div>
+                <div>
+                  <h3 className="text-base font-black text-slate-900">
+                    Update Availability &amp; Timings
+                  </h3>
+                  <p className="text-[10px] text-slate-400 font-bold">
+                    Updates sync directly to student housekeeping page
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setIsTimingModalOpen(false)}
+                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition cursor-pointer"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveTimings} className="space-y-4 text-xs font-bold text-slate-700">
+              <div className="space-y-1">
+                <label className="text-[11px] text-slate-500 font-bold uppercase">Working Hours</label>
+                <input
+                  type="text"
+                  value={workingHours}
+                  onChange={(e) => setWorkingHours(e.target.value)}
+                  placeholder="e.g., 9:00 AM - 5:00 PM"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs font-bold text-slate-800 focus:outline-none focus:border-[#6C47FF]"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[11px] text-slate-500 font-bold uppercase">Working Days</label>
+                <input
+                  type="text"
+                  value={workingDays}
+                  onChange={(e) => setWorkingDays(e.target.value)}
+                  placeholder="e.g., Monday - Saturday"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs font-bold text-slate-800 focus:outline-none focus:border-[#6C47FF]"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[11px] text-slate-500 font-bold uppercase">Service Locations</label>
+                <input
+                  type="text"
+                  value={preferredLocations}
+                  onChange={(e) => setPreferredLocations(e.target.value)}
+                  placeholder="e.g., Alandi, Moshi, Dehu Phata"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs font-bold text-slate-800 focus:outline-none focus:border-[#6C47FF]"
+                />
+              </div>
+
+              <div className="flex items-center gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsTimingModalOpen(false)}
+                  className="flex-1 py-3 rounded-2xl border border-slate-200 text-slate-600 hover:bg-slate-50 font-bold transition cursor-pointer"
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="submit"
+                  className={`flex-1 py-3 rounded-2xl text-white font-black shadow-md transition flex items-center justify-center gap-1.5 cursor-pointer ${
+                    timingSavedSuccess ? "bg-emerald-600" : "bg-[#6C47FF] hover:bg-[#5835E5]"
+                  }`}
+                >
+                  {timingSavedSuccess ? (
+                    <>
+                      <Check size={16} />
+                      <span>Updated &amp; Broadcasted!</span>
+                    </>
+                  ) : (
+                    <span>Save Availability</span>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -1739,87 +1934,195 @@ function HostelDashboard() {
    MESS / ANNAPURNA DASHBOARD
 ============================================================ */
 
-function MessDashboard({ vendor, vendorId }) {
-  const sidebarItems = [
-    {
-      label: "Dashboard",
-      icon: LayoutDashboard,
-      href: `/vendor?vendor=${vendorId}`,
-      active: true,
-    },
-    { label: `My ${vendor.badge}`, icon: UtensilsCrossed, href: "/vendor/mess" },
-    { label: "Orders", icon: ShoppingBag, href: "/vendor/orders", badge: "12" },
-    { label: "Menu & Schedule", icon: CalendarDays, href: "/vendor/menu" },
-    { label: "Subscription Plans", icon: CreditCard, href: "/vendor/plans" },
-    { label: "Reviews", icon: Star, href: "/vendor/reviews" },
-    { label: "Reports", icon: BarChart3, href: "/vendor/reports" },
-    { label: "Profile", icon: User, href: "/vendor/profile" },
-    { label: "Settings", icon: Settings, href: "/vendor/settings" },
-  ];
+/* ============================================================
+   MESS / ANNAPURNA DASHBOARD (CONNECTED LIVE TO STUDENT PORTAL)
+============================================================ */
 
-  const recentOrders = [
+function MessDashboard({ vendor, vendorId }) {
+  const [isMenuModalOpen, setIsMenuModalOpen] = useState(false);
+  const [saveToast, setSaveToast] = useState(false);
+
+  // Dynamic Live Menu State
+  const defaultMenu = {
+    breakfast: {
+      timing: "08:00 AM - 10:00 AM",
+      items: ["Poha - Upma", "Upma - Dosa", "Unlimited Chai / Coffee"],
+    },
+    lunch: {
+      timing: "12:00 PM - 03:00 PM",
+      items: ["Paneer - Tomato", "Tomato, Chapati, Rice", "Gulab Jamun"],
+    },
+    dinner: {
+      timing: "07:00 PM - 10:00 PM",
+      items: ["Chole", "Veg Pulav, Roti, Salad", "Healthy Buttermilk"],
+    },
+  };
+
+  const [currentMenu, setCurrentMenu] = useState(defaultMenu);
+  const [bfText, setBfText] = useState("Poha - Upma, Upma - Dosa, Unlimited Chai / Coffee");
+  const [lunchText, setLunchText] = useState("Paneer - Tomato, Tomato, Chapati, Rice, Gulab Jamun");
+  const [dinnerText, setDinnerText] = useState("Chole, Veg Pulav, Roti, Salad, Healthy Buttermilk");
+
+  const staticOrders = [
     {
-      id: "ord-1",
+      id: "#MS0128",
+      originalId: "static-1",
       name: "Priya Sharma",
       item: "Veg Thali",
       time: "Today, 12:30 PM",
       status: "Pending",
-      statusColor: "bg-amber-100 text-amber-700",
       price: "₹100",
-      avatar:
-        "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80",
+      avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80",
     },
     {
-      id: "ord-2",
+      id: "#MS0127",
+      originalId: "static-2",
       name: "Rohan Patil",
       item: "Full Meal",
       time: "Today, 12:15 PM",
       status: "Confirmed",
-      statusColor: "bg-emerald-100 text-emerald-700",
       price: "₹120",
-      avatar:
-        "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=200&auto=format&fit=crop&q=80",
+      avatar: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=200&auto=format&fit=crop&q=80",
     },
     {
-      id: "ord-3",
+      id: "#MS0126",
+      originalId: "static-3",
       name: "Sneha Kulkarni",
       item: "Special Thali",
       time: "Today, 11:50 AM",
       status: "Preparing",
-      statusColor: "bg-blue-100 text-blue-700",
       price: "₹130",
-      avatar:
-        "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=200&auto=format&fit=crop&q=80",
-    },
-    {
-      id: "ord-4",
-      name: "Aditya More",
-      item: "Veg Thali",
-      time: "Today, 11:20 AM",
-      status: "Completed",
-      statusColor: "bg-purple-100 text-[#6C47FF]",
-      price: "₹100",
-      avatar:
-        "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80",
-    },
-    {
-      id: "ord-5",
-      name: "Neha Deshmukh",
-      item: "Full Meal",
-      time: "Today, 11:05 AM",
-      status: "Completed",
-      statusColor: "bg-purple-100 text-[#6C47FF]",
-      price: "₹120",
-      avatar:
-        "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&auto=format&fit=crop&q=80",
+      avatar: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=200&auto=format&fit=crop&q=80",
     },
   ];
 
+  const [ordersList, setOrdersList] = useState(staticOrders);
+
+  // Sync Live Orders from localStorage
+  const refreshStorageData = () => {
+    if (typeof window === "undefined") return;
+
+    try {
+      // 1. Fetch live bookings from students
+      const storedBookings = JSON.parse(localStorage.getItem("student_bookings") || "[]");
+      
+      const liveMessBookings = storedBookings
+        .filter((b) => {
+          const s = (b.service || "").toLowerCase();
+          const v = (b.vendor || "").toLowerCase();
+          const id = (b.id || "").toLowerCase();
+          return s.includes("mess") || v.includes("annapurna") || id.includes("mes");
+        })
+        .map((b) => ({
+          id: b.id ? (b.id.length > 8 ? `#${b.id.slice(-6)}` : b.id) : "#BK-LIVE",
+          originalId: b.id, // Store exact key to update back to localStorage
+          name: b.student || "Riya Wagh (Verified Student)",
+          item: b.item || "Annapurna Monthly Pass",
+          time: b.date ? `${b.date}` : "Just now",
+          price: b.price || "₹1,900",
+          // Pending until confirmed by vendor owner
+          status: b.vendorConfirmed ? "Confirmed" : (b.status === "Confirmed" && !b.vendorConfirmed ? "Pending" : (b.status || "Pending")),
+          avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80",
+        }));
+
+      setOrdersList([...liveMessBookings, ...staticOrders]);
+
+      // 2. Fetch live menu
+      const savedMenu = localStorage.getItem("annapurna_menu");
+      if (savedMenu) {
+        const parsed = JSON.parse(savedMenu);
+        setCurrentMenu(parsed);
+        if (parsed.breakfast) setBfText((parsed.breakfast.items || []).join(", "));
+        if (parsed.lunch) setLunchText((parsed.lunch.items || []).join(", "));
+        if (parsed.dinner) setDinnerText((parsed.dinner.items || []).join(", "));
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  useEffect(() => {
+    refreshStorageData();
+    window.addEventListener("storage", refreshStorageData);
+    window.addEventListener("focus", refreshStorageData);
+
+    return () => {
+      window.removeEventListener("storage", refreshStorageData);
+      window.removeEventListener("focus", refreshStorageData);
+    };
+  }, []);
+
+  // Handle Owner confirming student order
+  const handleConfirmOrder = (targetOrder) => {
+    // 1. Update UI state immediately
+    setOrdersList((prev) =>
+      prev.map((ord) =>
+        ord.id === targetOrder.id || ord.originalId === targetOrder.originalId
+          ? { ...ord, status: "Confirmed" }
+          : ord
+      )
+    );
+
+    // 2. Persist confirmation into localStorage student_bookings
+    try {
+      const storedBookings = JSON.parse(localStorage.getItem("student_bookings") || "[]");
+      const updated = storedBookings.map((b) => {
+        if (b.id === targetOrder.originalId || targetOrder.id.includes(b.id?.slice(-6))) {
+          return { ...b, status: "Confirmed", vendorConfirmed: true };
+        }
+        return b;
+      });
+      localStorage.setItem("student_bookings", JSON.stringify(updated));
+      window.dispatchEvent(new Event("storage"));
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleSaveMenuChanges = (e) => {
+    e.preventDefault();
+
+    const updatedMenu = {
+      breakfast: {
+        timing: "08:00 AM - 10:00 AM",
+        items: bfText.split(",").map((s) => s.trim()).filter(Boolean),
+      },
+      lunch: {
+        timing: "12:00 PM - 03:00 PM",
+        items: lunchText.split(",").map((s) => s.trim()).filter(Boolean),
+      },
+      dinner: {
+        timing: "07:00 PM - 10:00 PM",
+        items: dinnerText.split(",").map((s) => s.trim()).filter(Boolean),
+      },
+    };
+
+    localStorage.setItem("annapurna_menu", JSON.stringify(updatedMenu));
+    setCurrentMenu(updatedMenu);
+    window.dispatchEvent(new Event("storage"));
+
+    setSaveToast(true);
+    setTimeout(() => {
+      setSaveToast(false);
+      setIsMenuModalOpen(false);
+    }, 1000);
+  };
+
+  const sidebarItems = [
+    { label: "Dashboard", icon: LayoutDashboard, href: `/vendor?vendor=${vendorId}`, active: true },
+    { label: `My ${vendor.badge}`, icon: UtensilsCrossed, href: "#" },
+    { label: "Orders", icon: ShoppingBag, href: "#", badge: String(ordersList.length) },
+    { label: "Menu & Schedule", icon: CalendarDays, href: "#" },
+    { label: "Subscription Plans", icon: CreditCard, href: "#" },
+    { label: "Reviews", icon: Star, href: "#" },
+    { label: "Reports", icon: BarChart3, href: "#" },
+    { label: "Profile", icon: User, href: "#" },
+    { label: "Settings", icon: Settings, href: "#" },
+  ];
+
   return (
-    <div
-      className="min-h-screen bg-[#FAF9FD] text-slate-900 font-sans flex"
-      suppressHydrationWarning
-    >
+    <div className="min-h-screen bg-[#FAF9FD] text-slate-900 font-sans flex relative">
+      {/* SIDEBAR */}
       <aside className="hidden lg:flex flex-col w-64 bg-white border-r border-slate-100 shrink-0 sticky top-0 h-screen justify-between p-5 z-40">
         <div className="space-y-6">
           <Link href="/vendor" className="flex items-center gap-3 px-2">
@@ -1840,10 +2143,13 @@ function MessDashboard({ vendor, vendorId }) {
             {sidebarItems.map((item, idx) => {
               const Icon = item.icon;
               return (
-                <Link
+                <button
                   key={idx}
-                  href={item.href}
-                  className={`flex items-center justify-between px-4 py-3 rounded-2xl text-xs font-bold transition-all ${
+                  type="button"
+                  onClick={() => {
+                    if (item.label.includes("Menu")) setIsMenuModalOpen(true);
+                  }}
+                  className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl text-xs font-bold transition-all text-left ${
                     item.active
                       ? "bg-[#5835E5] text-white shadow-md shadow-indigo-200"
                       : "text-slate-600 hover:bg-purple-50 hover:text-[#5835E5]"
@@ -1858,7 +2164,7 @@ function MessDashboard({ vendor, vendorId }) {
                       {item.badge}
                     </span>
                   )}
-                </Link>
+                </button>
               );
             })}
           </nav>
@@ -1885,9 +2191,6 @@ function MessDashboard({ vendor, vendorId }) {
             <input
               type="text"
               placeholder="Search orders, students, menu..."
-              suppressHydrationWarning
-              data-lpignore="true"
-              autoComplete="off"
               className="w-full text-xs font-medium text-slate-800 placeholder-slate-400 bg-transparent focus:outline-none"
             />
           </div>
@@ -1895,13 +2198,10 @@ function MessDashboard({ vendor, vendorId }) {
           <div className="flex items-center gap-4">
             <button
               type="button"
-              suppressHydrationWarning
-              className="relative p-2.5 rounded-2xl bg-slate-50 text-slate-600 border border-slate-200/60"
+              onClick={refreshStorageData}
+              className="text-xs font-bold text-[#5835E5] bg-purple-50 px-3 py-2 rounded-xl hover:bg-purple-100 transition cursor-pointer"
             >
-              <Bell className="w-4 h-4" />
-              <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-rose-500 text-[9px] font-black text-white flex items-center justify-center">
-                3
-              </span>
+              Sync Orders 🔄
             </button>
 
             <div className="flex items-center gap-3 pl-3 border-l border-slate-200">
@@ -1924,6 +2224,7 @@ function MessDashboard({ vendor, vendorId }) {
         </header>
 
         <main className="p-6 sm:p-8 space-y-6 max-w-7xl w-full mx-auto">
+          {/* BANNER */}
           <section className="relative rounded-[32px] bg-gradient-to-r from-[#FFD88C] via-[#FFC773] to-[#FFAE64] p-6 sm:p-8 overflow-hidden shadow-sm flex flex-col lg:flex-row items-center justify-between gap-6">
             <div className="space-y-3 max-w-xl z-10">
               <span className="inline-block px-3 py-1 rounded-full bg-black/10 text-slate-900 text-[10px] font-extrabold uppercase tracking-wider">
@@ -1933,190 +2234,244 @@ function MessDashboard({ vendor, vendorId }) {
                 Welcome back, {vendor.welcomeName}! 👋
               </h1>
               <p className="text-xs font-semibold text-slate-800 leading-relaxed max-w-md">
-                Manage your mess, track orders and keep your students happy!
+                Manage your daily menu, confirm student orders, and track your mess service.
               </p>
               <div className="inline-flex items-center gap-3 px-3.5 py-2 rounded-2xl bg-white/90 shadow-sm border border-white/60 text-xs">
                 <MapPin className="w-4 h-4 text-[#5835E5]" />
                 <div className="text-left">
-                  <p className="font-extrabold text-slate-900 text-xs">
-                    {vendor.displayName}
-                  </p>
-                  <p className="text-[10px] text-slate-500 font-medium">
-                    {vendor.location}
-                  </p>
+                  <p className="font-extrabold text-slate-900 text-xs">{vendor.displayName}</p>
+                  <p className="text-[10px] text-slate-500 font-medium">{vendor.location}</p>
                 </div>
                 <span className="ml-2 flex items-center gap-1 text-[10px] font-black text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />{" "}
-                  Active
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Active
                 </span>
               </div>
-            </div>
-
-            <div className="relative z-10 w-64 h-44 sm:w-72 sm:h-48 rounded-3xl overflow-hidden shadow-2xl border-4 border-white/90 shrink-0">
-              <img
-                src="https://images.unsplash.com/photo-1610057099443-fde8c4d50f91?w=800&auto=format&fit=crop&q=80"
-                alt="Mess food"
-                className="w-full h-full object-cover"
-              />
             </div>
 
             <div className="w-full lg:w-56 rounded-2xl bg-gradient-to-br from-[#5333DC] to-[#391DBB] text-white p-5 shadow-xl space-y-3 z-10 shrink-0 text-center">
               <div className="w-10 h-10 rounded-xl bg-white/20 mx-auto flex items-center justify-center mb-2">
                 <ChefHat className="w-5 h-5" />
               </div>
-              <h3 className="text-sm font-black">Keep It Fresh!</h3>
-              <p className="text-[10px] text-purple-200">
-                Healthy food builds brighter futures.
-              </p>
-              <Link
-                href="/vendor/menu"
-                className="w-full py-2 rounded-xl bg-white/10 text-white text-xs font-black flex items-center justify-center gap-1.5 border border-white/20"
+              <h3 className="text-sm font-black">Daily Kitchen Menu</h3>
+              <p className="text-[10px] text-purple-200">Broadcasts in real-time to student portal.</p>
+              <button
+                type="button"
+                onClick={() => setIsMenuModalOpen(true)}
+                className="w-full py-2.5 rounded-xl bg-white text-[#5333DC] text-xs font-black flex items-center justify-center gap-1.5 shadow-md hover:bg-slate-100 transition cursor-pointer"
               >
-                View Menu <ArrowRight className="w-3.5 h-3.5" />
-              </Link>
+                <span>Update Menu</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
             </div>
           </section>
 
+          {/* STATS */}
           <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <MessStat title="Total Orders" value="128" icon="🛍️" change="12%" />
-            <MessStat title="Completed Orders" value="118" icon="✓" change="10%" />
-            <MessStat title="Pending Orders" value="10" icon="🕒" change="5%" />
-            <MessStat title="Rating" value={vendor.rating} icon="★" change="0.1" />
+            <div className="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm flex items-center justify-between">
+              <div>
+                <p className="text-xs font-extrabold text-slate-500">Total Orders</p>
+                <h3 className="text-2xl font-black text-slate-950 mt-1">{ordersList.length}</h3>
+                <p className="text-[11px] font-bold text-emerald-600 mt-1">↑ Live synced</p>
+              </div>
+              <div className="w-12 h-12 rounded-2xl bg-purple-50 text-[#5835E5] flex items-center justify-center text-xl">🛍️</div>
+            </div>
+
+            <div className="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm flex items-center justify-between">
+              <div>
+                <p className="text-xs font-extrabold text-slate-500">Confirmed Orders</p>
+                <h3 className="text-2xl font-black text-slate-950 mt-1">
+                  {ordersList.filter((o) => o.status === "Confirmed").length}
+                </h3>
+                <p className="text-[11px] font-bold text-emerald-600 mt-1">Ready for meals</p>
+              </div>
+              <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl">✓</div>
+            </div>
+
+            <div className="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm flex items-center justify-between">
+              <div>
+                <p className="text-xs font-extrabold text-slate-500">Pending Orders</p>
+                <h3 className="text-2xl font-black text-slate-950 mt-1">
+                  {ordersList.filter((o) => o.status === "Pending").length}
+                </h3>
+                <p className="text-[11px] font-bold text-amber-600 mt-1">Awaiting your approval</p>
+              </div>
+              <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl">🕒</div>
+            </div>
+
+            <div className="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm flex items-center justify-between">
+              <div>
+                <p className="text-xs font-extrabold text-slate-500">Rating</p>
+                <h3 className="text-2xl font-black text-slate-950 mt-1">{vendor.rating}</h3>
+                <p className="text-[11px] font-bold text-amber-500 mt-1">★ 120+ Student reviews</p>
+              </div>
+              <div className="w-12 h-12 rounded-2xl bg-pink-50 text-pink-600 flex items-center justify-center text-xl">★</div>
+            </div>
           </section>
 
-          <section className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* LOWER GRID */}
+          <section className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            {/* RECENT ORDERS WITH CONFIRM BUTTON */}
             <div className="lg:col-span-5 bg-white rounded-3xl p-6 border border-slate-100 shadow-sm">
               <div className="flex items-center justify-between pb-3 border-b border-slate-50">
                 <div>
-                  <h3 className="text-sm font-black">📋 Recent Orders</h3>
-                  <p className="text-[10px] text-slate-400">
-                    Latest orders from students
-                  </p>
+                  <h3 className="text-sm font-black flex items-center gap-1.5">
+                    <span>📋</span> Recent Orders ({ordersList.length})
+                  </h3>
+                  <p className="text-[10px] text-slate-400">Review and confirm student orders</p>
                 </div>
-                <Link
-                  href="/vendor/orders"
-                  className="text-xs font-bold text-[#5835E5]"
+                <button
+                  type="button"
+                  onClick={refreshStorageData}
+                  className="text-xs font-bold text-[#5835E5] hover:underline cursor-pointer"
                 >
-                  View All →
-                </Link>
+                  Refresh 🔄
+                </button>
               </div>
 
-              <div>
-                {recentOrders.map((ord) => (
-                  <div
-                    key={ord.id}
-                    className="py-4 flex items-center justify-between gap-3 border-b border-slate-50"
-                  >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <img
-                        src={ord.avatar}
-                        alt={ord.name}
-                        className="w-9 h-9 rounded-2xl object-cover"
-                      />
-                      <div>
-                        <p className="text-xs font-black">{ord.name}</p>
-                        <p className="text-[10px] text-slate-400">{ord.item}</p>
+              <div className="space-y-3 pt-3 max-h-[420px] overflow-y-auto pr-1">
+                {ordersList.map((ord, idx) => {
+                  const isPending = ord.status === "Pending";
+
+                  return (
+                    <div
+                      key={ord.id || idx}
+                      className="py-3 px-3.5 rounded-2xl bg-[#FAF9FD] border border-slate-100 flex items-center justify-between gap-3 shadow-2xs hover:bg-white transition"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <img
+                          src={ord.avatar}
+                          alt={ord.name}
+                          className="w-10 h-10 rounded-2xl object-cover ring-2 ring-purple-100 shrink-0"
+                        />
+                        <div className="truncate">
+                          <p className="text-xs font-black text-slate-900 truncate">{ord.name}</p>
+                          <p className="text-[10px] font-bold text-[#5835E5] truncate">{ord.item}</p>
+                          <p className="text-[9px] text-slate-400">{ord.time}</p>
+                        </div>
+                      </div>
+
+                      <div className="text-right shrink-0 flex flex-col items-end gap-1.5">
+                        <span className="text-xs font-black text-slate-900">{ord.price}</span>
+
+                        {isPending ? (
+                          <button
+                            type="button"
+                            onClick={() => handleConfirmOrder(ord)}
+                            className="px-3 py-1 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-black shadow-xs transition active:scale-95 cursor-pointer flex items-center gap-1"
+                          >
+                            <span>Confirm Order</span>
+                            <span>✓</span>
+                          </button>
+                        ) : (
+                          <span className="text-[9px] font-black px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200">
+                            Confirmed
+                          </span>
+                        )}
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <span
-                        className={`text-[9px] font-black px-2 py-1 rounded-full ${ord.statusColor}`}
-                      >
-                        {ord.status}
-                      </span>
-                      <span className="text-xs font-black">{ord.price}</span>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
 
+            {/* TODAY'S MENU */}
             <div className="lg:col-span-4 space-y-6">
-              <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm">
+              <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm space-y-3">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-black">📅 Today's Menu</h3>
-                  <Link
-                    href="/vendor/menu"
-                    className="text-xs font-bold text-[#5835E5]"
+                  <h3 className="text-sm font-black">📅 Today&apos;s Menu (Live)</h3>
+                  <button
+                    type="button"
+                    onClick={() => setIsMenuModalOpen(true)}
+                    className="text-xs font-bold text-[#5835E5] hover:underline cursor-pointer"
                   >
-                    View Full Menu →
-                  </Link>
+                    Edit Menu →
+                  </button>
                 </div>
+
                 <div className="grid grid-cols-3 gap-2 mt-4">
-                  <MenuBox
-                    title="Breakfast"
-                    time="8:00 AM - 9:30 AM"
-                    items={["Poha", "Upma", "Tea / Coffee"]}
-                  />
-                  <MenuBox
-                    title="Lunch"
-                    time="12:00 PM - 2:00 PM"
-                    items={["Dal Rice", "Bhindi Sabzi", "Chapati"]}
-                  />
-                  <MenuBox
-                    title="Dinner"
-                    time="7:00 PM - 8:30 PM"
-                    items={["Veg Pulao", "Paneer Curry", "Sweet"]}
-                  />
+                  <div className="rounded-2xl p-3 bg-orange-50 border border-orange-100">
+                    <p className="text-[10px] font-black text-orange-600">Breakfast</p>
+                    <p className="text-[8px] text-slate-400 font-bold mt-0.5">{currentMenu.breakfast.timing}</p>
+                    <ul className="text-[9px] font-semibold text-slate-700 mt-2 space-y-1">
+                      {currentMenu.breakfast.items.map((item) => (
+                        <li key={item}>• {item}</li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <div className="rounded-2xl p-3 bg-red-50 border border-red-100">
+                    <p className="text-[10px] font-black text-red-600">Lunch</p>
+                    <p className="text-[8px] text-slate-400 font-bold mt-0.5">{currentMenu.lunch.timing}</p>
+                    <ul className="text-[9px] font-semibold text-slate-700 mt-2 space-y-1">
+                      {currentMenu.lunch.items.map((item) => (
+                        <li key={item}>• {item}</li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <div className="rounded-2xl p-3 bg-purple-50 border border-purple-100">
+                    <p className="text-[10px] font-black text-purple-600">Dinner</p>
+                    <p className="text-[8px] text-slate-400 font-bold mt-0.5">{currentMenu.dinner.timing}</p>
+                    <ul className="text-[9px] font-semibold text-slate-700 mt-2 space-y-1">
+                      {currentMenu.dinner.items.map((item) => (
+                        <li key={item}>• {item}</li>
+                      ))}
+                    </ul>
+                  </div>
                 </div>
               </div>
 
+              {/* ORDERS OVERVIEW */}
               <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm">
                 <h3 className="text-sm font-black flex items-center gap-2">
-                  <BarChart3 className="w-4 h-4 text-[#5835E5]" /> Orders
-                  Overview
+                  <BarChart3 className="w-4 h-4 text-[#5835E5]" /> Orders Overview
                 </h3>
                 <div className="mt-5 h-28 flex items-end gap-3">
                   {[45, 70, 55, 85, 65, 90, 75].map((height, i) => (
                     <div
                       key={i}
-                      className="flex-1 bg-[#5835E5] rounded-t-lg"
+                      className="flex-1 bg-[#5835E5] rounded-t-lg transition-all"
                       style={{ height: `${height}%` }}
                     />
                   ))}
                 </div>
-                <div className="flex justify-between mt-2 text-[9px] text-slate-400">
-                  <span>Mon</span>
-                  <span>Tue</span>
-                  <span>Wed</span>
-                  <span>Thu</span>
-                  <span>Fri</span>
-                  <span>Sat</span>
-                  <span>Sun</span>
+                <div className="flex justify-between mt-2 text-[9px] text-slate-400 font-bold">
+                  <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
                 </div>
               </div>
             </div>
 
+            {/* QUICK ACTIONS */}
             <div className="lg:col-span-3 space-y-5">
               <div className="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm">
                 <h4 className="text-xs font-black mb-3">⚡ Quick Actions</h4>
-                <Link
-                  href="/vendor/menu"
-                  className="block p-3 rounded-2xl bg-emerald-50 mb-2"
+
+                <button
+                  type="button"
+                  onClick={() => setIsMenuModalOpen(true)}
+                  className="w-full text-left p-3 rounded-2xl bg-emerald-50 hover:bg-emerald-100/70 mb-2 transition cursor-pointer"
                 >
-                  <p className="text-xs font-black">📝 Update Menu</p>
-                  <p className="text-[9px] text-slate-400">
-                    Change today's menu
-                  </p>
-                </Link>
-                <Link
-                  href="/vendor/orders"
-                  className="block p-3 rounded-2xl bg-rose-50 mb-2"
+                  <p className="text-xs font-black text-emerald-800">📝 Update Menu</p>
+                  <p className="text-[9px] text-emerald-600 font-semibold">Change today&apos;s menu (Instant popup)</p>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={refreshStorageData}
+                  className="w-full text-left p-3 rounded-2xl bg-rose-50 hover:bg-rose-100/70 mb-2 transition cursor-pointer"
                 >
-                  <p className="text-xs font-black">📦 Manage Orders</p>
-                  <p className="text-[9px] text-slate-400">
-                    View & update orders
-                  </p>
-                </Link>
-                <Link
-                  href="/vendor/offers"
-                  className="block p-3 rounded-2xl bg-orange-50"
+                  <p className="text-xs font-black text-rose-800">📦 Sync Orders</p>
+                  <p className="text-[9px] text-rose-600 font-semibold">Fetch student bookings</p>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => alert("Student discount active for this month!")}
+                  className="w-full text-left p-3 rounded-2xl bg-orange-50 hover:bg-orange-100/70 transition cursor-pointer"
                 >
-                  <p className="text-xs font-black">🏷️ Add Special Offer</p>
-                  <p className="text-[9px] text-slate-400">
-                    Attract more students
-                  </p>
-                </Link>
+                  <p className="text-xs font-black text-orange-800">🏷️ Add Special Offer</p>
+                  <p className="text-[9px] text-orange-600 font-semibold">Attract more students</p>
+                </button>
               </div>
 
               <div className="rounded-3xl bg-gradient-to-br from-[#FFF5EE] to-[#FFE8D6] p-5 border border-orange-100">
@@ -2124,7 +2479,7 @@ function MessDashboard({ vendor, vendorId }) {
                   SPECIAL OFFER
                 </span>
                 <h4 className="text-lg font-black mt-3">10% OFF</h4>
-                <p className="text-xs font-bold text-slate-600">on all meals</p>
+                <p className="text-xs font-bold text-slate-600">on monthly passes</p>
                 <img
                   src="https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=300&auto=format&fit=crop&q=80"
                   alt="Food"
@@ -2135,38 +2490,100 @@ function MessDashboard({ vendor, vendorId }) {
           </section>
         </main>
       </div>
-    </div>
-  );
-}
 
-function MessStat({ title, value, icon, change }) {
-  return (
-    <div className="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm flex items-center justify-between">
-      <div>
-        <p className="text-xs font-extrabold text-slate-500">{title}</p>
-        <h3 className="text-2xl font-black text-slate-950 mt-1">{value}</h3>
-        <p className="text-[11px] font-bold text-emerald-600 mt-1">
-          ↑ {change}{" "}
-          <span className="text-slate-400 font-medium">vs last week</span>
-        </p>
-      </div>
-      <div className="w-12 h-12 rounded-2xl bg-purple-50 text-[#5835E5] flex items-center justify-center text-xl">
-        {icon}
-      </div>
-    </div>
-  );
-}
+      {/* =====================================================
+          MENU UPDATE MODAL POPUP
+      ====================================================== */}
+      {isMenuModalOpen && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
+          <div className="bg-white rounded-[32px] p-6 sm:p-7 max-w-lg w-full border border-slate-100 shadow-2xl space-y-5 animate-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div className="flex items-center gap-2.5">
+                <div className="w-10 h-10 rounded-2xl bg-orange-100 text-orange-600 flex items-center justify-center text-xl">
+                  🍳
+                </div>
+                <div>
+                  <h3 className="text-base font-black text-[#14245c]">
+                    Update Daily Menu
+                  </h3>
+                  <p className="text-[10px] text-slate-400 font-bold">
+                    Updates sync directly to Annapurna Mess on the student portal
+                  </p>
+                </div>
+              </div>
 
-function MenuBox({ title, time, items }) {
-  return (
-    <div className="rounded-2xl p-3 bg-purple-50 border border-purple-100">
-      <p className="text-[10px] font-black">{title}</p>
-      <p className="text-[8px] text-slate-400 font-bold mt-1">{time}</p>
-      <ul className="text-[9px] font-semibold text-slate-700 mt-2 space-y-1">
-        {items.map((item) => (
-          <li key={item}>• {item}</li>
-        ))}
-      </ul>
+              <button
+                type="button"
+                onClick={() => setIsMenuModalOpen(false)}
+                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition cursor-pointer"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveMenuChanges} className="space-y-4 text-xs font-bold text-slate-700">
+              <div className="p-3.5 rounded-2xl bg-[#fff8e9]/80 border border-orange-200 space-y-1.5">
+                <span className="text-orange-600 font-black block">🥞 Breakfast (08:00 AM - 10:00 AM)</span>
+                <textarea
+                  rows={2}
+                  value={bfText}
+                  onChange={(e) => setBfText(e.target.value)}
+                  placeholder="e.g. Poha - Upma, Upma - Dosa, Unlimited Chai"
+                  className="w-full bg-white border border-slate-200 rounded-xl p-2.5 text-xs font-semibold text-slate-800 focus:outline-none focus:border-[#7043ed]"
+                />
+              </div>
+
+              <div className="p-3.5 rounded-2xl bg-[#fff2eb]/80 border border-red-200 space-y-1.5">
+                <span className="text-red-600 font-black block">🍲 Lunch (12:00 PM - 03:00 PM)</span>
+                <textarea
+                  rows={2}
+                  value={lunchText}
+                  onChange={(e) => setLunchText(e.target.value)}
+                  placeholder="e.g. Paneer - Tomato, Chapati, Rice, Gulab Jamun"
+                  className="w-full bg-white border border-slate-200 rounded-xl p-2.5 text-xs font-semibold text-slate-800 focus:outline-none focus:border-[#7043ed]"
+                />
+              </div>
+
+              <div className="p-3.5 rounded-2xl bg-[#f8efff]/80 border border-purple-200 space-y-1.5">
+                <span className="text-purple-600 font-black block">🍛 Dinner (07:00 PM - 10:00 PM)</span>
+                <textarea
+                  rows={2}
+                  value={dinnerText}
+                  onChange={(e) => setDinnerText(e.target.value)}
+                  placeholder="e.g. Chole, Veg Pulav, Roti, Salad, Buttermilk"
+                  className="w-full bg-white border border-slate-200 rounded-xl p-2.5 text-xs font-semibold text-slate-800 focus:outline-none focus:border-[#7043ed]"
+                />
+              </div>
+
+              <div className="flex items-center gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsMenuModalOpen(false)}
+                  className="flex-1 py-3 rounded-2xl border border-slate-200 text-slate-600 hover:bg-slate-50 font-bold transition cursor-pointer"
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="submit"
+                  className={`flex-1 py-3 rounded-2xl text-white font-black shadow-md transition flex items-center justify-center gap-1.5 cursor-pointer ${
+                    saveToast ? "bg-emerald-600" : "bg-[#7043ed] hover:bg-[#5a32d1]"
+                  }`}
+                >
+                  {saveToast ? (
+                    <>
+                      <Check size={16} />
+                      <span>Updated &amp; Broadcasted!</span>
+                    </>
+                  ) : (
+                    <span>Save &amp; Broadcast Menu</span>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -3002,19 +3419,38 @@ function CafeDashboard() {
    LAUNDRY DASHBOARD (COTTONSPA)
 ============================================================ */
 
+/* ============================================================
+   LAUNDRY DASHBOARD (COTTONSPA - FULL REAL-TIME SYNC)
+============================================================ */
+
 function LaundryDashboard() {
   const [activeTab, setActiveTab] = useState("All");
 
-  const sidebarLinks = [
-    { label: "Dashboard", icon: LayoutDashboard, active: true },
-    { label: "Orders", icon: ShoppingBag, badge: "12" },
-    { label: "Earnings", icon: CreditCard },
-    { label: "Customers", icon: Users },
-    { label: "Profile", icon: User },
-    { label: "Settings", icon: Settings },
-  ];
+  // Modals state
+  const [isPriceModalOpen, setIsPriceModalOpen] = useState(false);
+  const [isAvailabilityModalOpen, setIsAvailabilityModalOpen] = useState(false);
+  const [saveToast, setSaveToast] = useState("");
 
-  const laundryOrders = [
+  // 1. Dynamic Pricing for all 4 services
+  const defaultPrices = {
+    normalWash: "₹100/load (Max 7kg)",
+    ironing: "₹30/item",
+    dryCleaning: "₹80/item",
+    premiumWash: "₹150/item",
+  };
+  const [servicePrices, setServicePrices] = useState(defaultPrices);
+
+  // 2. Dynamic Availability & Working Days
+  const defaultAvailability = {
+    timings: "8:00 AM - 10:00 PM",
+    days: "Monday, Wednesday, Friday",
+    activeDays: ["Mon", "Wed", "Fri"],
+    locationCoverage: "MIT-AOE Gate, Dehu Phata, Girls Hostel A & B",
+  };
+  const [availability, setAvailability] = useState(defaultAvailability);
+
+  // 3. Static fallback orders
+  const staticLaundryOrders = [
     {
       id: "#LD0018",
       name: "Priya Sharma",
@@ -3023,6 +3459,7 @@ function LaundryDashboard() {
       status: "In Progress",
       statusClass: "bg-[#fff3e4] text-[#ea7f12] border border-[#fbdcb2]",
       time: "10:30 AM",
+      isStudentBooking: false,
     },
     {
       id: "#LD0017",
@@ -3032,6 +3469,7 @@ function LaundryDashboard() {
       status: "Pending",
       statusClass: "bg-[#ffeef4] text-[#ee3d7a] border border-[#fccfdf]",
       time: "09:45 AM",
+      isStudentBooking: false,
     },
     {
       id: "#LD0016",
@@ -3041,6 +3479,7 @@ function LaundryDashboard() {
       status: "Completed",
       statusClass: "bg-[#e5faee] text-[#11a965] border border-[#c4f3d7]",
       time: "09:20 AM",
+      isStudentBooking: false,
     },
     {
       id: "#LD0015",
@@ -3050,22 +3489,123 @@ function LaundryDashboard() {
       status: "Completed",
       statusClass: "bg-[#e5faee] text-[#11a965] border border-[#c4f3d7]",
       time: "08:50 AM",
-    },
-    {
-      id: "#LD0014",
-      name: "Neha Deshmukh",
-      items: "6 Clothes",
-      amount: "₹360",
-      status: "In Progress",
-      statusClass: "bg-[#fff3e4] text-[#ea7f12] border border-[#fbdcb2]",
-      time: "08:15 AM",
+      isStudentBooking: false,
     },
   ];
 
+  const [allOrders, setAllOrders] = useState(staticLaundryOrders);
+
+  // Sync Live Data from LocalStorage
+  const refreshStorageData = useCallback(() => {
+    if (typeof window === "undefined") return;
+
+    try {
+      // Load saved prices
+      const savedPrices = localStorage.getItem("cotton_spa_prices");
+      if (savedPrices) setServicePrices(JSON.parse(savedPrices));
+
+      // Load saved availability
+      const savedAvail = localStorage.getItem("cotton_spa_availability");
+      if (savedAvail) setAvailability(JSON.parse(savedAvail));
+
+      // Load live student orders
+      const storedBookings = JSON.parse(localStorage.getItem("student_bookings") || "[]");
+      const liveLaundryBookings = storedBookings
+        .filter(
+          (b) =>
+            b.service === "Laundry" ||
+            (b.vendor && b.vendor.toLowerCase().includes("cotton")) ||
+            (b.id && b.id.includes("LND"))
+        )
+        .map((b) => ({
+          id: b.id ? (b.id.length > 8 ? `#${b.id.slice(-6)}` : b.id) : "#BK-LND",
+          originalId: b.id,
+          name: b.student || "Riya Wagh (Student)",
+          items: b.item || "CottonSpa Laundry Pickup",
+          amount: b.price || "₹60/kg",
+          time: b.bookedOn || b.date || "Just now",
+          status: b.vendorConfirmed ? "Confirmed" : "Pending",
+          statusClass: b.vendorConfirmed
+            ? "bg-[#e5faee] text-[#11a965] border border-[#c4f3d7] font-bold"
+            : "bg-[#ffeef4] text-[#ee3d7a] border border-[#fccfdf] font-bold",
+          isStudentBooking: true,
+        }));
+
+      setAllOrders([...liveLaundryBookings, ...staticLaundryOrders]);
+    } catch (e) {
+      console.error(e);
+    }
+  }, []);
+
+  useEffect(() => {
+    refreshStorageData();
+    window.addEventListener("storage", refreshStorageData);
+    window.addEventListener("focus", refreshStorageData);
+    return () => {
+      window.removeEventListener("storage", refreshStorageData);
+      window.removeEventListener("focus", refreshStorageData);
+    };
+  }, [refreshStorageData]);
+
+  // Handle owner confirming student booking
+  const handleConfirmOrder = (order) => {
+    setAllOrders((prev) =>
+      prev.map((o) =>
+        o.id === order.id
+          ? {
+              ...o,
+              status: "Confirmed",
+              statusClass: "bg-[#e5faee] text-[#11a965] border border-[#c4f3d7] font-bold",
+            }
+          : o
+      )
+    );
+
+    try {
+      const stored = JSON.parse(localStorage.getItem("student_bookings") || "[]");
+      const updated = stored.map((b) => {
+        if (b.id === order.id || b.id === order.originalId) {
+          return { ...b, status: "Confirmed", vendorConfirmed: true };
+        }
+        return b;
+      });
+      localStorage.setItem("student_bookings", JSON.stringify(updated));
+      window.dispatchEvent(new Event("storage"));
+      setSaveToast("Order approved & confirmed!");
+      setTimeout(() => setSaveToast(""), 2000);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  // Save 4 service prices
+  const handleSavePrices = (e) => {
+    e.preventDefault();
+    localStorage.setItem("cotton_spa_prices", JSON.stringify(servicePrices));
+    window.dispatchEvent(new Event("storage"));
+    setSaveToast("All 4 service prices updated!");
+    setTimeout(() => {
+      setSaveToast("");
+      setIsPriceModalOpen(false);
+    }, 1200);
+  };
+
+  // Save availability & operational days
+  const handleSaveAvailability = (e) => {
+    e.preventDefault();
+    localStorage.setItem("cotton_spa_availability", JSON.stringify(availability));
+    window.dispatchEvent(new Event("storage"));
+    setSaveToast("Availability & pickup schedule updated!");
+    setTimeout(() => {
+      setSaveToast("");
+      setIsAvailabilityModalOpen(false);
+    }, 1200);
+  };
+
   const filteredOrders =
     activeTab === "All"
-      ? laundryOrders
-      : laundryOrders.filter((ord) => ord.status === activeTab);
+      ? allOrders
+      : allOrders.filter((ord) => ord.status === activeTab);
 
   const chartData = [
     { day: "Mon", completed: 8, pending: 9, cancelled: 2 },
@@ -3077,8 +3617,17 @@ function LaundryDashboard() {
     { day: "Sun", completed: 15, pending: 7, cancelled: 4 },
   ];
 
+  const sidebarLinks = [
+    { label: "Dashboard", icon: LayoutDashboard, active: true },
+    { label: "Orders", icon: ShoppingBag, badge: String(allOrders.length) },
+    { label: "Earnings", icon: CreditCard },
+    { label: "Customers", icon: Users },
+    { label: "Profile", icon: User },
+    { label: "Settings", icon: Settings },
+  ];
+
   return (
-    <div className="min-h-screen bg-[#F5F6FC] text-slate-900 font-sans flex antialiased">
+    <div className="min-h-screen bg-[#F5F6FC] text-slate-900 font-sans flex antialiased relative">
       {/* SIDEBAR */}
       <aside className="hidden lg:flex flex-col w-[240px] bg-[#121631] text-white shrink-0 sticky top-0 h-screen justify-between p-4 z-40 overflow-y-auto">
         <div className="space-y-6">
@@ -3087,12 +3636,8 @@ function LaundryDashboard() {
               <GraduationCap className="w-6 h-6" />
             </div>
             <div>
-              <span className="text-lg font-black tracking-tight block leading-tight">
-                Studentica.
-              </span>
-              <span className="text-[10px] text-purple-200/70 font-medium">
-                Vendor Portal
-              </span>
+              <span className="text-lg font-black tracking-tight block leading-tight">Studentica.</span>
+              <span className="text-[10px] text-purple-200/70 font-medium">Vendor Portal</span>
             </div>
           </Link>
 
@@ -3103,8 +3648,7 @@ function LaundryDashboard() {
                 <button
                   key={item.label}
                   type="button"
-                  suppressHydrationWarning
-                  className={`flex w-full items-center justify-between px-4 py-3 rounded-2xl text-xs font-bold transition ${
+                  className={`flex w-full items-center justify-between px-4 py-3 rounded-2xl text-xs font-bold transition text-left ${
                     item.active
                       ? "bg-[#5D45F9] text-white shadow-md shadow-purple-950/40"
                       : "text-slate-300 hover:bg-white/5 hover:text-white"
@@ -3131,28 +3675,17 @@ function LaundryDashboard() {
             <br />
             <span className="text-xl">⌣</span>
           </p>
-
-          <div className="relative w-36 h-36 mx-auto">
-            <img
-              src="https://images.unsplash.com/photo-1582735689369-4fe89db7114c?auto=format&fit=crop&w=400&q=80"
-              alt="Folded Laundry Basket"
-              className="w-full h-full object-cover rounded-2xl shadow-lg border border-purple-900/30"
-            />
-          </div>
         </div>
       </aside>
 
-      {/* MAIN BODY */}
+      {/* MAIN VIEWPORT */}
       <div className="flex-1 flex flex-col min-w-0">
         <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-100 px-6 sm:px-8 h-20 flex items-center justify-between gap-4">
           <div className="flex items-center gap-2.5 px-4 py-2.5 bg-[#F6F7FD] border border-slate-200/70 rounded-2xl w-full max-w-md">
             <Search className="w-4 h-4 text-[#5D45F9] shrink-0" />
             <input
               type="text"
-              placeholder="Search orders, students..."
-              suppressHydrationWarning
-              data-lpignore="true"
-              autoComplete="off"
+              placeholder="Search laundry orders, students..."
               className="w-full text-xs font-medium text-slate-800 placeholder-slate-400 bg-transparent focus:outline-none"
             />
           </div>
@@ -3160,13 +3693,10 @@ function LaundryDashboard() {
           <div className="flex items-center gap-4">
             <button
               type="button"
-              suppressHydrationWarning
-              className="relative p-2.5 rounded-2xl bg-[#F6F7FD] text-slate-600 hover:text-slate-900 transition"
+              onClick={refreshStorageData}
+              className="text-xs font-bold text-[#5D45F9] bg-purple-50 px-3.5 py-2 rounded-xl hover:bg-purple-100 transition cursor-pointer"
             >
-              <Bell className="w-4 h-4 text-[#162758]" />
-              <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#FA3E57] text-[9px] font-black text-white flex items-center justify-center">
-                3
-              </span>
+              Sync Student Pickups 🔄
             </button>
 
             <div className="flex items-center gap-3 pl-3 border-l border-slate-200">
@@ -3176,101 +3706,53 @@ function LaundryDashboard() {
                 className="w-10 h-10 rounded-2xl object-cover ring-2 ring-purple-100"
               />
               <div className="hidden sm:block text-left">
-                <p className="text-xs font-black text-[#152857] leading-tight">
-                  Rahul Sharma
-                </p>
-                <p className="text-[10px] text-slate-400 font-semibold">
-                  Laundry Vendor
-                </p>
+                <p className="text-xs font-black text-[#152857] leading-tight">Rahul Sharma</p>
+                <p className="text-[10px] text-slate-400 font-semibold">CottonSpa Owner</p>
               </div>
-              <ChevronDown className="w-4 h-4 text-slate-400" />
             </div>
           </div>
         </header>
 
         <main className="p-5 sm:p-7 space-y-5 max-w-[1450px] w-full mx-auto">
-          {/* HERO BANNER + TODAY'S STATUS */}
+          {/* HERO BANNER */}
           <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_280px] gap-4 items-stretch">
             <div className="relative rounded-[28px] overflow-hidden bg-gradient-to-r from-[#EDE8FF] via-[#F4F0FF] to-[#EAE3FF] p-6 sm:p-7 border border-purple-100/60 shadow-sm flex flex-col justify-between min-h-[200px]">
-              <div className="absolute right-0 top-0 bottom-0 w-[48%] overflow-hidden pointer-events-none hidden md:block">
-                <img
-                  src="https://images.unsplash.com/photo-1545173168-9f1947eebb7f?auto=format&fit=crop&w=800&q=80"
-                  alt="Washing machines and laundry basket"
-                  className="w-full h-full object-cover object-center opacity-90"
-                />
-                <div className="absolute inset-0 bg-gradient-to-r from-[#EDE8FF] via-[#EDE8FF]/70 to-transparent" />
-              </div>
-
               <div className="relative z-10 space-y-3 max-w-xl">
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#E3DCFF] text-[#5D45F9] text-[10px] font-black">
-                  <WashingMachine className="w-3.5 h-3.5" />
-                  Laundry Service
+                  <WashingMachine className="w-3.5 h-3.5" /> Laundry Vendor Portal
                 </span>
 
                 <div className="flex items-center gap-3 pt-1">
                   <div className="w-14 h-14 rounded-2xl bg-white border border-purple-100 shadow-md flex items-center justify-center text-[#5D45F9] shrink-0">
                     <WashingMachine className="w-8 h-8" />
                   </div>
-
                   <div>
-                    <div className="flex items-center gap-2">
-                      <h1 className="text-3xl font-black text-[#152758] tracking-tight">
-                        CottonSpa
-                      </h1>
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#DCF9E8] text-[#11A866] text-[10px] font-bold">
-                        <CheckCircle2 className="w-3 h-3" />
-                        Verified
-                      </span>
-                    </div>
-
-                    <div className="flex items-center gap-3 text-xs text-slate-500 font-semibold mt-0.5">
-                      <span className="flex items-center gap-1">
-                        <MapPin className="w-3.5 h-3.5 text-slate-400" />
-                        Dehu Phata
-                      </span>
-                      <span>•</span>
-                      <span className="flex items-center gap-1 text-[#F29F05] font-black">
-                        ★ 4.2{" "}
-                        <span className="text-slate-400 font-medium">
-                          (125 reviews)
-                        </span>
-                      </span>
-                    </div>
+                    <h1 className="text-3xl font-black text-[#152758] tracking-tight">CottonSpa</h1>
+                    <p className="text-xs text-slate-500 font-semibold mt-0.5">
+                      Dehu Phata • Operating Hours: {availability.timings}
+                    </p>
                   </div>
                 </div>
 
-                <div className="pt-2">
-                  <p className="text-sm font-bold text-[#182C5D]">
-                    Fresh clothes, happy vibes!
-                  </p>
-                  <div className="w-14 h-1 bg-[#182C5D] rounded-full mt-0.5" />
-                </div>
-              </div>
-
-              <div className="absolute right-[36%] top-6 hidden 2xl:block text-center rotate-[-10deg] text-[#6942EC] font-black text-xs select-none">
-                Clean <br /> Fresh <br /> On Time ⌣
+                <p className="text-sm font-bold text-[#182C5D] pt-1">
+                  Manage student pickups, update rates for all 4 services, and configure operational days.
+                </p>
               </div>
             </div>
 
             <div className="rounded-[28px] overflow-hidden bg-white border border-slate-100 shadow-sm flex flex-col justify-between">
               <div className="bg-gradient-to-r from-[#7B58FA] to-[#9963F9] p-4 text-white flex items-center gap-2">
                 <CalendarDays className="w-4 h-4" />
-                <span className="text-xs font-black tracking-wide">
-                  Today's Status
-                </span>
+                <span className="text-xs font-black tracking-wide">Today&apos;s Status</span>
               </div>
-
               <div className="p-5 space-y-1">
-                <p className="text-xs font-bold text-slate-400">Total Orders</p>
+                <p className="text-xs font-bold text-slate-400">Total Bookings</p>
                 <div className="flex items-end justify-between">
-                  <span className="text-3xl font-black text-[#152758]">18</span>
+                  <span className="text-3xl font-black text-[#152758]">{allOrders.length}</span>
                   <span className="text-xs font-black text-[#11A866] flex items-center gap-0.5">
-                    <TrendingUp className="w-3.5 h-3.5" /> 12%
+                    <TrendingUp className="w-3.5 h-3.5" /> Active
                   </span>
                 </div>
-                <p className="text-[10px] text-slate-400 font-medium text-right">
-                  vs yesterday
-                </p>
               </div>
             </div>
           </div>
@@ -3278,98 +3760,47 @@ function LaundryDashboard() {
           {/* 4 STAT CARDS */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm space-y-2">
-              <div className="w-10 h-10 rounded-2xl bg-[#FFEAF3] text-[#EE3876] flex items-center justify-center">
-                <FileText className="w-5 h-5" />
-              </div>
               <p className="text-xs font-bold text-slate-500">Total Orders</p>
-              <h3 className="text-2xl font-black text-[#152857]">18</h3>
-              <p className="text-[11px] font-bold text-[#11A866] flex items-center gap-1">
-                <TrendingUp className="w-3.5 h-3.5" /> 12%{" "}
-                <span className="text-slate-400 font-medium">vs yesterday</span>
-              </p>
+              <h3 className="text-2xl font-black text-[#152857]">{allOrders.length}</h3>
+              <p className="text-[11px] font-bold text-[#11A866]">↑ Live synced</p>
             </div>
-
             <div className="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm space-y-2">
-              <div className="w-10 h-10 rounded-2xl bg-[#DCF9E8] text-[#11A866] flex items-center justify-center">
-                <CheckCircle2 className="w-5 h-5" />
-              </div>
               <p className="text-xs font-bold text-slate-500">Completed</p>
-              <h3 className="text-2xl font-black text-[#152857]">14</h3>
-              <p className="text-[11px] font-bold text-[#11A866] flex items-center gap-1">
-                <TrendingUp className="w-3.5 h-3.5" /> 8%{" "}
-                <span className="text-slate-400 font-medium">vs yesterday</span>
-              </p>
+              <h3 className="text-2xl font-black text-[#152857]">
+                {allOrders.filter((o) => o.status === "Completed").length + 14}
+              </h3>
+              <p className="text-[11px] font-bold text-[#11A866]">↑ 8% vs yesterday</p>
             </div>
-
             <div className="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm space-y-2">
-              <div className="w-10 h-10 rounded-2xl bg-[#FFF2DE] text-[#EA7F12] flex items-center justify-center">
-                <Clock3 className="w-5 h-5" />
-              </div>
-              <p className="text-xs font-bold text-slate-500">In Progress</p>
-              <h3 className="text-2xl font-black text-[#152857]">3</h3>
-              <p className="text-[11px] font-bold text-[#EA7F12] flex items-center gap-1">
-                <TrendingUp className="w-3.5 h-3.5" /> 1%{" "}
-                <span className="text-slate-400 font-medium">vs yesterday</span>
-              </p>
+              <p className="text-xs font-bold text-slate-500">Pending Approvals</p>
+              <h3 className="text-2xl font-black text-[#EA7F12]">
+                {allOrders.filter((o) => o.status === "Pending").length}
+              </h3>
+              <p className="text-[11px] font-bold text-[#EA7F12]">Requires Confirmation</p>
             </div>
-
             <div className="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm space-y-2">
-              <div className="w-10 h-10 rounded-2xl bg-[#EFE7FE] text-[#784BF6] flex items-center justify-center">
-                <XCircle className="w-5 h-5" />
-              </div>
-              <p className="text-xs font-bold text-slate-500">Cancelled</p>
-              <h3 className="text-2xl font-black text-[#152857]">1</h3>
-              <p className="text-[11px] font-bold text-[#EE3876] flex items-center gap-1">
-                <TrendingDown className="w-3.5 h-3.5" /> 2%{" "}
-                <span className="text-slate-400 font-medium">vs yesterday</span>
-              </p>
+              <p className="text-xs font-bold text-slate-500">Rating</p>
+              <h3 className="text-2xl font-black text-[#784BF6]">4.2 ★</h3>
+              <p className="text-[11px] font-bold text-[#11A866]">180+ Student Reviews</p>
             </div>
           </div>
 
-          {/* MAIN GRID */}
+          {/* ORDERS TABLE + CHART + QUICK ACTIONS */}
           <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1.3fr)_minmax(0,0.9fr)_280px] gap-4 items-start">
+            {/* ORDERS TABLE WITH LIVE APPROVAL ACTION */}
             <div className="bg-white rounded-[26px] p-5 border border-slate-100 shadow-sm space-y-4">
               <div className="flex items-center justify-between pb-1">
-                <h3 className="text-base font-black text-[#152758]">
-                  Recent Orders
-                </h3>
+                <div>
+                  <h3 className="text-base font-black text-[#152758]">Recent Orders</h3>
+                  <p className="text-[10px] text-slate-400 font-semibold">Incoming student pickup bookings</p>
+                </div>
                 <button
                   type="button"
-                  suppressHydrationWarning
-                  className="text-xs font-bold text-[#5D45F9] flex items-center gap-1 hover:underline"
+                  onClick={refreshStorageData}
+                  className="text-xs font-bold text-[#5D45F9] hover:underline cursor-pointer"
                 >
-                  View All <ArrowRight className="w-3 h-3" />
+                  Refresh 🔄
                 </button>
-              </div>
-
-              <div className="flex flex-wrap gap-1.5 text-xs font-bold">
-                {[
-                  "All (18)",
-                  "Pending (3)",
-                  "In Progress (3)",
-                  "Completed (14)",
-                  "Cancelled (1)",
-                ].map((tab) => {
-                  const rawTab = tab.split(" ")[0];
-                  const active =
-                    (rawTab === "All" && activeTab === "All") ||
-                    activeTab === rawTab;
-                  return (
-                    <button
-                      key={tab}
-                      type="button"
-                      suppressHydrationWarning
-                      onClick={() => setActiveTab(rawTab)}
-                      className={`px-3 py-1.5 rounded-full transition text-[11px] font-extrabold ${
-                        active
-                          ? "bg-[#5D45F9] text-white shadow-sm"
-                          : "bg-[#F3F4FB] text-slate-600 hover:bg-slate-200"
-                      }`}
-                    >
-                      {tab}
-                    </button>
-                  );
-                })}
               </div>
 
               <div className="overflow-x-auto">
@@ -3381,305 +3812,111 @@ function LaundryDashboard() {
                       <th className="pb-2">Items</th>
                       <th className="pb-2">Amount</th>
                       <th className="pb-2">Status</th>
-                      <th className="pb-2">Time</th>
                       <th className="pb-2 text-right">Action</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-50">
-                    {filteredOrders.map((ord) => (
-                      <tr
-                        key={ord.id}
-                        className="hover:bg-slate-50/50 transition"
-                      >
-                        <td className="py-3 font-black text-[#162758]">
-                          {ord.id}
-                        </td>
-                        <td className="py-3 font-extrabold text-slate-800">
-                          {ord.name}
-                        </td>
-                        <td className="py-3 text-slate-500 font-medium">
-                          {ord.items}
-                        </td>
-                        <td className="py-3 font-black text-[#162758]">
-                          {ord.amount}
-                        </td>
-                        <td className="py-3">
-                          <span
-                            className={`px-2 py-0.5 rounded-full text-[9px] font-black ${ord.statusClass}`}
-                          >
-                            {ord.status}
-                          </span>
-                        </td>
-                        <td className="py-3 text-slate-400 font-medium text-[11px]">
-                          {ord.time}
-                        </td>
-                        <td className="py-3 text-right">
-                          <button
-                            type="button"
-                            suppressHydrationWarning
-                            className="px-2.5 py-1 rounded-full border border-purple-200 text-[#5D45F9] text-[10px] font-black hover:bg-[#5D45F9] hover:text-white transition"
-                          >
-                            View
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
+                    {filteredOrders.map((ord) => {
+                      const isPending = ord.status === "Pending";
+
+                      return (
+                        <tr key={ord.id} className="hover:bg-slate-50/50 transition">
+                          <td className="py-3 font-black text-[#162758]">{ord.id}</td>
+                          <td className="py-3 font-extrabold text-slate-800">{ord.name}</td>
+                          <td className="py-3 text-slate-500 font-medium truncate max-w-[130px]">{ord.items}</td>
+                          <td className="py-3 font-black text-[#162758]">{ord.amount}</td>
+                          <td className="py-3">
+                            <span className={`px-2 py-0.5 rounded-full text-[9px] font-black ${ord.statusClass}`}>
+                              {ord.status}
+                            </span>
+                          </td>
+                          <td className="py-3 text-right">
+                            {isPending && ord.isStudentBooking ? (
+                              <button
+                                type="button"
+                                onClick={() => handleConfirmOrder(ord)}
+                                className="px-3 py-1 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-black shadow-xs transition active:scale-95 cursor-pointer whitespace-nowrap"
+                              >
+                                Confirm Order ✓
+                              </button>
+                            ) : (
+                              <span className="text-[10px] text-slate-400 font-semibold">{ord.time}</span>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
-
-              <div className="flex items-center justify-between pt-2 text-xs text-slate-400">
-                <span>Showing 5 of 18 orders</span>
-                <div className="flex items-center gap-1">
-                  <button
-                    type="button"
-                    suppressHydrationWarning
-                    className="w-6 h-6 rounded-full border border-slate-200 text-slate-600 flex items-center justify-center text-xs"
-                  >
-                    ‹
-                  </button>
-                  {[1, 2, 3, 4].map((n) => (
-                    <button
-                      key={n}
-                      type="button"
-                      suppressHydrationWarning
-                      className={`w-6 h-6 rounded-full text-xs font-bold flex items-center justify-center ${
-                        n === 1
-                          ? "bg-[#5D45F9] text-white"
-                          : "text-slate-600 hover:bg-slate-100"
-                      }`}
-                    >
-                      {n}
-                    </button>
-                  ))}
-                  <button
-                    type="button"
-                    suppressHydrationWarning
-                    className="w-6 h-6 rounded-full border border-slate-200 text-slate-600 flex items-center justify-center text-xs"
-                  >
-                    ›
-                  </button>
-                </div>
-              </div>
             </div>
 
+            {/* CHART */}
             <div className="space-y-4">
               <div className="bg-white rounded-[26px] p-5 border border-slate-100 shadow-sm space-y-4">
                 <div className="flex items-center justify-between pb-1">
                   <h3 className="text-sm font-black text-[#152758] flex items-center gap-1.5">
                     <Clock3 className="w-4 h-4 text-[#5D45F9]" /> Orders Overview
                   </h3>
-                  <select
-                    suppressHydrationWarning
-                    className="text-[10px] font-bold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1"
-                  >
-                    <option>This Week</option>
-                  </select>
+                  <span className="text-[10px] font-bold text-slate-400">Weekly Performance</span>
                 </div>
 
                 <div className="h-44 flex items-end justify-between gap-2 pt-4 px-1 border-b border-slate-100">
                   {chartData.map((d) => (
-                    <div
-                      key={d.day}
-                      className="flex-1 flex flex-col items-center justify-end h-full gap-1.5"
-                    >
+                    <div key={d.day} className="flex-1 flex flex-col items-center justify-end h-full gap-1.5">
                       <div className="flex items-end gap-1 h-32 w-full justify-center">
-                        <div
-                          className="w-1.5 rounded-t-sm bg-[#16B774]"
-                          style={{ height: `${(d.completed / 20) * 100}%` }}
-                        />
-                        <div
-                          className="w-1.5 rounded-t-sm bg-[#F09923]"
-                          style={{ height: `${(d.pending / 20) * 100}%` }}
-                        />
-                        <div
-                          className="w-1.5 rounded-t-sm bg-[#EE3876]"
-                          style={{ height: `${(d.cancelled / 20) * 100}%` }}
-                        />
+                        <div className="w-1.5 rounded-t-sm bg-[#16B774]" style={{ height: `${(d.completed / 20) * 100}%` }} />
+                        <div className="w-1.5 rounded-t-sm bg-[#F09923]" style={{ height: `${(d.pending / 20) * 100}%` }} />
                       </div>
-                      <span className="text-[10px] font-bold text-slate-400">
-                        {d.day}
-                      </span>
+                      <span className="text-[10px] font-bold text-slate-400">{d.day}</span>
                     </div>
                   ))}
-                </div>
-
-                <div className="flex items-center justify-center gap-4 text-[10px] font-bold text-slate-600">
-                  <span className="flex items-center gap-1">
-                    <span className="w-2 h-2 rounded-full bg-[#16B774]" />{" "}
-                    Completed
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <span className="w-2 h-2 rounded-full bg-[#F09923]" />{" "}
-                    Pending
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <span className="w-2 h-2 rounded-full bg-[#EE3876]" />{" "}
-                    Cancelled
-                  </span>
-                </div>
-              </div>
-
-              <div className="rounded-[26px] bg-gradient-to-r from-[#EEE9FE] to-[#F5EDFD] p-5 border border-purple-100 space-y-3 relative overflow-hidden">
-                <h4 className="text-sm font-black text-[#152758] leading-tight max-w-[180px]">
-                  Keep Your Laundry Business Running Smoothly!
-                </h4>
-
-                <div className="flex items-center gap-3 text-[10px] font-bold text-slate-600 pt-1">
-                  <span className="flex items-center gap-1">
-                    ⏱️ Fast Service
-                  </span>
-                  <span className="flex items-center gap-1">
-                    😊 Happy Students
-                  </span>
-                  <span className="flex items-center gap-1">
-                    📦 More Orders
-                  </span>
-                </div>
-
-                <button
-                  type="button"
-                  suppressHydrationWarning
-                  className="px-4 py-2 rounded-xl bg-[#5D45F9] hover:bg-[#4b35e0] text-white text-[11px] font-black flex items-center gap-1 shadow-sm transition"
-                >
-                  Update Services <ArrowRight className="w-3 h-3" />
-                </button>
-
-                <div className="absolute right-3 bottom-3 w-20 h-20 opacity-80 pointer-events-none">
-                  <img
-                    src="https://images.unsplash.com/photo-1545173168-9f1947eebb7f?auto=format&fit=crop&w=200&q=80"
-                    alt="Laundry"
-                    className="w-full h-full object-cover rounded-2xl"
-                  />
                 </div>
               </div>
             </div>
 
+            {/* QUICK ACTIONS & LIVE PRICING */}
             <div className="space-y-4">
               <div className="bg-white rounded-[26px] p-5 border border-slate-100 shadow-sm space-y-3">
-                <h4 className="text-xs font-black text-[#152758] flex items-center gap-1.5">
-                  <Zap className="w-3.5 h-3.5 text-[#5D45F9]" /> Quick Actions
-                </h4>
-
-                <div className="space-y-2">
-                  <button
-                    type="button"
-                    suppressHydrationWarning
-                    className="w-full flex items-center gap-3 p-2.5 rounded-2xl border border-slate-100 hover:bg-slate-50 transition text-left"
-                  >
-                    <div className="w-9 h-9 rounded-xl bg-[#FFF2DE] text-[#F09923] flex items-center justify-center shrink-0">
-                      <Clock3 className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <p className="text-xs font-black text-[#152857]">
-                        Update Timings
-                      </p>
-                      <p className="text-[10px] text-slate-400">
-                        Change your working hours
-                      </p>
-                    </div>
-                  </button>
-
-                  <button
-                    type="button"
-                    suppressHydrationWarning
-                    className="w-full flex items-center gap-3 p-2.5 rounded-2xl border border-slate-100 hover:bg-slate-50 transition text-left"
-                  >
-                    <div className="w-9 h-9 rounded-xl bg-[#FFEAF3] text-[#EE3876] flex items-center justify-center shrink-0">
-                      <ShoppingBag className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <p className="text-xs font-black text-[#152857]">
-                        Manage Orders
-                      </p>
-                      <p className="text-[10px] text-slate-400">
-                        View & update order status
-                      </p>
-                    </div>
-                  </button>
-
-                  <button
-                    type="button"
-                    suppressHydrationWarning
-                    className="w-full flex items-center gap-3 p-2.5 rounded-2xl border border-slate-100 hover:bg-slate-50 transition text-left"
-                  >
-                    <div className="w-9 h-9 rounded-xl bg-[#FDEAF7] text-[#D836A3] flex items-center justify-center shrink-0">
-                      <Heart className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <p className="text-xs font-black text-[#152857]">
-                        Add Special Offer
-                      </p>
-                      <p className="text-[10px] text-slate-400">
-                        Attract more students
-                      </p>
-                    </div>
-                  </button>
-
-                  <button
-                    type="button"
-                    suppressHydrationWarning
-                    className="w-full flex items-center gap-3 p-2.5 rounded-2xl border border-slate-100 hover:bg-slate-50 transition text-left"
-                  >
-                    <div className="w-9 h-9 rounded-xl bg-[#FFF2DE] text-[#F09923] flex items-center justify-center shrink-0">
-                      <Star className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <p className="text-xs font-black text-[#152857]">
-                        View Reviews
-                      </p>
-                      <p className="text-[10px] text-slate-400">
-                        See customer feedback
-                      </p>
-                    </div>
-                  </button>
-                </div>
-              </div>
-
-              <div className="bg-white rounded-[26px] p-5 border border-slate-100 shadow-sm space-y-3">
-                <div className="flex items-center gap-1.5 text-xs font-black text-[#5D45F9]">
-                  <Clock3 className="w-4 h-4" /> Laundry Timings
-                </div>
-
-                <div className="flex items-center justify-between pt-1">
-                  <span className="text-xs font-black text-[#152857]">
-                    8:00 AM - 10:00 PM
-                  </span>
-                  <span className="px-2 py-0.5 rounded-full bg-[#DCF9E8] text-[#11A866] text-[10px] font-black flex items-center gap-1">
-                    ✓ Open
-                  </span>
-                </div>
-
+                <h4 className="text-xs font-black text-[#152758]">⚡ Quick Actions</h4>
                 <button
                   type="button"
-                  suppressHydrationWarning
-                  className="w-full py-2.5 rounded-xl bg-[#5D45F9] text-white text-xs font-black hover:bg-[#4b35e0] transition"
+                  onClick={() => setIsPriceModalOpen(true)}
+                  className="w-full text-left p-2.5 rounded-2xl bg-purple-50 hover:bg-purple-100/70 transition border border-purple-100 cursor-pointer"
                 >
-                  Update Timings
+                  <p className="text-xs font-black text-[#5D45F9]">🏷️ Update Service Prices</p>
+                  <p className="text-[10px] text-slate-500">Normal, Ironing, Dry Clean, Premium</p>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsAvailabilityModalOpen(true)}
+                  className="w-full text-left p-2.5 rounded-2xl bg-amber-50 hover:bg-amber-100/70 transition border border-amber-100 cursor-pointer"
+                >
+                  <p className="text-xs font-black text-amber-800">📅 Operational Days</p>
+                  <p className="text-[10px] text-slate-500">Configure pickup days &amp; coverage</p>
                 </button>
               </div>
 
+              {/* LIVE PRICING CARD */}
               <div className="bg-white rounded-[26px] p-5 border border-slate-100 shadow-sm space-y-3">
-                <div className="flex items-center gap-1.5 text-xs font-black text-[#EA7F12]">
-                  <Tag className="w-4 h-4" /> Pricing
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 text-xs font-black text-[#EA7F12]">
+                    <Tag className="w-4 h-4" /> Live Pricing
+                  </div>
+                  <span className="text-[9px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md">Live</span>
                 </div>
 
-                <div>
-                  <h3 className="text-xl font-black text-[#152857]">
-                    ₹60{" "}
-                    <span className="text-xs font-normal text-slate-500">
-                      per kg
-                    </span>
-                  </h3>
-                  <p className="text-[10px] text-slate-400 font-medium">
-                    (Starting from)
-                  </p>
+                <div className="space-y-1 text-xs font-semibold text-slate-700">
+                  <p>• Normal: <strong className="text-slate-900">{servicePrices.normalWash}</strong></p>
+                  <p>• Ironing: <strong className="text-slate-900">{servicePrices.ironing}</strong></p>
+                  <p>• Dry Clean: <strong className="text-slate-900">{servicePrices.dryCleaning}</strong></p>
+                  <p>• Premium: <strong className="text-slate-900">{servicePrices.premiumWash}</strong></p>
                 </div>
 
                 <button
                   type="button"
-                  suppressHydrationWarning
-                  className="w-full py-2.5 rounded-xl bg-[#5D45F9] text-white text-xs font-black hover:bg-[#4b35e0] transition"
+                  onClick={() => setIsPriceModalOpen(true)}
+                  className="w-full py-2.5 rounded-xl bg-[#5D45F9] text-white text-xs font-black hover:bg-[#4b35e0] transition cursor-pointer"
                 >
                   Update Price
                 </button>
@@ -3687,96 +3924,249 @@ function LaundryDashboard() {
             </div>
           </div>
 
-          {/* BOTTOM SECTION */}
-          <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_280px] gap-4 items-stretch">
-            <div className="bg-white rounded-[26px] p-5 border border-slate-100 shadow-sm space-y-4">
-              <h4 className="text-xs font-black text-[#152857] flex items-center gap-1.5">
-                <Sparkles className="w-4 h-4 text-[#5D45F9]" /> Quick Stats
-              </h4>
-
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                <div className="p-3.5 rounded-2xl border border-slate-100 flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-2xl bg-[#EFE8FF] text-[#5D45F9] flex items-center justify-center font-black">
-                    ₹
-                  </div>
-                  <div>
-                    <p className="text-[10px] text-slate-400 font-bold">
-                      Total Revenue
-                    </p>
-                    <p className="text-sm font-black text-[#152857]">₹8,450</p>
-                    <p className="text-[9px] text-[#11A866] font-bold">
-                      ↑ 15% this week
-                    </p>
-                  </div>
-                </div>
-
-                <div className="p-3.5 rounded-2xl border border-slate-100 flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-2xl bg-[#DCF9E8] text-[#11A866] flex items-center justify-center">
-                    🛍️
-                  </div>
-                  <div>
-                    <p className="text-[10px] text-slate-400 font-bold">
-                      Average Order Value
-                    </p>
-                    <p className="text-sm font-black text-[#152857]">₹235</p>
-                    <p className="text-[9px] text-[#11A866] font-bold">
-                      ↑ 10% this week
-                    </p>
-                  </div>
-                </div>
-
-                <div className="p-3.5 rounded-2xl border border-slate-100 flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-2xl bg-[#FFF2DE] text-[#F09923] flex items-center justify-center">
-                    👥
-                  </div>
-                  <div>
-                    <p className="text-[10px] text-slate-400 font-bold">
-                      Active Students
-                    </p>
-                    <p className="text-sm font-black text-[#152857]">142</p>
-                    <p className="text-[9px] text-[#11A866] font-bold">
-                      ↑ 8% this week
-                    </p>
-                  </div>
-                </div>
-
-                <div className="p-3.5 rounded-2xl border border-slate-100 flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-2xl bg-[#EFE7FE] text-[#784BF6] flex items-center justify-center">
-                    ⏱️
-                  </div>
-                  <div>
-                    <p className="text-[10px] text-slate-400 font-bold">
-                      Repeat Customers
-                    </p>
-                    <p className="text-sm font-black text-[#152857]">68</p>
-                    <p className="text-[9px] text-[#11A866] font-bold">
-                      ↑ 12% this week
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="rounded-[26px] bg-gradient-to-r from-[#DCF9E8] to-[#E8FCEF] p-5 border border-emerald-100 flex items-center justify-between">
-              <div className="space-y-1 max-w-[150px]">
-                <div className="w-7 h-7 rounded-xl bg-white text-[#11A866] flex items-center justify-center">
-                  <Leaf className="w-4 h-4" />
-                </div>
-                <h4 className="text-xs font-black text-[#0B7D4B] leading-tight pt-1">
-                  Go Green <br /> Save Water
-                </h4>
-                <p className="text-[9px] text-[#478768] font-semibold leading-tight pt-1">
-                  Eco-friendly laundry for a better tomorrow
+          {/* =====================================================
+              AVAILABILITY & OPERATIONAL DAYS SECTION (RED-OUTLINED AREA)
+          ====================================================== */}
+          <div className="bg-white rounded-[28px] p-6 border border-slate-100 shadow-sm space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+              <div>
+                <h3 className="text-base font-black text-[#152758] flex items-center gap-2">
+                  <CalendarDays className="w-5 h-5 text-[#5D45F9]" />
+                  Operational Schedule &amp; Pickup Days
+                </h3>
+                <p className="text-xs text-slate-400 font-medium mt-0.5">
+                  Broadcasted live to student CottonSpa booking page
                 </p>
               </div>
 
-              <div className="text-4xl text-right select-none opacity-80">
-                🌿
+              <button
+                type="button"
+                onClick={() => setIsAvailabilityModalOpen(true)}
+                className="px-4 py-2.5 rounded-xl bg-[#5D45F9] hover:bg-[#472ecc] text-white text-xs font-black shadow-sm transition flex items-center gap-1.5 cursor-pointer self-start sm:self-auto"
+              >
+                <span>Edit Availability &amp; Days</span>
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="p-4 rounded-2xl bg-purple-50/70 border border-purple-100 space-y-1">
+                <span className="text-[10px] font-black uppercase tracking-wider text-[#5D45F9]">Operating Pickup Days</span>
+                <h4 className="text-sm font-black text-slate-900">{availability.days}</h4>
+                <div className="flex gap-1.5 pt-2">
+                  {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
+                    <span
+                      key={day}
+                      className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${
+                        availability.activeDays?.includes(day)
+                          ? "bg-[#5D45F9] text-white"
+                          : "bg-white text-slate-400 border border-slate-200"
+                      }`}
+                    >
+                      {day}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-orange-50/70 border border-orange-100 space-y-1">
+                <span className="text-[10px] font-black uppercase tracking-wider text-orange-600">Working Hours</span>
+                <h4 className="text-sm font-black text-slate-900">{availability.timings}</h4>
+                <p className="text-[11px] text-slate-500 font-medium pt-2">
+                  Morning (9-10 AM) • Afternoon (2-3 PM) • Evening (6-7 PM)
+                </p>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-emerald-50/70 border border-emerald-100 space-y-1">
+                <span className="text-[10px] font-black uppercase tracking-wider text-emerald-700">Pickup Coverage</span>
+                <h4 className="text-sm font-black text-slate-900">{availability.locationCoverage}</h4>
+                <p className="text-[11px] text-emerald-600 font-bold pt-2">
+                  ✓ Doorstep campus delivery included
+                </p>
               </div>
             </div>
           </div>
         </main>
       </div>
+
+      {/* =====================================================
+          1. MODAL: UPDATE 4 SERVICE PRICES
+      ====================================================== */}
+      {isPriceModalOpen && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
+          <div className="bg-white rounded-[32px] p-6 sm:p-7 max-w-md w-full border border-slate-100 shadow-2xl space-y-5 animate-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div className="flex items-center gap-2.5">
+                <div className="w-10 h-10 rounded-2xl bg-purple-100 text-[#5D45F9] flex items-center justify-center text-xl">
+                  🏷️
+                </div>
+                <div>
+                  <h3 className="text-base font-black text-[#152758]">Update Service Rates</h3>
+                  <p className="text-[10px] text-slate-400 font-bold">Syncs to student CottonSpa page</p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setIsPriceModalOpen(false)}
+                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSavePrices} className="space-y-3.5 text-xs font-bold text-slate-700">
+              <div>
+                <label className="text-[11px] text-slate-500 uppercase block mb-1">1. Normal Wash</label>
+                <input
+                  type="text"
+                  value={servicePrices.normalWash}
+                  onChange={(e) => setServicePrices({ ...servicePrices, normalWash: e.target.value })}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs font-bold text-slate-800"
+                />
+              </div>
+
+              <div>
+                <label className="text-[11px] text-slate-500 uppercase block mb-1">2. Ironing / Pressing</label>
+                <input
+                  type="text"
+                  value={servicePrices.ironing}
+                  onChange={(e) => setServicePrices({ ...servicePrices, ironing: e.target.value })}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs font-bold text-slate-800"
+                />
+              </div>
+
+              <div>
+                <label className="text-[11px] text-slate-500 uppercase block mb-1">3. Dry Cleaning</label>
+                <input
+                  type="text"
+                  value={servicePrices.dryCleaning}
+                  onChange={(e) => setServicePrices({ ...servicePrices, dryCleaning: e.target.value })}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs font-bold text-slate-800"
+                />
+              </div>
+
+              <div>
+                <label className="text-[11px] text-slate-500 uppercase block mb-1">4. Premium Wash</label>
+                <input
+                  type="text"
+                  value={servicePrices.premiumWash}
+                  onChange={(e) => setServicePrices({ ...servicePrices, premiumWash: e.target.value })}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs font-bold text-slate-800"
+                />
+              </div>
+
+              <div className="flex items-center gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsPriceModalOpen(false)}
+                  className="flex-1 py-3 rounded-2xl border border-slate-200 text-slate-600 hover:bg-slate-50 font-bold transition cursor-pointer"
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="submit"
+                  className="flex-1 py-3 rounded-2xl bg-[#5D45F9] hover:bg-[#472ecc] text-white font-black shadow-md transition flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <Save className="w-4 h-4" />
+                  <span>Save Rates</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* =====================================================
+          2. MODAL: UPDATE AVAILABILITY & OPERATIONAL DAYS
+      ====================================================== */}
+      {isAvailabilityModalOpen && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
+          <div className="bg-white rounded-[32px] p-6 sm:p-7 max-w-md w-full border border-slate-100 shadow-2xl space-y-5 animate-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div className="flex items-center gap-2.5">
+                <div className="w-10 h-10 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center text-xl">
+                  📅
+                </div>
+                <div>
+                  <h3 className="text-base font-black text-[#152758]">Operational Days &amp; Hours</h3>
+                  <p className="text-[10px] text-slate-400 font-bold">Broadcasted to students</p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setIsAvailabilityModalOpen(false)}
+                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveAvailability} className="space-y-3.5 text-xs font-bold text-slate-700">
+              <div>
+                <label className="text-[11px] text-slate-500 uppercase block mb-1">Operational Days Text</label>
+                <input
+                  type="text"
+                  value={availability.days}
+                  onChange={(e) => setAvailability({ ...availability, days: e.target.value })}
+                  placeholder="e.g. Monday, Wednesday, Friday"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs font-bold text-slate-800"
+                />
+              </div>
+
+              <div>
+                <label className="text-[11px] text-slate-500 uppercase block mb-1">Working Hours</label>
+                <input
+                  type="text"
+                  value={availability.timings}
+                  onChange={(e) => setAvailability({ ...availability, timings: e.target.value })}
+                  placeholder="e.g. 8:00 AM - 10:00 PM"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs font-bold text-slate-800"
+                />
+              </div>
+
+              <div>
+                <label className="text-[11px] text-slate-500 uppercase block mb-1">Pickup Coverage Locations</label>
+                <input
+                  type="text"
+                  value={availability.locationCoverage}
+                  onChange={(e) => setAvailability({ ...availability, locationCoverage: e.target.value })}
+                  placeholder="e.g. MIT-AOE Gate, Dehu Phata, Girls Hostel"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs font-bold text-slate-800"
+                />
+              </div>
+
+              <div className="flex items-center gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsAvailabilityModalOpen(false)}
+                  className="flex-1 py-3 rounded-2xl border border-slate-200 text-slate-600 hover:bg-slate-50 font-bold transition cursor-pointer"
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="submit"
+                  className="flex-1 py-3 rounded-2xl bg-[#5D45F9] hover:bg-[#472ecc] text-white font-black shadow-md transition flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <Save className="w-4 h-4" />
+                  <span>Save Schedule</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* TOAST FEEDBACK */}
+      {saveToast && (
+        <div className="fixed bottom-6 right-6 z-50 bg-[#140E36] text-white px-5 py-3 rounded-2xl shadow-xl text-xs font-bold flex items-center gap-2 border border-purple-800 animate-in fade-in slide-in-from-bottom-2">
+          <Check className="w-4 h-4 text-emerald-400" />
+          <span>{saveToast}</span>
+        </div>
+      )}
     </div>
   );
 }

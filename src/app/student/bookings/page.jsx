@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -20,6 +20,10 @@ import {
   ExternalLink,
   MessageCircle,
   X,
+  Sparkles,
+  Calendar,
+  PhoneCall,
+  Trash2,
 } from "lucide-react";
 
 export default function MyBookingsPage() {
@@ -28,6 +32,14 @@ export default function MyBookingsPage() {
   const [currentCategory, setCurrentCategory] = useState("all");
   const [dinnerSkipped, setDinnerSkipped] = useState(false);
   const [mealsRemaining, setMealsRemaining] = useState(42);
+  const [storedBookings, setStoredBookings] = useState([]);
+
+  // Dynamic Session User Profile State
+  const [userProfile, setUserProfile] = useState({
+    name: "Student",
+    studentId: "STU-2026-8942",
+    avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80",
+  });
 
   // Modal State
   const [modalOpen, setModalOpen] = useState(false);
@@ -82,15 +94,225 @@ export default function MyBookingsPage() {
   const openFullscreenQr = () => {
     setModalData({
       title: "Digital Student Campus Pass",
-      subtitle: "Riya Wagh • STU-2026-8942",
+      subtitle: `${userProfile.name} • ${userProfile.studentId}`,
       meta: "Valid at MIT AOE partner messes, cafes & laundry counters.",
-      qrUrl: "https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=STU-2026-8942-CAMPUS-PASS-ACTIVE",
+      qrUrl: `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${userProfile.studentId}-CAMPUS-PASS-ACTIVE`,
     });
     setModalOpen(true);
   };
 
-  // Card items dataset
-  const bookings = [
+  // Synchronize dynamic bookings from LocalStorage
+  const loadBookings = useCallback(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem("student_bookings") || "[]");
+      setStoredBookings(saved);
+    } catch (e) {
+      console.error(e);
+    }
+  }, []);
+
+  // Synchronize dynamic logged-in student user profile from LocalStorage
+  const loadUserProfile = useCallback(() => {
+    try {
+      const stored =
+        localStorage.getItem("current_user") ||
+        localStorage.getItem("currentUser") ||
+        localStorage.getItem("currentStudent");
+      const savedAvatar = localStorage.getItem("profile_avatar");
+
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        const resolvedName = parsed.fullName || parsed.name || "Student";
+        const resolvedId = parsed.id || "STU-2026-8942";
+        const resolvedAvatar =
+          savedAvatar ||
+          parsed.avatar ||
+          "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80";
+
+        setUserProfile({
+          name: resolvedName,
+          studentId: resolvedId,
+          avatar: resolvedAvatar,
+        });
+      } else if (savedAvatar) {
+        setUserProfile((prev) => ({ ...prev, avatar: savedAvatar }));
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadBookings();
+    loadUserProfile();
+
+    window.addEventListener("storage", loadBookings);
+    window.addEventListener("focus", loadBookings);
+    window.addEventListener("storage", loadUserProfile);
+    window.addEventListener("focus", loadUserProfile);
+
+    return () => {
+      window.removeEventListener("storage", loadBookings);
+      window.removeEventListener("focus", loadBookings);
+      window.removeEventListener("storage", loadUserProfile);
+      window.removeEventListener("focus", loadUserProfile);
+    };
+  }, [loadBookings, loadUserProfile]);
+
+  // Cancel Booking Function
+  const handleCancelBooking = (bookingId, serviceName) => {
+    try {
+      const existing = JSON.parse(localStorage.getItem("student_bookings") || "[]");
+      const updated = existing.filter((b) => b.id !== bookingId);
+      localStorage.setItem("student_bookings", JSON.stringify(updated));
+      setStoredBookings(updated);
+      window.dispatchEvent(new Event("storage"));
+      showToast(`${serviceName || "Booking"} cancelled successfully.`);
+    } catch (e) {
+      console.error(e);
+      showToast("Failed to cancel booking. Please try again.");
+    }
+  };
+
+  // Format dynamically stored bookings into card format
+  const dynamicBookingCards = storedBookings.map((b) => {
+    const isHousekeeping = b.service === "Housekeeping" || (b.id && b.id.includes("HSK"));
+
+    if (isHousekeeping) {
+      const isConfirmed = Boolean(b.vendorConfirmed || b.status === "Confirmed");
+
+      return {
+        id: b.id,
+        category: "cleaning",
+        status: isConfirmed ? "active" : "pending",
+        searchTerms: `${b.vendor} housekeeping cleaning ${b.slot} ${b.id}`.toLowerCase(),
+        icon: "🧹",
+        iconBg: "bg-purple-50 text-[#6C47FF] border-purple-100",
+        typeLabel: "Housekeeping & Cleaning",
+        orderId: b.id,
+        title: `${b.vendor} (Housekeeping Slot)`,
+        subtitle: `Scheduled: ${b.scheduledDate || b.day} • ${b.slot}`,
+        badgeText: isConfirmed ? "Confirmed Slot ✓" : "Pending Approval 🕒",
+        badgeStyle: isConfirmed
+          ? "bg-emerald-50 text-emerald-700 border-emerald-200/80 font-bold"
+          : "bg-amber-50 text-amber-700 border-amber-200/80 font-bold",
+        isDynamic: true,
+        content: (
+          <div className="space-y-4">
+            <div className="p-3.5 rounded-2xl bg-purple-50/50 border border-purple-100/70 flex flex-wrap items-center justify-between gap-3 text-xs">
+              <div className="flex items-center gap-2 text-slate-700 font-semibold">
+                <MapPin className="w-3.5 h-3.5 text-[#6C47FF]" />
+                <span>Location: {b.location || "Ganesh Colony"}</span>
+                <span className="text-slate-300">|</span>
+                <Clock className="w-3.5 h-3.5 text-[#6C47FF]" />
+                <span>Rate: {b.rate} ({b.duration})</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span
+                  className={`text-[10px] font-black px-2.5 py-0.5 rounded-full border ${
+                    isConfirmed
+                      ? "bg-emerald-100 text-emerald-800 border-emerald-200"
+                      : "bg-amber-100 text-amber-800 border-amber-200"
+                  }`}
+                >
+                  {isConfirmed ? "Approved by Shital Patil" : "Awaiting Staff Confirmation"}
+                </span>
+                <div className="text-[11px] font-black text-[#6C47FF] bg-white px-2.5 py-1 rounded-xl border border-purple-100 shadow-2xs">
+                  Pay After Service
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
+              <button
+                type="button"
+                onClick={() =>
+                  showToast(
+                    isConfirmed
+                      ? `Staff contact: ${b.vendor} has accepted your appointment.`
+                      : `Your booking request was sent to ${b.vendor}. Waiting for approval.`
+                  )
+                }
+                className="py-2.5 px-3 rounded-xl bg-[#5D42CE] hover:bg-[#4D34B5] text-white text-xs font-black shadow-sm shadow-indigo-200 transition flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                <PhoneCall className="w-3.5 h-3.5" />
+                <span>Contact Staff</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => copyCode(b.id, "Housekeeping Confirmation ID")}
+                className="py-2.5 px-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-extrabold transition flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                <Check className="w-3.5 h-3.5 text-emerald-500" />
+                <span>Copy ID</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleCancelBooking(b.id, "Housekeeping slot")}
+                className="py-2.5 px-3 rounded-xl border border-rose-200 bg-rose-50/70 hover:bg-rose-100/80 text-rose-600 text-xs font-black transition flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                <Trash2 className="w-3.5 h-3.5 text-rose-500" />
+                <span>Cancel Booking</span>
+              </button>
+            </div>
+          </div>
+        ),
+      };
+    }
+
+    const isVendorApproved = Boolean(b.vendorConfirmed || b.status === "Confirmed");
+
+    return {
+      id: b.id,
+      category: b.service === "Mess" ? "mess" : "cafe",
+      status: isVendorApproved ? "active" : "pending",
+      searchTerms: `${b.vendor} ${b.item} ${b.id}`.toLowerCase(),
+      icon: b.service === "Mess" ? "🍽️" : "☕",
+      iconBg: b.service === "Mess" ? "bg-purple-50 text-[#5D42CE]" : "bg-amber-50 text-amber-600",
+      typeLabel: b.service === "Mess" ? "Mess & Food Pass" : "Cafe Combo Order",
+      orderId: b.id,
+      title: `${b.vendor} • ${b.item}`,
+      subtitle: `Ordered: ${b.date || "Today"} • ${b.slot || "Meal Pass"}`,
+      badgeText: isVendorApproved ? `Paid: ${b.price}` : "Pending Vendor Confirmation",
+      badgeStyle: isVendorApproved
+        ? "bg-emerald-50 text-emerald-700 border-emerald-200/60 font-bold"
+        : "bg-amber-50 text-amber-700 border-amber-200/60 font-bold",
+      isDynamic: true,
+      content: (
+        <div className="space-y-3">
+          <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-between text-xs">
+            <div className="text-slate-600 font-medium">
+              Status:{" "}
+              <span className={`font-black ${isVendorApproved ? "text-emerald-600" : "text-amber-600"}`}>
+                {isVendorApproved ? "Confirmed & Ready" : "Awaiting Vendor Approval"}
+              </span>
+            </div>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => showToast(`Receipt generated for ${b.item} (${b.price})`)}
+                className="text-xs font-bold text-[#5D42CE] hover:underline flex items-center gap-1 cursor-pointer"
+              >
+                <span>Receipt</span>
+                <Download className="w-3.5 h-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={() => handleCancelBooking(b.id, b.item)}
+                className="text-xs font-bold text-rose-600 hover:underline flex items-center gap-1 cursor-pointer"
+              >
+                <span>Cancel</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      ),
+    };
+  });
+
+  const baseBookings = [
     {
       id: "annapurna",
       category: "mess",
@@ -103,7 +325,7 @@ export default function MyBookingsPage() {
       title: "Annapurna Mess (Monthly Pass)",
       subtitle: "Valid till 31 Oct 2026 • 19 days left",
       badgeText: "Veg Unlimited",
-      badgeStyle: "bg-emerald-50 text-emerald-700 border-emerald-200/60",
+      badgeStyle: "bg-emerald-50 text-emerald-700 border-emerald-200/60 font-bold",
       content: (
         <div className="space-y-4">
           <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-100 flex flex-wrap items-center justify-between gap-3 text-xs">
@@ -155,7 +377,7 @@ export default function MyBookingsPage() {
       title: "QuickWash Laundry",
       subtitle: "Picked up today at 11:30 AM • 4.5 kg (14 clothes)",
       badgeText: "Ready by 5:00 PM",
-      badgeStyle: "bg-blue-50 text-blue-700 border-blue-200/60",
+      badgeStyle: "bg-blue-50 text-blue-700 border-blue-200/60 font-bold",
       content: (
         <div className="space-y-4">
           <div className="bg-slate-50/70 p-4 rounded-2xl border border-slate-100 space-y-3">
@@ -198,78 +420,13 @@ export default function MyBookingsPage() {
         </div>
       ),
     },
-    {
-      id: "cafe",
-      category: "cafe",
-      status: "active",
-      searchTerms: "campus bean cafe coffee sandwich #42",
-      icon: "☕",
-      iconBg: "bg-amber-50 text-amber-600 border-amber-100/60",
-      typeLabel: "Cafe & Quick Bites",
-      orderId: "Order #42",
-      title: "Campus Bean Cafe",
-      subtitle: "1× Cold Coffee, 1× Paneer Grilled Sandwich",
-      badgeText: "Preparing • Ready in 8 mins",
-      badgeStyle: "bg-emerald-50 text-emerald-700 border-emerald-200/60 animate-pulse",
-      content: (
-        <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-between text-xs">
-          <div className="text-slate-500 font-medium">
-            Counter Token: <span className="font-black text-slate-900 text-sm ml-1">#TOKEN-42</span>
-          </div>
-          <button
-            type="button"
-            onClick={() => showToast("Counter bill #42 downloaded as student invoice.")}
-            className="text-xs font-bold text-[#5D42CE] hover:underline flex items-center gap-1 cursor-pointer"
-          >
-            <span>Download E-Receipt</span>
-            <Download className="w-3.5 h-3.5" />
-          </button>
-        </div>
-      ),
-    },
-    {
-      id: "pg-visit",
-      category: "hostel",
-      status: "active",
-      searchTerms: "om shanti girls pg hostel scheduled visit room inspection #vst-108",
-      icon: "🏢",
-      iconBg: "bg-emerald-50 text-emerald-600 border-emerald-100/60",
-      typeLabel: "Hostel & PG Inspection",
-      orderId: "Booking #VST-108",
-      title: "Om Shanti Girls PG (Room Visit)",
-      subtitle: "Scheduled for Tomorrow, 4:30 PM • 2-Sharing AC Room",
-      badgeText: "Scheduled Visit",
-      badgeStyle: "bg-purple-50 text-[#5D42CE] border-purple-100",
-      content: (
-        <div className="flex flex-wrap items-center justify-between gap-3 pt-1 border-t border-slate-100 text-xs">
-          <span className="text-slate-500 font-medium">
-            Host Contact: <strong>Mrs. Sharma (+91 98223 11420)</strong>
-          </span>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => showToast("Opening Google Maps location pin for Om Shanti PG...")}
-              className="text-xs font-bold text-slate-600 hover:text-slate-900 border border-slate-200 px-3 py-1.5 rounded-xl hover:bg-slate-50 cursor-pointer"
-            >
-              Directions 📍
-            </button>
-            <button
-              type="button"
-              onClick={() => showToast("Visit reschedule request forwarded to the PG warden.")}
-              className="text-xs font-bold text-[#5D42CE] bg-purple-50 px-3 py-1.5 rounded-xl hover:bg-purple-100 cursor-pointer"
-            >
-              Reschedule
-            </button>
-          </div>
-        </div>
-      ),
-    },
   ];
 
-  // Filter items
-  const filteredBookings = bookings.filter((item) => {
+  const allBookings = [...dynamicBookingCards, ...baseBookings];
+
+  const filteredBookings = allBookings.filter((item) => {
     const matchCat = currentCategory === "all" || item.category === currentCategory;
-    const matchStat = currentStatus === "all" || item.status === currentStatus;
+    const matchStat = currentStatus === "all" || item.status === currentStatus || currentStatus === "active";
     const searchLow = searchQuery.toLowerCase().trim();
     const matchSearch =
       !searchLow ||
@@ -280,8 +437,7 @@ export default function MyBookingsPage() {
 
   return (
     <div className="bg-[#F1F4FA] text-slate-800 antialiased font-sans selection:bg-purple-100 selection:text-[#5D42CE] min-h-screen">
-      
-      {/* Top Navigation & Branding Bar */}
+      {/* Top Navigation */}
       <header className="bg-white border-b border-slate-200/80 sticky top-0 z-30 shadow-xs">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 h-18 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
@@ -301,34 +457,37 @@ export default function MyBookingsPage() {
           <div className="flex items-center gap-3">
             <button
               type="button"
-              onClick={() => showToast("Campus notification: Mess dinner tokens renewed!")}
+              onClick={() => showToast("Campus notification: All services synced!")}
               className="relative p-2.5 rounded-2xl bg-slate-50 hover:bg-slate-100 text-slate-500 hover:text-slate-800 transition border border-slate-200/70 cursor-pointer"
             >
               <Bell className="w-4 h-4" />
               <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-emerald-500" />
             </button>
 
-            <div className="flex items-center gap-3 pl-2 border-l border-slate-200">
+            {/* DYNAMIC SESSION USER PROFILE HEADER */}
+            <Link
+              href="/student/profile"
+              className="flex items-center gap-3 pl-2 border-l border-slate-200 hover:opacity-85 transition"
+            >
               <div className="relative">
                 <img
-                  src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80"
-                  alt="Riya Wagh"
+                  src={userProfile.avatar}
+                  alt={userProfile.name}
                   className="w-9 h-9 rounded-full object-cover ring-2 ring-purple-100 shadow-xs"
                 />
                 <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-white" />
               </div>
               <div className="hidden sm:block text-left leading-tight">
-                <p className="text-xs font-black text-slate-900">Riya Wagh</p>
-                <p className="text-[10px] font-semibold text-slate-400">STU-2026-8942</p>
+                <p className="text-xs font-black text-slate-900">{userProfile.name}</p>
+                <p className="text-[10px] font-semibold text-slate-400">{userProfile.studentId}</p>
               </div>
-            </div>
+            </Link>
           </div>
         </div>
       </header>
 
       <main className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-        
-        {/* Sub-header Bar: Page Name, Order Search, and Back Trigger */}
+        {/* Sub-header Bar */}
         <div className="bg-white rounded-3xl p-4 sm:p-5 border border-slate-200/80 shadow-xs flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex flex-col sm:flex-row sm:items-center gap-3.5 w-full md:w-auto">
             <Link
@@ -343,7 +502,7 @@ export default function MyBookingsPage() {
                 My Bookings
               </h1>
               <p className="text-xs font-medium text-slate-400 mt-1">
-                View, track, and redeem your active campus subscriptions &amp; orders
+                View, track, and redeem your campus service bookings
               </p>
             </div>
           </div>
@@ -354,7 +513,7 @@ export default function MyBookingsPage() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search by Order ID (e.g. #LND, #42)..."
+              placeholder="Search by Order ID or Vendor..."
               className="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#5D42CE]/20 focus:border-[#5D42CE] transition"
             />
           </div>
@@ -362,75 +521,45 @@ export default function MyBookingsPage() {
 
         {/* Metric Stat Counter Cards */}
         <section className="grid grid-cols-2 lg:grid-cols-4 gap-4" aria-label="Quick metrics">
-          <div className="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm flex flex-col justify-between relative overflow-hidden group hover:border-purple-200 transition">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-black uppercase tracking-wider text-slate-400">Active Bookings</span>
-              <span className="w-8 h-8 rounded-xl bg-purple-50 text-[#5D42CE] flex items-center justify-center font-bold text-xs">
-                ⚡
-              </span>
-            </div>
+          <div className="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm flex flex-col justify-between">
+            <span className="text-[11px] font-black uppercase tracking-wider text-slate-400">Total Bookings</span>
             <div className="mt-3">
-              <span className="text-3xl font-black text-[#5D42CE] tracking-tight">3</span>
-              <p className="text-[11px] text-slate-500 font-semibold mt-0.5">Across Mess, Laundry &amp; Cafe</p>
+              <span className="text-3xl font-black text-[#5D42CE] tracking-tight">{allBookings.length}</span>
+              <p className="text-[11px] text-slate-500 font-semibold mt-0.5">Across Campus Services</p>
             </div>
-            <div className="absolute -right-2 -bottom-2 w-16 h-16 bg-purple-50/50 rounded-full pointer-events-none group-hover:scale-125 transition-transform duration-500" />
           </div>
 
-          <div className="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm flex flex-col justify-between relative overflow-hidden group hover:border-emerald-200 transition">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-black uppercase tracking-wider text-slate-400">Meals Left</span>
-              <span className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-xs">
-                🍲
-              </span>
-            </div>
+          <div className="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm flex flex-col justify-between">
+            <span className="text-[11px] font-black uppercase tracking-wider text-slate-400">Meals Left</span>
             <div className="mt-3">
-              <div className="flex items-baseline gap-2">
-                <span className="text-3xl font-black text-emerald-600 tracking-tight">{mealsRemaining}</span>
-                <span className="text-[10px] font-black text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md">Unlimited</span>
-              </div>
+              <span className="text-3xl font-black text-emerald-600 tracking-tight">{mealsRemaining}</span>
               <p className="text-[11px] text-slate-500 font-semibold mt-0.5">Valid till 31 Oct 2026</p>
             </div>
-            <div className="absolute -right-2 -bottom-2 w-16 h-16 bg-emerald-50/50 rounded-full pointer-events-none group-hover:scale-125 transition-transform duration-500" />
           </div>
 
-          <div className="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm flex flex-col justify-between relative overflow-hidden group hover:border-blue-200 transition">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-black uppercase tracking-wider text-slate-400">Laundry Quota</span>
-              <span className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xs">
-                🧺
-              </span>
-            </div>
+          <div className="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm flex flex-col justify-between">
+            <span className="text-[11px] font-black uppercase tracking-wider text-slate-400">Laundry Quota</span>
             <div className="mt-3">
               <span className="text-3xl font-black text-blue-600 tracking-tight">8 kg</span>
               <p className="text-[11px] text-slate-500 font-semibold mt-0.5">Monthly weight allowance</p>
             </div>
-            <div className="absolute -right-2 -bottom-2 w-16 h-16 bg-blue-50/50 rounded-full pointer-events-none group-hover:scale-125 transition-transform duration-500" />
           </div>
 
-          <div className="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm flex flex-col justify-between relative overflow-hidden group hover:border-amber-200 transition">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-black uppercase tracking-wider text-slate-400">Total Saved</span>
-              <span className="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold text-xs">
-                🏷️
-              </span>
-            </div>
+          <div className="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm flex flex-col justify-between">
+            <span className="text-[11px] font-black uppercase tracking-wider text-slate-400">Total Saved</span>
             <div className="mt-3">
-              <div className="flex items-baseline gap-1.5">
-                <span className="text-3xl font-black text-slate-900 tracking-tight">₹1,450</span>
-                <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded">Saved</span>
-              </div>
-              <p className="text-[11px] text-emerald-600 font-bold mt-0.5">Via Active Freshers Pass</p>
+              <span className="text-3xl font-black text-slate-900 tracking-tight">₹1,450</span>
+              <p className="text-[11px] text-emerald-600 font-bold mt-0.5">Via Freshers Pass</p>
             </div>
-            <div className="absolute -right-2 -bottom-2 w-16 h-16 bg-amber-50/50 rounded-full pointer-events-none group-hover:scale-125 transition-transform duration-500" />
           </div>
         </section>
 
-        {/* Filter Tabs and Service Chips */}
+        {/* Filter Tabs */}
         <div className="bg-white rounded-3xl p-3 sm:p-4 border border-slate-200/80 shadow-xs flex flex-col md:flex-row items-center justify-between gap-3">
           <div className="flex items-center gap-1.5 w-full md:w-auto overflow-x-auto pb-1 md:pb-0">
             {[
               { id: "all", label: "All Bookings" },
-              { id: "active", label: "Active (3)" },
+              { id: "active", label: `Active (${allBookings.length})` },
               { id: "completed", label: "Completed" },
               { id: "cancelled", label: "Cancelled & Expired" },
             ].map((tab) => (
@@ -440,7 +569,7 @@ export default function MyBookingsPage() {
                 onClick={() => setCurrentStatus(tab.id)}
                 className={`px-4 py-2 rounded-2xl text-xs font-bold transition cursor-pointer whitespace-nowrap ${
                   currentStatus === tab.id
-                    ? "bg-[#5D42CE] text-white shadow-xs shadow-indigo-100 font-extrabold"
+                    ? "bg-[#5D42CE] text-white shadow-xs font-extrabold"
                     : "text-slate-500 hover:text-slate-800 bg-slate-50"
                 }`}
               >
@@ -452,10 +581,10 @@ export default function MyBookingsPage() {
           <div className="flex items-center gap-1.5 w-full md:w-auto overflow-x-auto pb-1 md:pb-0">
             {[
               { id: "all", label: "All Services" },
+              { id: "cleaning", label: "🧹 Housekeeping" },
               { id: "mess", label: "🍽️ Mess & Food" },
               { id: "laundry", label: "🧺 Laundry" },
               { id: "cafe", label: "☕ Cafe & Quick Bites" },
-              { id: "hostel", label: "🏢 PG & Hostel Visits" },
             ].map((chip) => (
               <button
                 key={chip.id}
@@ -473,108 +602,85 @@ export default function MyBookingsPage() {
           </div>
         </div>
 
-        {/* Two Column Main Grid */}
+        {/* Two Column Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-          
-          {/* LEFT COLUMN: ACTIVE BOOKING CARDS (lg:col-span-8) */}
           <div className="lg:col-span-8 space-y-4">
-            {filteredBookings.map((card) => (
-              <article
-                key={card.id}
-                className="bg-white rounded-3xl p-6 border border-slate-200/90 shadow-sm hover:shadow-md hover:border-purple-200 transition-all space-y-4"
-              >
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <div className="flex items-start gap-3.5">
-                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 border text-xl ${card.iconBg}`}>
-                      {card.icon}
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">{card.typeLabel}</span>
-                        <span className="text-slate-300">•</span>
-                        <span className="text-[10px] font-bold text-slate-500">{card.orderId}</span>
-                      </div>
-                      <h3 className="text-base font-black text-slate-900 tracking-tight mt-0.5">{card.title}</h3>
-                      <p className="text-xs font-semibold text-slate-500 mt-0.5">{card.subtitle}</p>
-                    </div>
-                  </div>
+            {filteredBookings.map((card) => {
+              const isApproved = card.badgeText.includes("Confirmed") || card.badgeText.includes("Paid");
 
-                  <div className="flex items-center gap-2 self-start sm:self-center">
-                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-black border inline-flex items-center gap-1 ${card.badgeStyle}`}>
-                      {card.badgeText}
-                    </span>
-                    <span className="px-2.5 py-1 rounded-full bg-purple-50 text-[#5D42CE] text-[10px] font-black border border-purple-100">
-                      Active
-                    </span>
-                  </div>
-                </div>
-
-                {card.content}
-              </article>
-            ))}
-
-            {filteredBookings.length === 0 && (
-              <div className="bg-white rounded-3xl p-10 text-center border border-slate-200/80 shadow-xs space-y-3">
-                <div className="w-14 h-14 rounded-2xl bg-purple-50 text-[#5D42CE] flex items-center justify-center mx-auto text-2xl">
-                  🔍
-                </div>
-                <h4 className="text-sm font-black text-slate-900">No matching bookings found</h4>
-                <p className="text-xs text-slate-400 max-w-sm mx-auto font-medium">
-                  Try adjusting your search query or reset the service filter chips above.
-                </p>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSearchQuery("");
-                    setCurrentStatus("active");
-                    setCurrentCategory("all");
-                  }}
-                  className="px-4 py-2 bg-[#5D42CE] text-white text-xs font-bold rounded-xl cursor-pointer hover:bg-[#4D34B5]"
+              return (
+                <article
+                  key={card.id}
+                  className="bg-white rounded-3xl p-6 border border-slate-200/90 shadow-sm hover:shadow-md transition-all space-y-4"
                 >
-                  Reset Filters
-                </button>
-              </div>
-            )}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div className="flex items-start gap-3.5">
+                      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 border text-xl ${card.iconBg}`}>
+                        {card.icon}
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
+                            {card.typeLabel}
+                          </span>
+                          <span className="text-slate-300">•</span>
+                          <span className="text-[10px] font-bold text-slate-500">{card.orderId}</span>
+                        </div>
+                        <h3 className="text-base font-black text-slate-900 tracking-tight mt-0.5">{card.title}</h3>
+                        <p className="text-xs font-semibold text-slate-500 mt-0.5">{card.subtitle}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 self-start sm:self-center">
+                      <span className={`px-2.5 py-1 rounded-full text-[10px] font-black border inline-flex items-center gap-1 ${card.badgeStyle}`}>
+                        {card.badgeText}
+                      </span>
+                      <span
+                        className={`px-2.5 py-1 rounded-full text-[10px] font-black border ${
+                          isApproved
+                            ? "bg-purple-50 text-[#5D42CE] border-purple-100"
+                            : "bg-amber-50 text-amber-700 border-amber-200"
+                        }`}
+                      >
+                        {isApproved ? "Active" : "Pending"}
+                      </span>
+                    </div>
+                  </div>
+
+                  {card.content}
+                </article>
+              );
+            })}
           </div>
 
-          {/* RIGHT COLUMN: QUICK QR SCANNER & LIVE PASS (lg:col-span-4) */}
+          {/* Right Column: Digital Campus Pass & Support */}
           <aside className="lg:col-span-4 space-y-5 sticky top-24">
-            
-            {/* Live Pass Card */}
-            <div className="bg-[#140E36] rounded-[32px] p-6 text-white text-center border border-purple-950 shadow-lg relative overflow-hidden">
-              <div className="pb-3 border-b border-white/10">
-                <span className="text-[10px] font-black uppercase tracking-widest text-purple-300">Digital Student Pass</span>
-                <h3 className="text-sm font-black mt-0.5">Quick Counter Redeem</h3>
-              </div>
+            <div className="bg-[#140E36] rounded-[32px] p-6 text-white text-center border border-purple-950 shadow-lg">
+              <span className="text-[10px] font-black uppercase tracking-widest text-purple-300">
+                Digital Student Pass
+              </span>
+              <h3 className="text-sm font-black mt-0.5">Quick Counter Redeem</h3>
 
               <div
-                className="bg-white rounded-3xl p-5 inline-block mx-auto mt-5 shadow-inner cursor-pointer group"
+                className="bg-white rounded-3xl p-5 inline-block mx-auto mt-5 shadow-inner cursor-pointer"
                 onClick={openFullscreenQr}
               >
-                <div className="w-40 h-40 mx-auto bg-slate-50 flex items-center justify-center p-2 rounded-2xl border border-slate-100 relative group-hover:scale-102 transition-transform">
+                <div className="w-40 h-40 mx-auto bg-slate-50 flex items-center justify-center p-2 rounded-2xl border border-slate-100">
                   <img
-                    src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=STU-2026-8942-CAMPUS-PASS-ACTIVE"
-                    alt="Studentica Verification QR Code"
+                    src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${userProfile.studentId}-CAMPUS-PASS-ACTIVE`}
+                    alt="Studentica Pass"
                     className="w-full h-full object-contain"
                   />
                 </div>
-                <p className="text-slate-900 font-black text-xs mt-3 tracking-wider">STU-2026-8942</p>
-                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
-                  Tap to expand full-screen
-                </p>
+                <p className="text-slate-900 font-black text-xs mt-3 tracking-wider">{userProfile.studentId}</p>
               </div>
 
               <div className="mt-5 flex items-center justify-center gap-2 text-[11px] font-bold text-emerald-400">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                 <span>Active Campus Access • MIT AOE</span>
               </div>
-
-              <p className="text-[10px] text-purple-200/80 mt-1">
-                Show this scannable QR when picking up meals, laundry, or cafe snacks.
-              </p>
             </div>
 
-            {/* Need Help / Support Aside */}
             <div className="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-xs space-y-4">
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-2xl bg-purple-50 text-[#5D42CE] flex items-center justify-center text-base">
@@ -589,7 +695,7 @@ export default function MyBookingsPage() {
               <div className="space-y-2 text-xs">
                 <button
                   type="button"
-                  onClick={() => showToast("Connecting you to Annapurna Mess WhatsApp counter...")}
+                  onClick={() => showToast("Connecting you to campus coordinator...")}
                   className="w-full py-2.5 px-3 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 font-extrabold transition flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <span>Chat with Vendor</span>
@@ -597,21 +703,18 @@ export default function MyBookingsPage() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => showToast("Campus student support ticket created. We will call you within 15 mins.")}
+                  onClick={() => showToast("Campus student support ticket created.")}
                   className="w-full py-2.5 px-3 rounded-xl bg-[#5D42CE] hover:bg-[#4D34B5] text-white font-extrabold shadow-sm transition flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <span>Connect with Campus Support</span>
                 </button>
               </div>
             </div>
-
           </aside>
-
         </div>
-
       </main>
 
-      {/* MODAL: Full Screen QR / Meal QR */}
+      {/* MODAL */}
       {modalOpen && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-sm w-full border border-slate-100 shadow-2xl text-center space-y-4">
@@ -627,7 +730,7 @@ export default function MyBookingsPage() {
             </div>
 
             <div className="w-48 h-48 mx-auto bg-slate-50 p-3 rounded-2xl border border-slate-100 flex items-center justify-center">
-              <img src={modalData.qrUrl} alt="Scannable QR" className="w-full h-full object-contain" />
+              <img src={modalData.qrUrl} alt="QR" className="w-full h-full object-contain" />
             </div>
 
             <div>
@@ -655,7 +758,6 @@ export default function MyBookingsPage() {
         <span className="text-emerald-400 text-base">✓</span>
         <span>{toastText}</span>
       </div>
-
     </div>
   );
 }

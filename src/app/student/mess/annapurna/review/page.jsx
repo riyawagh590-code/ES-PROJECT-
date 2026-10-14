@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   GraduationCap,
   LayoutDashboard,
@@ -14,10 +15,13 @@ import {
   Bell,
   Camera,
   Check,
+  ArrowRight,
 } from "lucide-react";
 
 export default function AnnapurnaReviewPage() {
-  const [overallRating, setOverallRating] = useState(3);
+  const router = useRouter();
+
+  const [overallRating, setOverallRating] = useState(4);
   const [hoverRating, setHoverRating] = useState(0);
 
   const [categoryRatings, setCategoryRatings] = useState({
@@ -32,15 +36,48 @@ export default function AnnapurnaReviewPage() {
   );
   const [recommend, setRecommend] = useState(true);
   const [anonymous, setAnonymous] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+
+  const handleSubmit = (e) => {
+    if (e) e.preventDefault();
+
+    const reviewPayload = {
+      id: `REV-MES-${Date.now()}`,
+      vendor: "Annapurna Mess",
+      service: "Mess & Dining",
+      rating: overallRating,
+      categoryRatings,
+      reviewText,
+      recommend,
+      anonymous,
+      reviewer: anonymous ? "Anonymous Student" : "Riya Wagh",
+      date: new Date().toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      }),
+    };
+
+    try {
+      const existing = JSON.parse(
+        localStorage.getItem("student_reviews") || "[]"
+      );
+      localStorage.setItem(
+        "student_reviews",
+        JSON.stringify([reviewPayload, ...existing])
+      );
+    } catch (err) {
+      console.error(err);
+    }
+
+    setIsSubmitted(true);
+  };
 
   return (
     <div className="min-h-screen bg-[#F0F3F9] text-[#14244A] font-sans flex antialiased selection:bg-purple-100">
-      {/* =====================================================
-          1. LEFT SIDEBAR (STICKY)
-      ====================================================== */}
+      {/* 1. LEFT SIDEBAR */}
       <aside className="hidden lg:flex flex-col w-[220px] bg-white border-r border-slate-100 p-4 shrink-0 justify-between sticky top-0 h-screen z-30">
         <div className="space-y-6">
-          {/* Brand Logo */}
           <Link href="/student" className="flex items-center gap-3 px-2 pt-2">
             <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-[#6C47FF] to-[#8C62FF] flex items-center justify-center text-white shadow-md shadow-purple-200">
               <GraduationCap className="w-5 h-5" />
@@ -55,16 +92,52 @@ export default function AnnapurnaReviewPage() {
             </div>
           </Link>
 
-          {/* Navigation Menu */}
           <nav className="space-y-1 pt-1">
+            <Link
+              href="/student"
+              className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-bold text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition"
+            >
+              <LayoutDashboard className="w-4 h-4 shrink-0 text-slate-400" />
+              <span>Dashboard</span>
+            </Link>
 
-            {/* Active State Pill */}
-            
-           
+            <Link
+              href="/student/bookings"
+              className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-bold text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition"
+            >
+              <CalendarDays className="w-4 h-4 shrink-0 text-slate-400" />
+              <span>My Bookings</span>
+            </Link>
+
+            <Link
+              href="/student/mess/annapurna/review"
+              className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-bold bg-[#6C47FF] text-white shadow-md shadow-purple-200 transition"
+            >
+              <div className="flex items-center gap-3">
+                <MessageSquarePlus className="w-4 h-4 shrink-0 text-white" />
+                <span>Ratings &amp; Review</span>
+              </div>
+              <span className="text-xs">✍️</span>
+            </Link>
+
+            <Link
+              href="/student/profile"
+              className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-bold text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition"
+            >
+              <Settings className="w-4 h-4 shrink-0 text-slate-400" />
+              <span>Profile</span>
+            </Link>
+
+            <Link
+              href="/pass"
+              className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-bold text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition"
+            >
+              <Settings className="w-4 h-4 shrink-0 text-slate-400" />
+              <span>Freshers Pass</span>
+            </Link>
           </nav>
         </div>
 
-        {/* Bottom Decorative Stamp */}
         <div className="flex items-center justify-center pb-2">
           <div className="w-20 h-20 rounded-full border-2 border-dashed border-slate-300 flex items-center justify-center text-center rotate-[-10deg] opacity-70">
             <span className="text-[10px] font-black leading-tight text-slate-400">
@@ -74,15 +147,10 @@ export default function AnnapurnaReviewPage() {
         </div>
       </aside>
 
-      {/* =====================================================
-          2. MAIN CONTENT VIEWPORT
-      ====================================================== */}
+      {/* 2. MAIN BODY */}
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Top Navbar */}
         <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-100 px-6 sm:px-10 h-20 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-2 bg-[#F3F5FA] p-1.5 rounded-2xl border border-slate-200/50">
-            
-          </div>
+          <div className="flex items-center gap-2 bg-[#F3F5FA] p-1.5 rounded-2xl border border-slate-200/50" />
 
           <div className="flex items-center gap-4">
             <div className="hidden md:flex items-center gap-2 px-3.5 py-2 bg-[#F3F5FA] rounded-xl w-64 border border-slate-200/60">
@@ -123,9 +191,7 @@ export default function AnnapurnaReviewPage() {
           </div>
         </header>
 
-        {/* Content Body */}
         <main className="p-6 sm:p-10 space-y-5 max-w-[1240px] w-full mx-auto">
-          {/* Back Pill Link */}
           <Link
             href="/student/mess/annapurna"
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-slate-200 text-xs font-bold text-slate-700 hover:text-[#6C47FF] shadow-sm transition"
@@ -134,7 +200,6 @@ export default function AnnapurnaReviewPage() {
             <span>Back to Annapurna Mess</span>
           </Link>
 
-          {/* Heading Section */}
           <div className="space-y-1.5 pt-1">
             <span className="inline-block px-3.5 py-1 rounded-full bg-[#6C47FF] text-white text-xs font-extrabold shadow-sm">
               Share Your Experience
@@ -160,20 +225,18 @@ export default function AnnapurnaReviewPage() {
             </p>
           </div>
 
-          {/* TWO COLUMN WORKSPACE */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-7 items-start pt-2">
-            {/* =====================================================
-                LEFT UNIFIED FORM CARD (7.5 Cols)
-            ====================================================== */}
-            <div className="lg:col-span-8 bg-white rounded-[32px] p-7 sm:p-9 border border-slate-200/80 shadow-[0_10px_35px_rgba(20,36,74,0.03)] space-y-7">
-              {/* Top Star Rating Question */}
+            {/* LEFT MAIN FORM */}
+            <form
+              onSubmit={handleSubmit}
+              className="lg:col-span-8 bg-white rounded-[32px] p-7 sm:p-9 border border-slate-200/80 shadow-[0_10px_35px_rgba(20,36,74,0.03)] space-y-7"
+            >
               <div className="text-center space-y-2">
                 <h2 className="text-lg sm:text-xl font-black text-[#14244A]">
                   How would you rate the taste &amp; quality?
                 </h2>
                 <p className="text-xs font-bold text-slate-400">Currently</p>
 
-                {/* 5 Big Gold Stars with Cursor Icon */}
                 <div className="relative inline-flex items-center justify-center gap-3 py-1">
                   {[1, 2, 3, 4, 5].map((star) => {
                     const isFilled = (hoverRating || overallRating) >= star;
@@ -198,21 +261,16 @@ export default function AnnapurnaReviewPage() {
                       </button>
                     );
                   })}
-
-                  {/* Visual Hand Cursor Illustration over 3rd Star */}
-                  <div className="absolute left-[54%] top-[60%] pointer-events-none -translate-x-1/2">
-                    <span className="text-2xl drop-shadow">👆</span>
-                  </div>
                 </div>
 
                 <div className="text-sm font-black text-[#10B981] flex items-center justify-center gap-1.5 pt-1">
                   <span>✨</span>
-                  <span>Very Good!</span>
+                  <span>{overallRating >= 4 ? "Very Good!" : "Average"}</span>
                   <span>✨</span>
                 </div>
               </div>
 
-              {/* Sub-Categories */}
+              {/* Specific Categories */}
               <div className="pt-4 border-t border-slate-100 space-y-3.5">
                 <h3 className="text-sm sm:text-base font-black text-[#14244A]">
                   Rate Specific Categories
@@ -269,7 +327,7 @@ export default function AnnapurnaReviewPage() {
                 </div>
               </div>
 
-              {/* Write Review Textarea */}
+              {/* Written Review */}
               <div className="space-y-2">
                 <label className="text-xs sm:text-sm font-black text-[#14244A] block">
                   Write your review
@@ -287,7 +345,7 @@ export default function AnnapurnaReviewPage() {
                 </div>
               </div>
 
-              {/* Toggles */}
+              {/* Checkboxes */}
               <div className="flex flex-wrap items-center gap-6">
                 <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-700 select-none">
                   <input
@@ -334,8 +392,8 @@ export default function AnnapurnaReviewPage() {
 
                   <div className="relative w-36 h-20 rounded-xl overflow-hidden shadow-md border-2 border-white shrink-0">
                     <img
-                      src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=400&auto=format&fit=crop&q=80"
-                      alt="Uploaded food or peers"
+                      src="https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=400&auto=format&fit=crop&q=80"
+                      alt="Uploaded food dish"
                       className="w-full h-full object-cover"
                     />
                   </div>
@@ -353,35 +411,24 @@ export default function AnnapurnaReviewPage() {
 
                 <div className="relative w-2/3">
                   <button
-                    type="button"
-                    onClick={() => {
-                      alert("Your review has been successfully submitted!");
-                    }}
-                    className="w-full py-3.5 rounded-2xl bg-[#6C47FF] hover:bg-[#5835E5] text-white font-black text-xs shadow-lg shadow-purple-200 transition active:scale-[0.99]"
+                    type="submit"
+                    className="w-full py-3.5 rounded-2xl bg-[#6C47FF] hover:bg-[#5835E5] text-white font-black text-xs shadow-lg shadow-purple-200 transition active:scale-[0.99] flex items-center justify-center gap-2"
                   >
-                    Submit My Review
+                    <span>Submit My Review</span>
+                    <ArrowRight className="w-4 h-4" />
                   </button>
-
-                  {/* Hand Cursor Illustration over Submit Button */}
-                  <div className="absolute right-8 -bottom-3 pointer-events-none">
-                    <span className="text-2xl drop-shadow">👆</span>
-                  </div>
                 </div>
               </div>
-            </div>
+            </form>
 
-            {/* =====================================================
-                RIGHT CARD: YOUR VOICE MATTERS (4.5 Cols)
-            ====================================================== */}
+            {/* RIGHT SIDEBAR */}
             <div className="lg:col-span-4 bg-white rounded-[32px] p-6 border border-slate-200/80 shadow-[0_10px_35px_rgba(20,36,74,0.03)] space-y-5">
-              {/* Top Purple-Pink Gradient Header Box */}
               <div className="rounded-2xl bg-gradient-to-r from-[#6C47FF] via-[#8553F6] to-[#A855F7] p-4 text-white shadow-sm">
                 <h3 className="text-base font-black flex items-center gap-1.5 tracking-tight">
                   Your Voice Matters ッ
                 </h3>
               </div>
 
-              {/* Student Crowd Picture */}
               <div className="rounded-2xl overflow-hidden h-40 shadow-sm">
                 <img
                   src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=600&auto=format&fit=crop&q=80"
@@ -390,7 +437,6 @@ export default function AnnapurnaReviewPage() {
                 />
               </div>
 
-              {/* Tag Pills */}
               <div className="space-y-2 pt-1">
                 <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#E5F9ED] text-[#0FAF53] text-xs font-bold">
                   🌱 Verified Reviews
@@ -407,7 +453,6 @@ export default function AnnapurnaReviewPage() {
                 </div>
               </div>
 
-              {/* Quick Checklist */}
               <div className="pt-2 border-t border-slate-100 space-y-2">
                 <h4 className="text-xs font-black text-[#14244A]">Quick Checklist</h4>
                 <ol className="text-xs font-bold text-slate-500 space-y-1.5 pl-1 list-decimal list-inside leading-relaxed">
@@ -417,7 +462,6 @@ export default function AnnapurnaReviewPage() {
                 </ol>
               </div>
 
-              {/* Recent Peer Words Card */}
               <div className="p-4 rounded-2xl bg-[#F6F3FF] border border-purple-100 space-y-2">
                 <h5 className="text-[11px] font-black text-[#14244A]">
                   Recent Peer Words
@@ -441,6 +485,43 @@ export default function AnnapurnaReviewPage() {
           </div>
         </main>
       </div>
+
+      {/* SUCCESS MODAL */}
+      {isSubmitted && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-[32px] p-8 max-w-md w-full shadow-2xl border border-slate-100 space-y-6 text-center animate-in fade-in zoom-in-95 duration-200">
+            <div className="w-16 h-16 rounded-3xl bg-emerald-100 text-emerald-600 mx-auto flex items-center justify-center text-3xl shadow-sm">
+              ✨
+            </div>
+
+            <div className="space-y-2">
+              <h3 className="text-xl font-black text-[#14244A]">
+                Review Submitted!
+              </h3>
+              <p className="text-xs font-semibold text-slate-500 leading-relaxed">
+                Thank you for reviewing <span className="font-bold text-slate-900">Annapurna Mess</span>. Your rating is now reflected on the mess profile.
+              </p>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-purple-50 text-left text-xs font-bold text-[#6C47FF] space-y-1">
+              <p>✦ Rating: {overallRating}/5 Stars</p>
+              <p className="text-slate-500 font-semibold text-[11px]">
+                Posted {anonymous ? "anonymously" : "as verified student"}.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => router.push("/student/mess/annapurna")}
+                className="flex-1 py-3 rounded-2xl bg-[#6C47FF] hover:bg-[#5835E5] text-white text-xs font-black shadow-md shadow-purple-200 transition"
+              >
+                Back to Annapurna Mess
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

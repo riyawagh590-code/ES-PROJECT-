@@ -13,7 +13,6 @@ import {
   ArrowLeft,
   Search,
   Bell,
-  CheckCircle2,
   Camera,
   ShieldCheck,
   Award,
@@ -60,7 +59,7 @@ export default function ShitalPatilReviewPage() {
 
     const reviewPayload = {
       id: `REV-HSK-${Date.now()}`,
-      vendor: "Shital Patil Housekeeping Service",
+      vendor: "Shital Patil",
       service: "Housekeeping",
       rating: mainRating,
       categoryRatings,
@@ -92,9 +91,7 @@ export default function ShitalPatilReviewPage() {
 
   return (
     <div className="min-h-screen bg-[#F4F6FC] text-[#14244A] font-sans flex antialiased">
-      {/* =====================================================
-          1. LEFT SIDEBAR
-      ====================================================== */}
+      {/* 1. LEFT SIDEBAR */}
       <aside className="hidden lg:flex flex-col w-[230px] bg-white border-r border-slate-100 p-4 shrink-0 justify-between sticky top-0 h-screen z-30">
         <div className="space-y-6">
           {/* Logo */}
@@ -114,10 +111,50 @@ export default function ShitalPatilReviewPage() {
 
           {/* Navigation Items */}
           <nav className="space-y-1 pt-2">
-            
+            <Link
+              href="/student"
+              className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-bold text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition"
+            >
+              <div className="flex items-center gap-3">
+                <LayoutDashboard className="w-4 h-4 shrink-0 text-slate-400" />
+                <span>Dashboard</span>
+              </div>
+            </Link>
 
-            {/* Active Highlight on Add Review */}
-            
+            <Link
+              href="/bookings"
+              className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-bold text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition"
+            >
+              <CalendarDays className="w-4 h-4 shrink-0 text-slate-400" />
+              <span>My Bookings</span>
+            </Link>
+
+            <Link
+              href="/student/cleaning/shital-patil/review"
+              className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-bold bg-[#6C47FF] text-white shadow-md shadow-purple-200 transition"
+            >
+              <div className="flex items-center gap-3">
+                <MessageSquarePlus className="w-4 h-4 shrink-0 text-white" />
+                <span>Ratings &amp; Review</span>
+              </div>
+              <span className="text-sm">✍️</span>
+            </Link>
+
+            <Link
+              href="/student/profile"
+              className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-bold text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition"
+            >
+              <Settings className="w-4 h-4 shrink-0 text-slate-400" />
+              <span>Profile</span>
+            </Link>
+
+            <Link
+              href="/pass"
+              className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-bold text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition"
+            >
+              <Settings className="w-4 h-4 shrink-0 text-slate-400" />
+              <span>Freshers Pass</span>
+            </Link>
           </nav>
         </div>
 
@@ -131,15 +168,11 @@ export default function ShitalPatilReviewPage() {
         </div>
       </aside>
 
-      {/* =====================================================
-          2. MAIN CONTENT VIEWPORT
-      ====================================================== */}
+      {/* 2. MAIN CONTENT VIEWPORT */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top Navbar */}
         <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-100 px-6 sm:px-10 h-20 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-2 bg-[#F4F5F9] p-1.5 rounded-2xl border border-slate-200/50">
-            
-          </div>
+          <div className="flex items-center gap-2 bg-[#F4F5F9] p-1.5 rounded-2xl border border-slate-200/50" />
 
           <div className="flex items-center gap-4">
             <div className="hidden md:flex items-center gap-2 px-3.5 py-2 bg-[#F3F5FA] rounded-xl w-64 border border-slate-200/60">
@@ -186,16 +219,9 @@ export default function ShitalPatilReviewPage() {
 
         {/* Content Body */}
         <main className="p-6 sm:p-8 space-y-6 max-w-[1250px] w-full mx-auto">
-          {/* Back Pill Button with Fallback */}
+          {/* Back Pill Button */}
           <Link
             href="/student/cleaning/shital-patil"
-            onClick={(e) => {
-              // Graceful fallback if opened via nested routes
-              if (window.history.length > 1) {
-                e.preventDefault();
-                router.push("/student/cleaning/shital-patil");
-              }
-            }}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-slate-200 text-xs font-bold text-slate-700 hover:text-[#6C47FF] shadow-sm transition"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
@@ -227,23 +253,20 @@ export default function ShitalPatilReviewPage() {
             </p>
           </div>
 
-          {/* ===================================================
-              TWO COLUMN LAYOUT: REVIEW FORM & SIDEBAR CARD
-          ==================================================== */}
+          {/* TWO COLUMN LAYOUT */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-            {/* LEFT MAIN CARD: 8 COLS */}
+            {/* LEFT MAIN CARD */}
             <form
               onSubmit={handleSubmit}
               className="lg:col-span-8 bg-white rounded-[32px] p-6 sm:p-8 border border-slate-100 shadow-sm space-y-8"
             >
-              {/* Core Star Rating Component */}
+              {/* Star Rating */}
               <div className="text-center space-y-3 py-2">
                 <h2 className="text-lg sm:text-xl font-black text-[#14244A]">
                   How would you rate the cleaning &amp; professionalism?
                 </h2>
                 <p className="text-[11px] font-bold text-slate-400">Currently</p>
 
-                {/* Big Interactive Stars */}
                 <div className="flex items-center justify-center gap-2 text-4xl sm:text-5xl">
                   {[1, 2, 3, 4, 5].map((star) => (
                     <button
@@ -275,7 +298,7 @@ export default function ShitalPatilReviewPage() {
                 </div>
               </div>
 
-              {/* Specific Categories */}
+              {/* Categories */}
               <div className="space-y-4 pt-2">
                 <h3 className="text-sm font-black text-[#14244A]">
                   Rate Specific Categories
@@ -283,26 +306,10 @@ export default function ShitalPatilReviewPage() {
 
                 <div className="space-y-3">
                   {[
-                    {
-                      key: "thoroughness",
-                      label: "Cleaning Thoroughness",
-                      icon: "🧹",
-                    },
-                    {
-                      key: "punctuality",
-                      label: "Punctuality & Timing",
-                      icon: "⏰",
-                    },
-                    {
-                      key: "professionalism",
-                      label: "Professionalism",
-                      icon: "🤝",
-                    },
-                    {
-                      key: "value",
-                      label: "Value for Money",
-                      icon: "💰",
-                    },
+                    { key: "thoroughness", label: "Cleaning Thoroughness", icon: "🧹" },
+                    { key: "punctuality", label: "Punctuality & Timing", icon: "⏰" },
+                    { key: "professionalism", label: "Professionalism", icon: "🤝" },
+                    { key: "value", label: "Value for Money", icon: "💰" },
                   ].map((cat) => (
                     <div
                       key={cat.key}
@@ -405,7 +412,6 @@ export default function ShitalPatilReviewPage() {
                     <span>+ Add Photos of Cleaning/Room</span>
                   </button>
 
-                  {/* Thumbnail Previews */}
                   <div className="flex items-center gap-2">
                     <img
                       src="https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=200&auto=format&fit=crop&q=80"
@@ -421,7 +427,7 @@ export default function ShitalPatilReviewPage() {
                 </div>
               </div>
 
-              {/* Form Action Buttons */}
+              {/* Action Buttons */}
               <div className="flex items-center justify-between pt-4 border-t border-slate-100 gap-4">
                 <button
                   type="button"
@@ -441,7 +447,6 @@ export default function ShitalPatilReviewPage() {
                     <span>Submit My Review</span>
                     <ArrowRight className="w-4 h-4" />
                   </button>
-
                   <div className="absolute right-2 -bottom-4 pointer-events-none">
                     <span className="text-2xl drop-shadow">👆</span>
                   </div>
@@ -449,9 +454,8 @@ export default function ShitalPatilReviewPage() {
               </div>
             </form>
 
-            {/* RIGHT SIDEBAR PANEL: 4 COLS */}
+            {/* RIGHT SIDEBAR */}
             <div className="lg:col-span-4 space-y-5">
-              {/* Your Voice Matters Hero Card */}
               <div className="bg-white rounded-[32px] p-6 border border-slate-100 shadow-sm space-y-4 overflow-hidden">
                 <div className="p-3.5 rounded-2xl bg-gradient-to-r from-[#6C47FF] to-[#8C62FF] text-white text-center font-black text-sm shadow-sm">
                   Your Voice Matters ッ
@@ -491,7 +495,6 @@ export default function ShitalPatilReviewPage() {
                   </ul>
                 </div>
 
-                {/* Recent Peer Words */}
                 <div className="p-4 rounded-2xl bg-[#F6F4FE] border border-purple-100 space-y-2">
                   <h5 className="text-[11px] font-black text-[#14244A]">
                     Recent Peer Words
@@ -516,9 +519,7 @@ export default function ShitalPatilReviewPage() {
         </main>
       </div>
 
-      {/* =====================================================
-          3. SUCCESS POPUP MODAL
-      ====================================================== */}
+      {/* 3. SUCCESS MODAL */}
       {isSubmitted && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
           <div className="bg-white rounded-[32px] p-8 max-w-md w-full shadow-2xl border border-slate-100 space-y-6 text-center animate-in fade-in zoom-in-95 duration-200">

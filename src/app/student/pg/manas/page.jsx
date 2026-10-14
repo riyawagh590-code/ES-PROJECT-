@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -28,6 +28,67 @@ export default function ManasHostelDetailsPage() {
   const router = useRouter();
   const [contactNumber, setContactNumber] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [reviewsList, setReviewsList] = useState([]);
+
+  const defaultReviews = [
+    {
+      id: "rev-pg-1",
+      reviewer: "Ananya Deshpande",
+      avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&auto=format&fit=crop&q=80",
+      reviewText: "Very clean rooms, high-speed Wi-Fi, and the warden is super supportive!",
+      rating: 5,
+      date: "Oct 12, 2026",
+      tag: "Verified Resident ★",
+    },
+    {
+      id: "rev-pg-2",
+      reviewer: "Pooja Kulkarni",
+      avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80",
+      reviewText: "Just 350 meters from college gate. Best girls hostel in Ganesh Colony.",
+      rating: 4.8,
+      date: "Oct 8, 2026",
+      tag: "Verified Resident ★",
+    },
+    {
+      id: "rev-pg-3",
+      reviewer: "Sakshi Patil",
+      avatar: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=100&auto=format&fit=crop&q=80",
+      reviewText: "Washing machine facility and RO water are available 24/7 without issues.",
+      rating: 4.5,
+      date: "Oct 2, 2026",
+      tag: "Verified Resident ★",
+    },
+  ];
+
+  // Dynamic review loading from LocalStorage
+  useEffect(() => {
+    try {
+      const stored = JSON.parse(localStorage.getItem("student_reviews") || "[]");
+      const hostelReviews = stored
+        .filter(
+          (r) =>
+            !r.vendor ||
+            r.vendor.toLowerCase().includes("manas") ||
+            r.service === "Hostel / PG"
+        )
+        .map((r) => ({
+          id: r.id,
+          reviewer: r.reviewer || (r.anonymous ? "Anonymous Student" : "Riya Wagh"),
+          avatar: r.anonymous
+            ? "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=80"
+            : "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80",
+          reviewText: r.reviewText,
+          rating: r.rating || 5,
+          date: r.date || "Just now",
+          tag: "Verified Resident ★",
+        }));
+
+      setReviewsList([...hostelReviews, ...defaultReviews]);
+    } catch (e) {
+      console.error(e);
+      setReviewsList(defaultReviews);
+    }
+  }, []);
 
   const handleSendInquiry = (e) => {
     e.preventDefault();
@@ -63,12 +124,9 @@ export default function ManasHostelDetailsPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#FFF5F7] via-[#F6F0FF] to-[#E8F5FF] text-[#14244A] font-sans flex antialiased selection:bg-purple-200">
-      {/* =====================================================
-          1. LEFT SIDEBAR
-      ====================================================== */}
+      {/* 1. LEFT SIDEBAR */}
       <aside className="hidden lg:flex flex-col w-[230px] bg-white/80 backdrop-blur-md border-r border-purple-100/60 p-4 shrink-0 justify-between sticky top-0 h-screen z-30">
         <div className="space-y-6">
-          {/* Logo */}
           <Link href="/student" className="flex items-center gap-3 px-2 pt-2">
             <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-[#6C47FF] to-[#8C62FF] flex items-center justify-center text-white shadow-md shadow-purple-200">
               <GraduationCap className="w-5 h-5" />
@@ -83,17 +141,15 @@ export default function ManasHostelDetailsPage() {
             </div>
           </Link>
 
-          {/* Navigation Items */}
           <nav className="space-y-1 pt-2">
             <Link
               href="/student"
-              className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-bold bg-[#6C47FF] text-white shadow-md shadow-purple-200 transition"
+              className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-bold text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition"
             >
               <div className="flex items-center gap-3">
-                <LayoutDashboard className="w-4 h-4 shrink-0 text-white" />
+                <LayoutDashboard className="w-4 h-4 shrink-0 text-slate-400" />
                 <span>Dashboard</span>
               </div>
-              <span className="text-sm">👆</span>
             </Link>
 
             <Link
@@ -106,30 +162,32 @@ export default function ManasHostelDetailsPage() {
 
             <Link
               href="/student/pg/manas/review"
-              className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-bold text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition"
-              >
-            <MessageSquarePlus className="w-4 h-4 shrink-0 text-slate-400" />
-             <span>Ratings & Reviews</span>
-              </Link>
+              className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-bold bg-[#6C47FF] text-white shadow-md shadow-purple-200 transition"
+            >
+              <div className="flex items-center gap-3">
+                <MessageSquarePlus className="w-4 h-4 shrink-0 text-white" />
+                <span>Ratings &amp; Reviews</span>
+              </div>
+              <span className="text-xs">✍️</span>
+            </Link>
 
             <Link
               href="/student/profile"
               className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-bold text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition"
             >
               <Settings className="w-4 h-4 shrink-0 text-slate-400" />
-              <span>profile</span>
+              <span>Profile</span>
             </Link>
             <Link
               href="/pass"
               className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-bold text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition"
             >
               <Settings className="w-4 h-4 shrink-0 text-slate-400" />
-              <span>freshers pass</span>
+              <span>Freshers Pass</span>
             </Link>
           </nav>
         </div>
 
-        {/* Bottom Badge Stamp */}
         <div className="flex items-center justify-center pb-2">
           <div className="w-20 h-20 rounded-full border-2 border-dashed border-purple-300 flex items-center justify-center text-center rotate-[-10deg] opacity-80">
             <span className="text-[10px] font-black leading-tight text-purple-400">
@@ -139,15 +197,10 @@ export default function ManasHostelDetailsPage() {
         </div>
       </aside>
 
-      {/* =====================================================
-          2. MAIN CONTENT VIEWPORT
-      ====================================================== */}
+      {/* 2. MAIN CONTENT VIEWPORT */}
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Top Navbar */}
         <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-purple-100/60 px-6 sm:px-10 h-20 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-2 bg-[#F4F5F9] p-1.5 rounded-2xl border border-slate-200/50">
-            
-          </div>
+          <div className="flex items-center gap-2 bg-[#F4F5F9] p-1.5 rounded-2xl border border-slate-200/50" />
 
           <div className="flex items-center gap-4">
             <div className="hidden md:flex items-center gap-2 px-3.5 py-2 bg-white/90 rounded-xl w-64 border border-purple-100/80 shadow-sm">
@@ -186,7 +239,6 @@ export default function ManasHostelDetailsPage() {
           </div>
         </header>
 
-        {/* Content Body */}
         <main className="p-6 sm:p-8 space-y-6 max-w-[1350px] w-full mx-auto">
           {/* Back Pill Button */}
           <Link
@@ -197,11 +249,8 @@ export default function ManasHostelDetailsPage() {
             <span>Back to Hostels</span>
           </Link>
 
-          {/* ===================================================
-              HERO CARD SECTION
-          ==================================================== */}
+          {/* HERO CARD SECTION */}
           <div className="relative rounded-[32px] bg-gradient-to-br from-white/90 via-[#FDF8FF]/95 to-[#F1F6FF]/90 p-6 sm:p-8 border border-purple-100 shadow-[0_15px_40px_rgba(108,71,255,0.06)] space-y-6">
-            {/* Header Titles & Badges */}
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex flex-wrap items-center gap-3">
                 <h1 className="text-2xl sm:text-3xl font-black text-[#14244A] tracking-tight">
@@ -214,7 +263,11 @@ export default function ManasHostelDetailsPage() {
                 </span>
 
                 <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#FFF5DC] text-[#D98200] text-xs font-black border border-amber-100">
-                  4.8 ★ <span className="text-slate-500 font-medium">(120 reviews)</span>
+                  4.8 ★ <span className="text-slate-500 font-medium">({reviewsList.length * 40 + 20} reviews)</span>
+                </span>
+
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-50 text-[#6C47FF] text-xs font-black border border-purple-200">
+                  ID: M-102 • Girls Only
                 </span>
               </div>
             </div>
@@ -224,13 +277,11 @@ export default function ManasHostelDetailsPage() {
               <span>Distance from College: 350 m</span>
             </div>
 
-            {/* Gallery + Hostel ID Card */}
+            {/* Gallery + Send Inquiry Box in Top Bar */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
-              {/* Photo 1: Primary Hostel Room with Washi Tape */}
               <div className="lg:col-span-5 h-[280px] rounded-3xl overflow-hidden shadow-sm relative group bg-white border border-purple-100/60 p-2">
                 <div className="absolute top-1 left-2 w-14 h-6 bg-gradient-to-r from-pink-400 to-purple-400 opacity-80 -rotate-12 rounded-sm shadow-sm z-10" />
                 <div className="absolute bottom-2 right-2 w-16 h-6 bg-gradient-to-r from-blue-400 to-indigo-400 opacity-80 rotate-12 rounded-sm shadow-sm z-10" />
-
                 <img
                   src="https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=800&auto=format&fit=crop&q=80"
                   alt="Manas Hostel Room Interior"
@@ -238,7 +289,6 @@ export default function ManasHostelDetailsPage() {
                 />
               </div>
 
-              {/* Photo 2 & 3: Building Exterior & Lounge */}
               <div className="lg:col-span-4 flex flex-col gap-3.5 h-[280px]">
                 <div className="flex-1 rounded-2xl overflow-hidden shadow-sm border border-purple-50">
                   <img
@@ -259,30 +309,46 @@ export default function ManasHostelDetailsPage() {
                 </div>
               </div>
 
-              {/* Hostel ID / Gender Card */}
-              <div className="lg:col-span-3 rounded-3xl p-6 bg-gradient-to-br from-[#FF9E44] via-[#F87171] to-[#8B5CF6] text-white shadow-lg shadow-orange-100 flex flex-col justify-center items-start text-left relative overflow-hidden">
-                <span className="text-xs font-bold uppercase tracking-wider text-white/90">
-                  Hostel ID:
-                </span>
-                <h3 className="text-3xl font-black text-white tracking-tight mt-0.5">
-                  M-102
-                </h3>
-
-                <div className="mt-5 pt-3 border-t border-white/20 w-full">
-                  <p className="text-xs font-bold text-white/90">Gender:</p>
-                  <p className="text-xl font-black text-white mt-0.5 leading-snug">
-                  Girls Only
+              {/* REPLACED ORANGE BOX WITH SEND INQUIRY */}
+              <div className="lg:col-span-3 rounded-3xl p-5 bg-white border-2 border-purple-400 shadow-xl shadow-purple-100/50 flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between pb-1">
+                    <div className="flex items-center gap-1.5 text-purple-600 font-black text-sm">
+                      <MessageCircle className="w-4 h-4" />
+                      <span>Send Inquiry</span>
+                    </div>
+                    <span className="text-[10px] font-bold text-slate-400 bg-purple-50 px-2 py-0.5 rounded-md">
+                      M-102
+                    </span>
+                  </div>
+                  <p className="text-[11px] font-semibold text-slate-500 leading-snug pt-1">
+                    Enter phone number to receive a direct call back from the owner.
                   </p>
                 </div>
+
+                <form onSubmit={handleSendInquiry} className="space-y-2.5 pt-2">
+                  <input
+                    type="tel"
+                    placeholder="Your Contact No."
+                    value={contactNumber}
+                    onChange={(e) => setContactNumber(e.target.value)}
+                    className="w-full text-xs font-bold text-slate-800 bg-[#F8FAFD] border border-slate-200 rounded-xl p-2.5 focus:outline-none focus:border-[#6C47FF] focus:ring-2 focus:ring-purple-100 transition"
+                  />
+
+                  <button
+                    type="submit"
+                    className="w-full py-3 rounded-xl bg-gradient-to-r from-[#6C47FF] to-[#8B5CF6] hover:from-[#5835E5] hover:to-[#7C3AED] text-white font-black text-xs shadow-md shadow-purple-200 transition active:scale-[0.99] flex items-center justify-center gap-1.5"
+                  >
+                    <span>Send Inquiry</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                </form>
               </div>
             </div>
           </div>
 
-          {/* ===================================================
-              BASIC INFO & SHARING TYPE
-          ==================================================== */}
+          {/* BASIC INFO & SHARING TYPE */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
-            {/* Basic Information (8 Cols) */}
             <div className="lg:col-span-8 bg-white/90 backdrop-blur-sm rounded-[32px] p-7 border border-purple-100/80 shadow-sm space-y-4">
               <h3 className="text-lg font-black text-[#14244A]">
                 Basic Information
@@ -315,7 +381,6 @@ export default function ManasHostelDetailsPage() {
               </div>
             </div>
 
-            {/* Sharing Type (4 Cols) */}
             <div className="lg:col-span-4 bg-white/90 backdrop-blur-sm rounded-[32px] p-7 border border-purple-100/80 shadow-sm space-y-4">
               <h3 className="text-lg font-black text-[#14244A]">
                 Sharing Type
@@ -338,11 +403,8 @@ export default function ManasHostelDetailsPage() {
             </div>
           </div>
 
-          {/* ===================================================
-              AMENITIES & AVAILABLE BEDS
-          ==================================================== */}
+          {/* AMENITIES & AVAILABLE BEDS */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
-            {/* Amenities (6 Cols) */}
             <div className="lg:col-span-6 bg-white/90 backdrop-blur-sm rounded-[32px] p-7 border border-purple-100/80 shadow-sm space-y-4">
               <h3 className="text-lg font-black text-[#14244A]">
                 Amenities
@@ -377,7 +439,6 @@ export default function ManasHostelDetailsPage() {
               </div>
             </div>
 
-            {/* Available Beds (6 Cols) */}
             <div className="lg:col-span-6 bg-white/90 backdrop-blur-sm rounded-[32px] p-7 border border-purple-100/80 shadow-sm space-y-5 flex flex-col justify-between">
               <h3 className="text-lg font-black text-[#14244A]">
                 Available Beds
@@ -411,9 +472,7 @@ export default function ManasHostelDetailsPage() {
             </div>
           </div>
 
-          {/* ===================================================
-              RENT DETAILS & SEND INQUIRY DRAWER
-          ==================================================== */}
+          {/* RENT DETAILS & REVIEWS (PREVIOUSLY SEND INQUIRY PLACE) */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
             {/* Rent Details (6 Cols) */}
             <div className="lg:col-span-6 bg-white/90 backdrop-blur-sm rounded-[32px] p-7 border border-purple-100/80 shadow-sm space-y-4">
@@ -437,50 +496,63 @@ export default function ManasHostelDetailsPage() {
               </div>
             </div>
 
-            {/* Send Inquiry Drawer (6 Cols) */}
-            <div className="lg:col-span-6 bg-white rounded-[32px] p-7 border-2 border-purple-400 shadow-xl shadow-purple-100/50 space-y-4">
-              <div className="flex items-center gap-2">
-                <MessageCircle className="w-5 h-5 text-purple-600" />
-                <h3 className="text-lg font-black text-[#14244A]">
-                  Send Inquiry
-                </h3>
+            {/* DYNAMIC REVIEWS SECTION (6 Cols) */}
+            <div className="lg:col-span-6 bg-white/90 backdrop-blur-sm rounded-[32px] p-7 border border-purple-100/80 shadow-sm space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-black text-[#14244A]">
+                    Resident Reviews ({reviewsList.length})
+                  </h3>
+                  <span className="text-xs font-bold text-amber-500">
+                    ★★★★★ (4.8 Rating)
+                  </span>
+                </div>
+                <Link
+                  href="/student/pg/manas/review"
+                  className="px-3 py-1.5 rounded-xl bg-purple-50 text-[#6C47FF] text-xs font-black hover:bg-purple-100 transition"
+                >
+                  + Add Review
+                </Link>
               </div>
 
-              <p className="text-xs font-semibold text-slate-500 leading-relaxed">
-                Interested? Leave your number to speak with the owner of Manas Hostel.
-              </p>
-
-              <form onSubmit={handleSendInquiry} className="space-y-3.5 pt-1">
-                <input
-                  type="tel"
-                  placeholder="Your Contact No."
-                  value={contactNumber}
-                  onChange={(e) => setContactNumber(e.target.value)}
-                  className="w-full text-xs font-bold text-slate-800 bg-[#F8FAFD] border border-slate-200 rounded-2xl p-3.5 focus:outline-none focus:border-[#6C47FF] focus:ring-2 focus:ring-purple-100 transition"
-                />
-
-                <div className="relative">
-                  <button
-                    type="submit"
-                    className="w-full py-4 rounded-2xl bg-gradient-to-r from-[#6C47FF] to-[#8B5CF6] hover:from-[#5835E5] hover:to-[#7C3AED] text-white font-black text-xs shadow-lg shadow-purple-200 transition active:scale-[0.99] flex items-center justify-center gap-2"
+              <div className="space-y-3 max-h-[300px] overflow-y-auto pr-1">
+                {reviewsList.map((rev) => (
+                  <div
+                    key={rev.id}
+                    className="p-3.5 rounded-2xl bg-gradient-to-r from-[#F7F9FF] to-[#FAF7FF] border border-blue-100/60 flex items-start justify-between gap-3 shadow-sm"
                   >
-                    <span>Send Inquiry</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
+                    <div className="text-xs font-bold text-slate-800 space-y-1">
+                      <p className="text-xs font-semibold text-slate-700">
+                        &quot;{rev.reviewText}&quot;
+                      </p>
+                      <div className="flex items-center gap-2 pt-0.5 text-[10px] text-slate-400 font-bold">
+                        <span className="text-amber-500">★ {rev.rating}/5</span>
+                        <span>•</span>
+                        <span>{rev.date}</span>
+                        <span>•</span>
+                        <span className="text-purple-600 font-extrabold">{rev.tag}</span>
+                      </div>
+                    </div>
 
-                  <div className="absolute right-4 -bottom-4 pointer-events-none">
-                    <span className="text-2xl drop-shadow">👆</span>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <img
+                        src={rev.avatar}
+                        alt={rev.reviewer}
+                        className="w-8 h-8 rounded-full object-cover ring-2 ring-purple-100 shadow-sm"
+                      />
+                      <span className="text-[11px] font-bold text-slate-600 hidden sm:inline">
+                        {rev.reviewer}
+                      </span>
+                    </div>
                   </div>
-                </div>
-              </form>
+                ))}
+              </div>
             </div>
           </div>
         </main>
       </div>
 
-      {/* =====================================================
-          3. SUCCESS POPUP MODAL (SYNCED TO /BOOKINGS)
-      ====================================================== */}
+      {/* 3. SUCCESS MODAL */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
           <div className="bg-white rounded-[32px] p-8 max-w-md w-full shadow-2xl border border-slate-100 space-y-6 text-center animate-in fade-in zoom-in-95 duration-200">

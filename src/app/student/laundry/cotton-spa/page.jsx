@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -13,40 +13,170 @@ import {
   ArrowLeft,
   Search,
   Bell,
-  CheckCircle2,
   MapPin,
-  ChevronDown,
-  Shirt,
+  Clock,
   Sparkles,
+  Sun,
+  Moon,
+  ChevronDown,
+  CheckCircle2,
+  Calendar as CalendarIcon,
+  Shirt,
+  Phone,
+  ArrowRight,
+  ShieldCheck,
   Check,
 } from "lucide-react";
 
-export default function CottonSpaLaundryPage() {
+export default function CottonSpaDetailsPage() {
   const router = useRouter();
 
+  // Booking states
   const [selectedLocation, setSelectedLocation] = useState("MIT-AOE Gate");
   const [selectedDay, setSelectedDay] = useState("Mon");
   const [selectedSlot, setSelectedSlot] = useState("Morning");
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
 
-  const deliveryMapping = {
-    Mon: "Wed, Oct 14 at 05:00 PM",
-    Wed: "Fri, Oct 16 at 05:00 PM",
-    Fri: "Sun, Oct 18 at 05:00 PM",
+  // Dynamic Live Availability & Timings from CottonSpa Owner
+  const [availability, setAvailability] = useState({
+    timings: "8:00 AM - 10:00 PM",
+    days: "Monday, Wednesday, Friday, Saturday",
+    activeDays: ["Mon", "Wed", "Fri", "Sat"],
+    locationCoverage: "MIT-AOE Gate, Dehu Phata, Hostels",
+  });
+
+  // Dynamic Live Service Rates from CottonSpa Owner
+  const [servicePrices, setServicePrices] = useState({
+    normalWash: "₹100/load (Max 7kg)",
+    ironing: "₹30/item",
+    dryCleaning: "₹80/item",
+    premiumWash: "₹150/item",
+  });
+
+  // Reviews state (Synced with LocalStorage)
+  const defaultReviews = [
+    {
+      id: "rev-lnd-1",
+      reviewer: "Priya Sharma",
+      avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&auto=format&fit=crop&q=80",
+      reviewText: "Clothes were washed, neatly folded, and delivered right on time!",
+      rating: 5,
+      date: "Oct 12, 2026",
+      tag: "Verified Student ★",
+    },
+    {
+      id: "rev-lnd-2",
+      reviewer: "Rohan Patil",
+      avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80",
+      reviewText: "Very reasonable pricing at ₹60/kg. Crisp ironing on formals.",
+      rating: 4.8,
+      date: "Oct 9, 2026",
+      tag: "Verified Student ★",
+    },
+    {
+      id: "rev-lnd-3",
+      reviewer: "Sneha Kulkarni",
+      avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80",
+      reviewText: "Convenient pickup from college gate. Best laundry service in Dehu Phata.",
+      rating: 4.5,
+      date: "Oct 6, 2026",
+      tag: "Verified Student ★",
+    },
+  ];
+
+  const [reviewsList, setReviewsList] = useState(defaultReviews);
+
+  // Sync Live Data from LocalStorage
+  const loadLiveData = useCallback(() => {
+    try {
+      // 1. Fetch Dynamic Availability & Days
+      const savedAvail = localStorage.getItem("cotton_spa_availability");
+      if (savedAvail) {
+        setAvailability(JSON.parse(savedAvail));
+      }
+
+      // 2. Fetch Dynamic Pricing
+      const savedPrices = localStorage.getItem("cotton_spa_prices");
+      if (savedPrices) {
+        setServicePrices(JSON.parse(savedPrices));
+      }
+
+      // 3. Fetch Dynamic Reviews
+      const stored = JSON.parse(localStorage.getItem("student_reviews") || "[]");
+      const laundryReviews = stored
+        .filter(
+          (r) =>
+            !r.vendor ||
+            r.vendor.toLowerCase().includes("cotton") ||
+            r.service?.toLowerCase().includes("laundry")
+        )
+        .map((r) => ({
+          id: r.id,
+          reviewer: r.reviewer || (r.anonymous ? "Anonymous Student" : "Riya Wagh"),
+          avatar: r.anonymous
+            ? "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=80"
+            : "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80",
+          reviewText: r.reviewText,
+          rating: r.rating || 5,
+          date: r.date || "Just now",
+          tag: "Verified Student ★",
+        }));
+
+      setReviewsList([...laundryReviews, ...defaultReviews]);
+    } catch (e) {
+      console.error(e);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadLiveData();
+    window.addEventListener("storage", loadLiveData);
+    window.addEventListener("focus", loadLiveData);
+    return () => {
+      window.removeEventListener("storage", loadLiveData);
+      window.removeEventListener("focus", loadLiveData);
+    };
+  }, [loadLiveData]);
+
+  const slotTimingDetails = {
+    Morning: "9:00 - 10:00 AM",
+    Afternoon: "2:00 - 3:00 PM",
+    Evening: "6:00 - 7:00 PM",
   };
 
-  const handleConfirmBooking = () => {
+  const dayDates = {
+    Mon: "Mon, Oct 12 at 09:30 AM",
+    Tue: "Tue, Oct 13 at 09:30 AM",
+    Wed: "Wed, Oct 14 at 09:30 AM",
+    Thu: "Thu, Oct 15 at 09:30 AM",
+    Fri: "Fri, Oct 16 at 09:30 AM",
+    Sat: "Sat, Oct 17 at 09:30 AM",
+  };
+
+  const deliveryEstimates = {
+    Mon: "Wed, Oct 14 at 05:00 PM",
+    Tue: "Thu, Oct 15 at 05:00 PM",
+    Wed: "Fri, Oct 16 at 05:00 PM",
+    Thu: "Sat, Oct 17 at 05:00 PM",
+    Fri: "Sun, Oct 18 at 05:00 PM",
+    Sat: "Mon, Oct 19 at 05:00 PM",
+  };
+
+  const handleConfirmPickup = () => {
     const newBooking = {
       id: `BK-LND-${Date.now()}`,
       service: "Laundry",
-      vendor: "Cotton Spa Laundry",
+      vendor: "CottonSpa",
       location: selectedLocation,
-      pickupDay: selectedDay,
-      pickupSlot: selectedSlot,
-      deliveryTime: deliveryMapping[selectedDay] || "Wed, Oct 14 at 05:00 PM",
-      price: "₹100/load",
-      status: "Confirmed",
-      date: new Date().toLocaleDateString("en-US", {
+      item: `CottonSpa Laundry Pickup (${selectedDay})`,
+      price: "₹60/kg (₹100/load min)",
+      rate: "₹60/kg",
+      slot: `${selectedDay} ${selectedSlot} (${slotTimingDetails[selectedSlot]})`,
+      pickupTime: dayDates[selectedDay] || "Scheduled Pickup",
+      deliveryTime: deliveryEstimates[selectedDay] || "Within 48 hours",
+      status: "Pending Approval",
+      vendorConfirmed: false,
+      bookedOn: new Date().toLocaleDateString("en-US", {
         month: "short",
         day: "numeric",
         year: "numeric",
@@ -56,6 +186,7 @@ export default function CottonSpaLaundryPage() {
     try {
       const existing = JSON.parse(localStorage.getItem("student_bookings") || "[]");
       localStorage.setItem("student_bookings", JSON.stringify([newBooking, ...existing]));
+      window.dispatchEvent(new Event("storage"));
     } catch (e) {
       console.error(e);
     }
@@ -64,11 +195,9 @@ export default function CottonSpaLaundryPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F4F6FC] text-[#14244A] font-sans flex antialiased">
-      {/* =====================================================
-          1. LEFT SIDEBAR
-      ====================================================== */}
-      <aside className="hidden lg:flex flex-col w-[230px] bg-white border-r border-slate-100 p-4 shrink-0 justify-between sticky top-0 h-screen z-30">
+    <div className="min-h-screen bg-gradient-to-br from-[#FFF5F7] via-[#F6F0FF] to-[#E8F5FF] text-[#14244A] font-sans flex antialiased selection:bg-purple-200">
+      {/* 1. LEFT SIDEBAR */}
+      <aside className="hidden lg:flex flex-col w-[230px] bg-white/80 backdrop-blur-md border-r border-purple-100/60 p-4 shrink-0 justify-between sticky top-0 h-screen z-30">
         <div className="space-y-6">
           <Link href="/student" className="flex items-center gap-3 px-2 pt-2">
             <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-[#6C47FF] to-[#8C62FF] flex items-center justify-center text-white shadow-md shadow-purple-200">
@@ -87,80 +216,77 @@ export default function CottonSpaLaundryPage() {
           <nav className="space-y-1 pt-2">
             <Link
               href="/student"
-              className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-bold text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition"
+              className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-bold text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition"
             >
-              <LayoutDashboard className="w-4 h-4 shrink-0 text-slate-400" />
-              <span>Dashboard</span>
+              <div className="flex items-center gap-3">
+                <LayoutDashboard className="w-4 h-4 shrink-0 text-slate-400" />
+                <span>Dashboard</span>
+              </div>
             </Link>
 
             <Link
-              href="/bookings"
+              href="/student/bookings"
               className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-bold text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition"
             >
               <CalendarDays className="w-4 h-4 shrink-0 text-slate-400" />
               <span>My Bookings</span>
             </Link>
 
-            
-
-           {/* Replace the Add Review link inside the sidebar <nav> */}
-          <Link
-          href="/student/laundry/cotton-spa/review"
-  className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-bold text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition"
-           >
-          <MessageSquarePlus className="w-4 h-4 shrink-0 text-slate-400" />
-          <span>Ratings & Review</span>
-             </Link>
+            <Link
+              href="/student/laundry/cotton-spa/review"
+              className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-bold bg-[#6C47FF] text-white shadow-md shadow-purple-200 transition"
+            >
+              <div className="flex items-center gap-3">
+                <MessageSquarePlus className="w-4 h-4 shrink-0 text-white" />
+                <span>Ratings &amp; Review</span>
+              </div>
+              <span className="text-xs">✍️</span>
+            </Link>
 
             <Link
               href="/student/profile"
               className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-bold text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition"
             >
               <Settings className="w-4 h-4 shrink-0 text-slate-400" />
-              <span>profile</span>
+              <span>Profile</span>
             </Link>
             <Link
               href="/pass"
               className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-bold text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition"
             >
               <Settings className="w-4 h-4 shrink-0 text-slate-400" />
-              <span>freshers pass</span>
+              <span>Freshers Pass</span>
             </Link>
           </nav>
         </div>
 
         <div className="flex items-center justify-center pb-2">
-          <div className="w-20 h-20 rounded-full border-2 border-dashed border-slate-300 flex items-center justify-center text-center rotate-[-10deg] opacity-70">
-            <span className="text-[10px] font-black leading-tight text-slate-400">
+          <div className="w-20 h-20 rounded-full border-2 border-dashed border-purple-300 flex items-center justify-center text-center rotate-[-10deg] opacity-80">
+            <span className="text-[10px] font-black leading-tight text-purple-400">
               hand-drawn<br />badge
             </span>
           </div>
         </div>
       </aside>
 
-      {/* =====================================================
-          2. MAIN BODY
-      ====================================================== */}
+      {/* 2. MAIN BODY */}
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Top Navbar */}
-        <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-100 px-6 sm:px-10 h-20 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-2 bg-[#F4F5F9] p-1.5 rounded-2xl border border-slate-200/50">
-            
-          </div>
+        <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-purple-100/60 px-6 sm:px-10 h-20 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-2 bg-[#F4F5F9] p-1.5 rounded-2xl border border-slate-200/50" />
 
           <div className="flex items-center gap-4">
-            <div className="hidden md:flex items-center gap-2 px-3.5 py-2 bg-[#F3F5FA] rounded-xl w-64 border border-slate-200/60">
+            <div className="hidden md:flex items-center gap-2 px-3.5 py-2 bg-white/90 rounded-xl w-64 border border-purple-100/80 shadow-sm">
               <Search className="w-4 h-4 text-slate-400 shrink-0" />
               <input
                 type="text"
-                placeholder="Search campus, services..."
+                placeholder="Search laundry, pickups..."
                 className="w-full text-xs font-medium text-slate-800 placeholder-slate-400 bg-transparent focus:outline-none"
               />
             </div>
 
             <button
               type="button"
-              className="relative p-2.5 rounded-xl bg-[#F3F5FA] text-slate-600 hover:text-slate-900 transition"
+              className="relative p-2.5 rounded-xl bg-white text-slate-600 hover:text-slate-900 shadow-sm transition border border-purple-50"
             >
               <Bell className="w-4 h-4" />
               <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#FF3B7A] text-[9px] font-black text-white flex items-center justify-center">
@@ -175,7 +301,7 @@ export default function CottonSpaLaundryPage() {
               <img
                 src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80"
                 alt="Profile"
-                className="w-9 h-9 rounded-full object-cover ring-2 ring-purple-100"
+                className="w-9 h-9 rounded-full object-cover ring-2 ring-purple-200"
               />
               <div className="hidden sm:block text-left">
                 <p className="text-xs font-black text-[#14244A] leading-tight">Hi, Riya!</p>
@@ -185,65 +311,65 @@ export default function CottonSpaLaundryPage() {
           </div>
         </header>
 
-        {/* Content Body */}
         <main className="p-6 sm:p-8 space-y-6 max-w-[1350px] w-full mx-auto">
           {/* Back Pill Button */}
           <Link
             href="/student/laundry"
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-slate-200 text-xs font-bold text-slate-700 hover:text-[#6C47FF] shadow-sm transition"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/90 backdrop-blur-sm border border-purple-100 text-xs font-bold text-slate-700 hover:text-[#6C47FF] shadow-sm transition"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
             <span>Back to Laundry Services</span>
           </Link>
 
           {/* ===================================================
-              HERO CARD SECTION
+              TOP HERO CARD SECTION (PRICING DETAILS BESIDE PHOTOS)
           ==================================================== */}
-          <div className="relative rounded-[32px] bg-gradient-to-br from-[#EEF5FF]/80 via-[#F8FBFF] to-[#F3ECFF]/80 p-6 sm:p-8 border border-sky-100 shadow-[0_15px_40px_rgba(20,36,74,0.04)] space-y-6">
+          <div className="relative rounded-[32px] bg-gradient-to-br from-white/90 via-[#FDF8FF]/95 to-[#F1F6FF]/90 p-6 sm:p-8 border border-purple-100 shadow-[0_15px_40px_rgba(108,71,255,0.06)] space-y-6">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex flex-wrap items-center gap-3">
                 <h1 className="text-2xl sm:text-3xl font-black text-[#14244A] tracking-tight">
                   Cotton Spa Laundry
                 </h1>
 
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#E5EEFF] text-[#2F80ED] text-xs font-extrabold">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#E7F8EE] text-[#0FAF53] text-xs font-extrabold border border-emerald-100">
                   <CheckCircle2 className="w-3.5 h-3.5" />
                   Verified
                 </span>
 
-                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#FFF5DC] text-[#D98200] text-xs font-black">
-                  4.7 ★ <span className="text-slate-500 font-medium">(180 reviews)</span>
+                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#FFF5DC] text-[#D98200] text-xs font-black border border-amber-100">
+                  4.7 ★ <span className="text-slate-500 font-medium">({reviewsList.length + 177} reviews)</span>
                 </span>
 
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/80 border border-slate-200/60 text-slate-600 text-xs font-semibold">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/90 border border-slate-200/80 text-slate-600 text-xs font-semibold shadow-sm">
                   <MapPin className="w-3.5 h-3.5 text-slate-400" />
                   Ganesh Colony • Distance from College: 400 m
                 </span>
               </div>
             </div>
 
-            {/* Gallery + Quick Service Box */}
+            {/* Gallery + Dynamic Pricing Details */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
-              <div className="lg:col-span-7 h-[280px] rounded-2xl overflow-hidden shadow-sm relative group">
+              <div className="lg:col-span-5 h-[280px] rounded-3xl overflow-hidden shadow-sm relative group bg-white border border-purple-100/60 p-2">
+                <div className="absolute top-1 left-2 w-14 h-6 bg-gradient-to-r from-pink-400 to-purple-400 opacity-80 -rotate-12 rounded-sm shadow-sm z-10" />
                 <img
-                  src="https://images.unsplash.com/photo-1545173168-9f1947eebb7f?w=900&auto=format&fit=crop&q=80"
-                  alt="Laundromat Facility"
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  src="https://images.unsplash.com/photo-1545173168-9f1947eebb7f?w=800&auto=format&fit=crop&q=80"
+                  alt="Laundromat washing machines"
+                  className="w-full h-full object-cover rounded-2xl group-hover:scale-105 transition-transform duration-500"
                 />
               </div>
 
-              <div className="lg:col-span-2 flex flex-col gap-3.5 h-[280px]">
-                <div className="flex-1 rounded-2xl overflow-hidden shadow-sm">
+              <div className="lg:col-span-3 flex flex-col gap-3.5 h-[280px]">
+                <div className="flex-1 rounded-2xl overflow-hidden shadow-sm border border-purple-50">
                   <img
-                    src="https://images.unsplash.com/photo-1517677208171-0bc6725a3e60?w=400&auto=format&fit=crop&q=80"
-                    alt="Towels"
+                    src="https://images.unsplash.com/photo-1582735689369-4fe89db7114c?w=500&auto=format&fit=crop&q=80"
+                    alt="Neatly folded clothes"
                     className="w-full h-full object-cover"
                   />
                 </div>
-                <div className="flex-1 rounded-2xl overflow-hidden shadow-sm relative">
+                <div className="flex-1 rounded-2xl overflow-hidden shadow-sm relative border border-purple-50">
                   <img
-                    src="https://images.unsplash.com/photo-1582735689369-4fe89db7114c?w=400&auto=format&fit=crop&q=80"
-                    alt="Washing Machines"
+                    src="https://images.unsplash.com/photo-1517677208171-0bc6725a3e60?w=500&auto=format&fit=crop&q=80"
+                    alt="Laundry basket"
                     className="w-full h-full object-cover"
                   />
                   <div className="absolute inset-0 bg-black/40 flex items-center justify-center text-white text-xs font-black backdrop-blur-[2px]">
@@ -252,259 +378,332 @@ export default function CottonSpaLaundryPage() {
                 </div>
               </div>
 
-              <div className="lg:col-span-3 bg-white rounded-3xl p-6 border border-slate-100 shadow-sm flex flex-col justify-center items-center text-center">
-                <div className="w-12 h-12 rounded-2xl bg-purple-50 text-[#6C47FF] flex items-center justify-center mb-3">
-                  <Shirt className="w-6 h-6" />
+              {/* DYNAMIC PRICING DETAILS BOX */}
+              <div className="lg:col-span-4 bg-white/95 backdrop-blur-sm rounded-3xl p-6 border border-purple-100 shadow-sm flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between pb-2 border-b border-purple-50">
+                    <h3 className="text-sm font-black text-[#14244A] flex items-center gap-1.5">
+                      <span>🏷️</span> Pricing Details
+                    </h3>
+                    <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full">
+                      Live Rates
+                    </span>
+                  </div>
+
+                  <div className="space-y-3 pt-3 text-xs font-bold text-slate-700">
+                    <div className="flex items-center justify-between">
+                      <span>Normal Wash</span>
+                      <span className="font-black text-slate-900">{servicePrices.normalWash}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span>Ironing / Pressing</span>
+                      <span className="font-black text-slate-900">{servicePrices.ironing}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span>Dry Cleaning</span>
+                      <span className="font-black text-slate-900">{servicePrices.dryCleaning}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span>Premium Wash</span>
+                      <span className="font-black text-slate-900">{servicePrices.premiumWash}</span>
+                    </div>
+                  </div>
                 </div>
-                <span className="text-sm font-extrabold text-[#14244A]">
-                  Quick Service:
-                </span>
-                <span className="text-xs font-extrabold text-slate-500 mt-0.5">
-                  Starts at
-                </span>
-                <h3 className="text-3xl font-black text-[#14244A] tracking-tight mt-1">
-                  ₹100<span className="text-sm font-semibold text-slate-400">/load</span>
-                </h3>
+
+                <div className="pt-3 border-t border-purple-50 flex items-center justify-between text-[11px] font-bold text-slate-500">
+                  <span className="text-emerald-600">✓ Free Campus Pickup</span>
+                  <span>48-hr Turnaround</span>
+                </div>
               </div>
             </div>
           </div>
 
           {/* ===================================================
-              OUR SERVICES (4 CARDS)
+              OUR SERVICES SECTION
           ==================================================== */}
-          <div className="space-y-3.5">
+          <div className="space-y-3">
             <h2 className="text-lg font-black text-[#14244A]">Our Services</h2>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="bg-white rounded-3xl p-3 border border-slate-100 shadow-sm space-y-3">
-                <div className="h-36 rounded-2xl overflow-hidden">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="bg-white rounded-3xl p-3 border border-purple-100/80 shadow-sm text-center space-y-2">
+                <div className="h-28 rounded-2xl overflow-hidden">
                   <img
                     src="https://images.unsplash.com/photo-1545173168-9f1947eebb7f?w=400&auto=format&fit=crop&q=80"
                     alt="Normal Wash"
                     className="w-full h-full object-cover"
                   />
                 </div>
-                <div className="text-center pb-1">
-                  <h4 className="text-sm font-black text-[#14244A]">Normal Wash</h4>
-                </div>
+                <h4 className="text-xs font-black text-slate-900">Normal Wash</h4>
               </div>
 
-              <div className="bg-white rounded-3xl p-3 border border-slate-100 shadow-sm space-y-3">
-                <div className="h-36 rounded-2xl overflow-hidden">
+              <div className="bg-white rounded-3xl p-3 border border-purple-100/80 shadow-sm text-center space-y-2">
+                <div className="h-28 rounded-2xl overflow-hidden">
                   <img
-                    src="https://images.unsplash.com/photo-1517677208171-0bc6725a3e60?w=400&auto=format&fit=crop&q=80"
+                    src="https://images.unsplash.com/photo-1582735689369-4fe89db7114c?w=400&auto=format&fit=crop&q=80"
                     alt="Premium Wash"
                     className="w-full h-full object-cover"
                   />
                 </div>
-                <div className="text-center pb-1">
-                  <h4 className="text-sm font-black text-[#14244A]">Premium Wash</h4>
-                </div>
+                <h4 className="text-xs font-black text-slate-900">Premium Wash</h4>
               </div>
 
-              <div className="bg-white rounded-3xl p-3 border border-slate-100 shadow-sm space-y-3">
-                <div className="h-36 rounded-2xl overflow-hidden">
+              <div className="bg-white rounded-3xl p-3 border border-purple-100/80 shadow-sm text-center space-y-2">
+                <div className="h-28 rounded-2xl overflow-hidden">
                   <img
-                    src="https://images.unsplash.com/photo-1582735689369-4fe89db7114c?w=400&auto=format&fit=crop&q=80"
+                    src="https://images.unsplash.com/photo-1517677208171-0bc6725a3e60?w=400&auto=format&fit=crop&q=80"
                     alt="Ironing / Pressing"
                     className="w-full h-full object-cover"
                   />
                 </div>
-                <div className="text-center pb-1">
-                  <h4 className="text-sm font-black text-[#14244A]">Ironing / Pressing</h4>
-                </div>
+                <h4 className="text-xs font-black text-slate-900">Ironing / Pressing</h4>
               </div>
 
-              <div className="bg-white rounded-3xl p-3 border border-slate-100 shadow-sm space-y-3">
-                <div className="h-36 rounded-2xl overflow-hidden">
+              <div className="bg-white rounded-3xl p-3 border border-purple-100/80 shadow-sm text-center space-y-2">
+                <div className="h-28 rounded-2xl overflow-hidden">
                   <img
                     src="https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=400&auto=format&fit=crop&q=80"
                     alt="Dry Cleaning"
                     className="w-full h-full object-cover"
                   />
                 </div>
-                <div className="text-center pb-1">
-                  <h4 className="text-sm font-black text-[#14244A]">Dry Cleaning</h4>
-                </div>
+                <h4 className="text-xs font-black text-slate-900">Dry Cleaning</h4>
               </div>
             </div>
           </div>
 
           {/* ===================================================
-              PRICING DETAILS & CONFIRM & SCHEDULE YOUR PICKUP
+              TWO COLUMN SECTION:
+              LEFT: DYNAMIC REVIEWS
+              RIGHT: CONFIRM & SCHEDULE PICKUP + VENDOR SCHEDULE CARD
           ==================================================== */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
-            {/* Left Column (5 Cols) */}
-            <div className="lg:col-span-5 space-y-5 flex flex-col justify-between">
-              {/* Pricing Details */}
-              <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm space-y-4">
-                <h3 className="text-base font-black text-[#14244A]">Pricing Details</h3>
-                <div className="space-y-3 text-xs font-bold text-slate-700">
-                  <div className="flex items-center justify-between pb-1 border-b border-slate-50">
-                    <span>Normal Wash</span>
-                    <span className="font-black text-slate-900">
-                      ₹100/load <span className="text-[10px] text-slate-400 font-normal">(Max 7kg)</span>
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between pb-1 border-b border-slate-50">
-                    <span>Ironing</span>
-                    <span className="font-black text-slate-900">₹50/item</span>
-                  </div>
-                  <div className="flex items-center justify-between pb-1 border-b border-slate-50">
-                    <span>Dry Cleaning</span>
-                    <span className="font-black text-slate-900">₹80/item</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span>Premium Wash</span>
-                    <span className="font-black text-slate-900">₹150/item</span>
-                  </div>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            {/* LEFT: REVIEWS */}
+            <div className="lg:col-span-5 bg-white/90 backdrop-blur-sm rounded-[32px] p-6 border border-purple-100/80 shadow-sm space-y-4">
+              <div className="flex items-center justify-between pb-2 border-b border-purple-50">
+                <div>
+                  <h3 className="text-base font-black text-[#14244A] flex items-center gap-1.5">
+                    <span>💬</span> Customer Reviews ({reviewsList.length})
+                  </h3>
+                  <span className="text-xs font-bold text-amber-500">
+                    ★★★★★ (4.7 Rating)
+                  </span>
                 </div>
+                <Link
+                  href="/student/laundry/cotton-spa/review"
+                  className="px-3 py-1 rounded-xl bg-purple-50 text-[#6C47FF] text-xs font-black hover:bg-purple-100 transition"
+                >
+                  + Add Review
+                </Link>
               </div>
 
-              {/* Operational Pickup Days */}
-              <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm space-y-3">
-                <h3 className="text-base font-black text-[#14244A]">Operational Pickup Days</h3>
-                <div className="grid grid-cols-3 gap-3 text-center">
-                  <div className="space-y-2">
-                    <button
-                      type="button"
-                      onClick={() => setSelectedDay("Mon")}
-                      className={`w-full py-2.5 rounded-2xl text-xs font-black transition ${
-                        selectedDay === "Mon" ? "bg-[#C7D9EE] text-[#14244A]" : "bg-slate-100 text-slate-700"
-                      }`}
-                    >
-                      Mon
-                    </button>
-                    <p className="text-xs font-bold text-slate-700">Mon</p>
-                  </div>
+              <div className="space-y-3 max-h-[460px] overflow-y-auto pr-1">
+                {reviewsList.map((rev) => (
+                  <div
+                    key={rev.id}
+                    className="p-3.5 rounded-2xl bg-gradient-to-r from-[#F7F9FF] to-[#FAF7FF] border border-blue-100/60 flex items-start justify-between gap-3 shadow-2xs"
+                  >
+                    <div className="text-xs font-bold text-slate-800 space-y-1">
+                      <p className="text-xs font-semibold text-slate-700 leading-snug">
+                        &quot;{rev.reviewText}&quot;
+                      </p>
+                      <div className="flex items-center gap-2 pt-0.5 text-[10px] text-slate-400 font-bold">
+                        <span className="text-amber-500">★ {rev.rating}/5</span>
+                        <span>•</span>
+                        <span>{rev.date}</span>
+                        <span>•</span>
+                        <span className="text-purple-600 font-extrabold">{rev.tag || "Verified Student"}</span>
+                      </div>
+                    </div>
 
-                  <div className="space-y-2">
-                    <button
-                      type="button"
-                      onClick={() => setSelectedDay("Wed")}
-                      className={`w-full py-2.5 rounded-2xl text-xs font-black transition ${
-                        selectedDay === "Wed" ? "bg-[#C7D9EE] text-[#14244A]" : "bg-[#D8E6F5] text-slate-700"
-                      }`}
-                    >
-                      Wed
-                    </button>
-                    <p className="text-xs font-bold text-slate-700">Wed</p>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <img
+                        src={rev.avatar}
+                        alt={rev.reviewer}
+                        className="w-8 h-8 rounded-full object-cover ring-2 ring-purple-100 shadow-sm"
+                      />
+                      <span className="text-[11px] font-bold text-slate-600 hidden sm:inline">
+                        {rev.reviewer}
+                      </span>
+                    </div>
                   </div>
-
-                  <div className="space-y-2">
-                    <button
-                      type="button"
-                      onClick={() => setSelectedDay("Fri")}
-                      className="w-full py-2.5 rounded-2xl text-xs font-black bg-[#5833B6] text-white shadow-md shadow-purple-200"
-                    >
-                      Fri
-                    </button>
-                    <p className="text-xs font-bold text-slate-700">Fri</p>
-                  </div>
-                </div>
+                ))}
               </div>
             </div>
 
-            {/* Right Column (7 Cols): Confirm & Schedule Your Pickup */}
-            <div className="lg:col-span-7 bg-white rounded-3xl p-6 sm:p-7 border border-slate-100 shadow-sm space-y-4 flex flex-col justify-between">
-              <div className="space-y-4">
-                <h3 className="text-base font-black text-[#14244A]">
-                  Confirm &amp; Schedule Your Pickup
-                </h3>
+            {/* RIGHT: CONFIRM & SCHEDULE PICKUP + LIVE VENDOR AVAILABILITY CARD */}
+            <div className="lg:col-span-7 space-y-4">
+              <div className="bg-white/95 backdrop-blur-sm rounded-[32px] p-7 border border-purple-100/80 shadow-sm space-y-5">
+                <div className="space-y-1">
+                  <h3 className="text-lg font-black text-[#14244A]">
+                    Confirm &amp; Schedule Your Pickup
+                  </h3>
+                  <p className="text-xs text-slate-400 font-semibold">
+                    Choose your pickup point, preferred day of the week, and timing slot
+                  </p>
+                </div>
 
-                {/* Dropdown Container */}
+                {/* Pickup Location Dropdown */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-black text-slate-700 block">
+                    Select Pickup Location:
+                  </label>
+                  <div className="relative">
+                    <select
+                      value={selectedLocation}
+                      onChange={(e) => setSelectedLocation(e.target.value)}
+                      className="w-full bg-[#FAF9FD] border border-purple-100 rounded-2xl p-3.5 pr-10 text-xs font-bold text-slate-800 appearance-none focus:outline-none focus:border-[#6C47FF] cursor-pointer"
+                    >
+                      <option>MIT-AOE Gate</option>
+                      <option>Dehu Phata (Opp. Gajanan Maharaj)</option>
+                      <option>Girls Hostel A &amp; B</option>
+                      <option>Ganesh Colony Main Road</option>
+                      <option>Vishweshwar Nagar</option>
+                    </select>
+                    <ChevronDown className="w-4 h-4 text-slate-400 absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  </div>
+                </div>
+
+                {/* Pickup Day Dropdown & Timing Slots */}
                 <div className="space-y-2">
                   <label className="text-xs font-black text-slate-700 block">
-                    Select Pickup Location
+                    Select Pickup Day &amp; Time Slot:
                   </label>
-                  <div className="rounded-2xl border border-slate-200 overflow-hidden bg-white shadow-sm">
-                    <div className="p-3.5 flex items-center justify-between border-b border-slate-100">
-                      <span className="text-xs font-bold text-slate-800">{selectedLocation}</span>
-                      <ChevronDown className="w-4 h-4 text-slate-400" />
+
+                  <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 items-center">
+                    {/* Days Dropdown */}
+                    <div className="relative">
+                      <select
+                        value={selectedDay}
+                        onChange={(e) => setSelectedDay(e.target.value)}
+                        className="w-full bg-purple-50 border border-purple-200 text-[#6C47FF] rounded-2xl p-3.5 pr-8 text-xs font-black appearance-none focus:outline-none cursor-pointer"
+                      >
+                        <option value="Mon">Monday (Mon)</option>
+                        <option value="Tue">Tuesday (Tue)</option>
+                        <option value="Wed">Wednesday (Wed)</option>
+                        <option value="Thu">Thursday (Thu)</option>
+                        <option value="Fri">Friday (Fri)</option>
+                        <option value="Sat">Saturday (Sat)</option>
+                      </select>
+                      <ChevronDown className="w-3.5 h-3.5 text-[#6C47FF] absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                     </div>
-                    <div className="bg-[#EAE6F9]/60 px-3.5 py-2 text-xs font-bold text-slate-800 border-b border-slate-100">
-                      MIT-AOE Gate
-                    </div>
-                    <div className="px-3.5 py-2 text-xs font-medium text-slate-600">
-                      Dehu Phata
-                    </div>
+
+                    {/* Morning */}
+                    <button
+                      type="button"
+                      onClick={() => setSelectedSlot("Morning")}
+                      className={`p-3 rounded-2xl border text-center transition-all cursor-pointer ${
+                        selectedSlot === "Morning"
+                          ? "bg-[#6C47FF] text-white border-[#6C47FF] shadow-md shadow-purple-200"
+                          : "bg-white text-slate-700 border-purple-100 hover:border-purple-300"
+                      }`}
+                    >
+                      <Sun className={`w-3.5 h-3.5 mx-auto mb-0.5 ${selectedSlot === "Morning" ? "text-amber-300" : "text-amber-500"}`} />
+                      <p className="text-xs font-black">Morning</p>
+                      <p className={`text-[9px] font-semibold ${selectedSlot === "Morning" ? "text-purple-100" : "text-slate-400"}`}>
+                        9:00 - 10:00 AM
+                      </p>
+                    </button>
+
+                    {/* Afternoon */}
+                    <button
+                      type="button"
+                      onClick={() => setSelectedSlot("Afternoon")}
+                      className={`p-3 rounded-2xl border text-center transition-all cursor-pointer ${
+                        selectedSlot === "Afternoon"
+                          ? "bg-[#6C47FF] text-white border-[#6C47FF] shadow-md shadow-purple-200"
+                          : "bg-white text-slate-700 border-purple-100 hover:border-purple-300"
+                      }`}
+                    >
+                      <Sparkles className={`w-3.5 h-3.5 mx-auto mb-0.5 ${selectedSlot === "Afternoon" ? "text-amber-300" : "text-amber-500"}`} />
+                      <p className="text-xs font-black">Afternoon</p>
+                      <p className={`text-[9px] font-semibold ${selectedSlot === "Afternoon" ? "text-purple-100" : "text-slate-400"}`}>
+                        2:00 - 3:00 PM
+                      </p>
+                    </button>
+
+                    {/* Evening */}
+                    <button
+                      type="button"
+                      onClick={() => setSelectedSlot("Evening")}
+                      className={`p-3 rounded-2xl border text-center transition-all cursor-pointer ${
+                        selectedSlot === "Evening"
+                          ? "bg-[#5833B6] text-white border-[#5833B6] shadow-md shadow-purple-200"
+                          : "bg-white text-slate-700 border-purple-100 hover:border-purple-300"
+                      }`}
+                    >
+                      <Moon className={`w-3.5 h-3.5 mx-auto mb-0.5 ${selectedSlot === "Evening" ? "text-purple-200" : "text-purple-500"}`} />
+                      <p className="text-xs font-black">Evening</p>
+                      <p className={`text-[9px] font-semibold ${selectedSlot === "Evening" ? "text-purple-200" : "text-slate-400"}`}>
+                        6:00 - 7:00 PM
+                      </p>
+                    </button>
                   </div>
                 </div>
 
-                {/* Day & Slots */}
-                <div className="space-y-2 pt-1">
-                  <label className="text-xs font-black text-slate-700 block">
-                    Select Pickup Day &amp; Time
-                  </label>
-                  <div className="flex items-center gap-2 text-xs font-bold text-slate-500 mb-2">
-                    <span className="w-12">Days</span>
-                    <span>Pickup slots (set)</span>
+                {/* Pickup & Est. Delivery Dates Preview */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                  <div className="p-3.5 rounded-2xl bg-[#FAF9FD] border border-purple-100 space-y-0.5">
+                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Pickup:</span>
+                    <p className="text-xs font-black text-slate-900">
+                      {dayDates[selectedDay] || "Scheduled Pickup"}
+                    </p>
                   </div>
 
-                  <div className="flex items-center gap-3">
-                    <span className="px-4 py-3 rounded-2xl bg-[#C7D9EE] text-xs font-black text-[#14244A]">
-                      Mon
-                    </span>
-
-                    <div className="grid grid-cols-3 gap-2 flex-1">
-                      <button
-                        type="button"
-                        onClick={() => setSelectedSlot("Morning")}
-                        className={`p-2.5 rounded-2xl border text-center transition ${
-                          selectedSlot === "Morning"
-                            ? "bg-[#ECE7FD] border-[#6C47FF] text-[#6C47FF]"
-                            : "bg-slate-50 border-slate-100 text-slate-700"
-                        }`}
-                      >
-                        <p className="text-xs font-black">Morning</p>
-                        <p className="text-[10px] font-semibold text-slate-500">9:00 - 10:00 AM</p>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => setSelectedSlot("Afternoon")}
-                        className={`p-2.5 rounded-2xl border text-center transition ${
-                          selectedSlot === "Afternoon"
-                            ? "bg-[#ECE7FD] border-[#6C47FF] text-[#6C47FF]"
-                            : "bg-slate-50 border-slate-100 text-slate-700"
-                        }`}
-                      >
-                        <p className="text-xs font-black">Afternoon</p>
-                        <p className="text-[10px] font-semibold text-slate-500">2:00 - 3:00 PM</p>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => setSelectedSlot("Evening")}
-                        className={`p-2.5 rounded-2xl border text-center transition ${
-                          selectedSlot === "Evening"
-                            ? "bg-[#ECE7FD] border-[#6C47FF] text-[#6C47FF]"
-                            : "bg-slate-50 border-slate-100 text-slate-700"
-                        }`}
-                      >
-                        <p className="text-xs font-black">Evening</p>
-                        <p className="text-[10px] font-semibold text-slate-500">6:00 - 7:00 PM</p>
-                      </button>
-                    </div>
+                  <div className="p-3.5 rounded-2xl bg-[#FAF9FD] border border-purple-100 space-y-0.5">
+                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Est. Delivery:</span>
+                    <p className="text-xs font-black text-emerald-600">
+                      {deliveryEstimates[selectedDay] || "Within 48 hours"}
+                    </p>
                   </div>
                 </div>
+              </div>
 
-                {/* Pickup & Est. Delivery Boxes */}
-                <div className="flex flex-col sm:flex-row items-center gap-3 pt-2 text-xs">
-                  <div className="w-full sm:flex-1 space-y-1">
-                    <span className="font-bold text-slate-700 text-xs">Pickup:</span>
-                    <div className="p-3 rounded-2xl border border-slate-200 bg-white font-bold text-slate-800 text-center shadow-sm">
-                      Mon, Oct 12 at 09:30 AM
+              {/* ===================================================
+                  LIVE VENDOR AVAILABILITY CARD (RED-OUTLINED AREA)
+              ==================================================== */}
+              <div className="rounded-[28px] p-5 bg-white border border-purple-100/90 shadow-sm space-y-3.5">
+                <div className="flex items-center justify-between pb-2 border-b border-purple-50">
+                  <span className="text-xs font-black text-[#14244A] flex items-center gap-1.5">
+                    <CalendarDays className="w-4 h-4 text-[#6C47FF]" />
+                    <span>CottonSpa Operational Availability &amp; Timings</span>
+                  </span>
+                  <span className="text-[9px] font-extrabold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                    Live Schedule
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                  {/* Working Hours */}
+                  <div className="p-3 rounded-2xl bg-purple-50/60 border border-purple-100 space-y-1">
+                    <div className="flex items-center gap-1.5 text-slate-400 font-bold text-[10px] uppercase">
+                      <Clock className="w-3 h-3 text-[#6C47FF]" />
+                      <span>Working Hours</span>
                     </div>
+                    <p className="font-black text-slate-900 text-xs">
+                      {availability.timings || "8:00 AM - 10:00 PM"}
+                    </p>
                   </div>
 
-                  <span className="font-black text-slate-400 self-center sm:pt-4">&amp;</span>
-
-                  <div className="w-full sm:flex-1 space-y-1">
-                    <span className="font-bold text-slate-700 text-xs">Est. Delivery:</span>
-                    <div className="p-3 rounded-2xl border border-slate-200 bg-white font-bold text-slate-800 text-center shadow-sm">
-                      Wed, Oct 14 at 05:00 PM
+                  {/* Operational Pickup Days */}
+                  <div className="p-3 rounded-2xl bg-purple-50/60 border border-purple-100 space-y-1">
+                    <div className="flex items-center gap-1.5 text-slate-400 font-bold text-[10px] uppercase">
+                      <CalendarIcon className="w-3 h-3 text-[#6C47FF]" />
+                      <span>Pickup Days</span>
                     </div>
+                    <p className="font-black text-slate-900 text-xs truncate">
+                      {availability.days || "Mon, Wed, Fri, Sat"}
+                    </p>
+                  </div>
+
+                  {/* Location Coverage */}
+                  <div className="p-3 rounded-2xl bg-purple-50/60 border border-purple-100 space-y-1">
+                    <div className="flex items-center gap-1.5 text-slate-400 font-bold text-[10px] uppercase">
+                      <MapPin className="w-3 h-3 text-[#6C47FF]" />
+                      <span>Service Area</span>
+                    </div>
+                    <p className="font-black text-slate-900 text-xs truncate">
+                      {availability.locationCoverage || "MIT-AOE Gate, Dehu Phata"}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -512,68 +711,56 @@ export default function CottonSpaLaundryPage() {
           </div>
 
           {/* ===================================================
-              BOTTOM BAR: CONFIRM & BOOK PICKUP
+              CONFIRM & BOOK PICKUP BOTTOM BAR
           ==================================================== */}
-          <div className="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="space-y-0.5">
-              <h3 className="text-base font-black text-[#14244A]">
+          <div className="bg-gradient-to-r from-[#6355F6] via-[#7B59F6] to-[#E2558E] rounded-3xl p-5 text-white shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="space-y-0.5 text-center sm:text-left">
+              <h3 className="text-base font-black tracking-tight flex items-center justify-center sm:justify-start gap-1.5">
                 Confirm &amp; Book Pickup →
               </h3>
-            </div>
-
-            <div className="text-xs font-bold text-slate-600 text-center sm:text-left">
-              <p>Estimated summary/Notes: → ₹50/item</p>
-              <p>
-                <span className="font-black text-slate-900">Delivery:</span> Wed, Oct 14 at 05:00 PM
+              <p className="text-xs font-semibold text-white/90">
+                Estimated summary: Starting at ₹60/kg • Delivery: {deliveryEstimates[selectedDay]} • ({selectedLocation})
               </p>
             </div>
 
             <div className="relative">
               <button
                 type="button"
-                onClick={handleConfirmBooking}
-                className="px-8 py-3.5 rounded-2xl bg-[#5833B6] hover:bg-[#49279D] text-white text-xs font-black shadow-lg shadow-purple-200 transition active:scale-[0.99] flex items-center gap-1.5"
+                onClick={handleConfirmPickup}
+                className="px-8 py-3.5 rounded-2xl bg-[#5833B6] hover:bg-[#49279D] text-white text-xs font-black shadow-lg transition active:scale-[0.99] flex items-center gap-2 border border-white/20 cursor-pointer"
               >
                 <span>Confirm &amp; Book Pickup</span>
                 <span className="text-sm">→</span>
               </button>
-
-              {/* Hand Cursor Illustration */}
-              <div className="absolute right-4 -bottom-4 pointer-events-none">
-                <span className="text-2xl drop-shadow">👆</span>
-              </div>
             </div>
           </div>
         </main>
       </div>
 
-      {/* =====================================================
-          3. SUCCESS POPUP MODAL (CONNECTS TO MY BOOKINGS)
-      ====================================================== */}
+      {/* 3. SUCCESS MODAL */}
       {isSuccessModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
           <div className="bg-white rounded-[32px] p-8 max-w-md w-full shadow-2xl border border-slate-100 space-y-6 text-center animate-in fade-in zoom-in-95 duration-200">
-            <div className="w-16 h-16 rounded-3xl bg-emerald-100 text-emerald-600 mx-auto flex items-center justify-center text-3xl shadow-sm">
+            <div className="w-16 h-16 rounded-3xl bg-purple-100 text-[#6C47FF] mx-auto flex items-center justify-center text-3xl shadow-sm">
               🧺
             </div>
 
             <div className="space-y-2">
               <h3 className="text-xl font-black text-[#14244A]">
-                Pickup Booked Successfully!
+                Pickup Scheduled!
               </h3>
               <p className="text-xs font-semibold text-slate-500 leading-relaxed">
-                Cotton Spa Laundry will pick up your items at{" "}
-                <span className="text-slate-900 font-bold">{selectedLocation}</span> on{" "}
+                Your laundry pickup from <span className="text-slate-900 font-bold">{selectedLocation}</span> has been requested for{" "}
                 <span className="text-slate-900 font-bold">
-                  {selectedDay} ({selectedSlot})
+                  {selectedDay} during {selectedSlot} ({slotTimingDetails[selectedSlot]})
                 </span>.
               </p>
             </div>
 
-            <div className="p-4 rounded-2xl bg-purple-50 text-left text-xs font-bold text-[#6C47FF] space-y-1">
-              <p>✦ Delivery estimated: Wed, Oct 14 at 05:00 PM</p>
-              <p className="text-slate-500 font-semibold text-[11px]">
-                Your booking is synchronized with your student dashboard.
+            <div className="p-4 rounded-2xl bg-amber-50 text-left text-xs font-bold text-amber-800 space-y-1 border border-amber-200">
+              <p>✦ Status: Awaiting CottonSpa Confirmation</p>
+              <p className="text-slate-600 font-semibold text-[11px]">
+                The owner of CottonSpa will approve your request and it will be updated to Confirmed on your dashboard.
               </p>
             </div>
 
@@ -581,15 +768,15 @@ export default function CottonSpaLaundryPage() {
               <button
                 type="button"
                 onClick={() => setIsSuccessModalOpen(false)}
-                className="flex-1 py-3 rounded-2xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 transition"
+                className="flex-1 py-3 rounded-2xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 transition cursor-pointer"
               >
                 Close
               </button>
 
               <button
                 type="button"
-                onClick={() => router.push("/bookings")}
-                className="flex-1 py-3 rounded-2xl bg-[#6C47FF] hover:bg-[#5835E5] text-white text-xs font-black shadow-md shadow-purple-200 transition"
+                onClick={() => router.push("/student/bookings")}
+                className="flex-1 py-3 rounded-2xl bg-[#6C47FF] hover:bg-[#5835E5] text-white text-xs font-black shadow-md shadow-purple-200 transition cursor-pointer"
               >
                 View in My Bookings
               </button>

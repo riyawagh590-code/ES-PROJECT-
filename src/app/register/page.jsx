@@ -19,9 +19,14 @@ import {
   Eye,
   EyeOff,
   ArrowRight,
+  CreditCard,
+  QrCode,
+  CheckCircle2,
+  X,
+  Check,
 } from "lucide-react";
 
-export default function RegisterPage() {
+function RegisterPage() {
   const router = useRouter();
 
   // Active registration tab: 'student' | 'vendor'
@@ -53,26 +58,14 @@ export default function RegisterPage() {
     confirmPassword: "",
   });
 
-  const handleStudentSubmit = (e) => {
-    e.preventDefault();
-    if (studentData.password !== studentData.confirmPassword) {
-      alert("Passwords do not match!");
-      return;
-    }
-    const newUser = {
-      role: "student",
-      ...studentData,
-      id: `STU-${Date.now()}`,
-    };
-    try {
-      localStorage.setItem("current_user", JSON.stringify(newUser));
-    } catch (err) {
-      console.error(err);
-    }
-    router.push("/student");
-  };
+  // Subscription Checkout Modal State
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [pendingAccount, setPendingAccount] = useState(null);
+  const [paymentMethod, setPaymentMethod] = useState("upi");
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [paymentSuccess, setPaymentSuccess] = useState(false);
 
-const getCategoryKey = (category = "", businessName = "") => {
+  const getCategoryKey = (category = "", businessName = "") => {
     const cat = category.toLowerCase();
     const name = businessName.toLowerCase();
 
@@ -83,6 +76,26 @@ const getCategoryKey = (category = "", businessName = "") => {
     if (cat.includes("mess") || cat.includes("food") || name.includes("annapurna") || name.includes("mess")) return "mess";
 
     return "mess";
+  };
+
+  const handleStudentSubmit = (e) => {
+    e.preventDefault();
+    if (studentData.password !== studentData.confirmPassword) {
+      alert("Passwords do not match!");
+      return;
+    }
+
+    const newUser = {
+      role: "student",
+      ...studentData,
+      id: `STU-${Date.now()}`,
+      subscription: "Student Campus Pass",
+      amountPaid: "₹200",
+      subscriptionStatus: "Active",
+    };
+
+    setPendingAccount(newUser);
+    setIsPaymentModalOpen(true);
   };
 
   const handleVendorSubmit = (e) => {
@@ -108,29 +121,63 @@ const getCategoryKey = (category = "", businessName = "") => {
       businessLocation: vendorData.businessLocation,
       contactNumber: vendorData.contactNumber,
       id: `VND-${Date.now()}`,
+      subscription: "Vendor Campus Listing",
+      amountPaid: "₹300",
+      subscriptionStatus: "Active",
     };
 
-    try {
-      // 1. Set current logged in user
-      localStorage.setItem("current_user", JSON.stringify(newVendor));
-      
-      // 2. Add to registered vendor registry so they can log in later
-      const vendorsList = JSON.parse(localStorage.getItem("campus_vendors") || "[]");
-      const filtered = vendorsList.filter((v) => v.email !== newVendor.email);
-      localStorage.setItem("campus_vendors", JSON.stringify([newVendor, ...filtered]));
-    } catch (err) {
-      console.error(err);
-    }
-
-    // Force navigation with the exact type query
-    window.location.href = `/vendor?type=${categoryKey}`;
+    setPendingAccount(newVendor);
+    setIsPaymentModalOpen(true);
   };
 
-  
+  const handleCompleteSubscription = () => {
+    setIsProcessing(true);
+
+    setTimeout(() => {
+      setIsProcessing(false);
+      setPaymentSuccess(true);
+
+      setTimeout(() => {
+        try {
+          if (pendingAccount?.role === "student") {
+            localStorage.setItem("current_user", JSON.stringify(pendingAccount));
+            localStorage.setItem("currentUser", JSON.stringify(pendingAccount));
+
+            const storedBookings = JSON.parse(localStorage.getItem("student_bookings") || "[]");
+            const subscriptionPass = {
+              id: `PASS-${Date.now()}`,
+              service: "Campus Pass",
+              item: "Student Monthly Membership",
+              price: "₹200 / month",
+              status: "Confirmed",
+              vendorConfirmed: true,
+              date: "Today",
+            };
+            localStorage.setItem("student_bookings", JSON.stringify([subscriptionPass, ...storedBookings]));
+            window.dispatchEvent(new Event("storage"));
+            router.push("/student");
+          } else if (pendingAccount?.role === "vendor") {
+            localStorage.setItem("current_user", JSON.stringify(pendingAccount));
+            localStorage.setItem("currentUser", JSON.stringify(pendingAccount));
+
+            const vendorsList = JSON.parse(localStorage.getItem("campus_vendors") || "[]");
+            const filtered = vendorsList.filter((v) => v.email !== pendingAccount.email);
+            localStorage.setItem("campus_vendors", JSON.stringify([pendingAccount, ...filtered]));
+            window.dispatchEvent(new Event("storage"));
+
+            window.location.href = `/vendor?type=${pendingAccount.categoryKey}`;
+          }
+        } catch (err) {
+          console.error(err);
+        }
+      }, 1000);
+    }, 1200);
+  };
+
+  const subscriptionAmount = role === "student" ? 200 : 300;
 
   return (
-    <div className="min-h-screen bg-[#FAFAFC] text-[#14244A] font-sans antialiased selection:bg-purple-200 pb-12">
-      {/* Top Header - Compact padding */}
+    <div className="min-h-screen bg-[#FAFAFC] text-[#14244A] font-sans antialiased selection:bg-purple-200 pb-12 relative">
       <header className="w-full max-w-7xl mx-auto px-6 sm:px-10 pt-6 pb-2 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-[#6C47FF] to-[#8C62FF] flex items-center justify-center text-white shadow-md shadow-purple-200">
@@ -156,12 +203,7 @@ const getCategoryKey = (category = "", businessName = "") => {
         </div>
       </header>
 
-      {/* Main Container - Shifted upwards close to top header */}
       <main className="w-full max-w-6xl mx-auto px-6 sm:px-10 pt-4 flex flex-col lg:flex-row items-start justify-between gap-10 lg:gap-16">
-        
-        {/* ===================================================
-            LEFT COLUMN (HERO & INFORMATION)
-        ==================================================== */}
         <div className="flex-1 w-full max-w-lg space-y-6 pt-2">
           <div className="space-y-2.5">
             <div className="flex items-center gap-2">
@@ -196,7 +238,25 @@ const getCategoryKey = (category = "", businessName = "") => {
             </p>
           </div>
 
-          {/* Value Props Bullet Items */}
+          <div className="p-4 rounded-3xl bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-100 flex items-center justify-between shadow-xs">
+            <div className="space-y-0.5">
+              <span className="text-[10px] font-black uppercase tracking-wider text-[#6C47FF]">
+                Monthly Subscription
+              </span>
+              <h4 className="text-base font-black text-slate-900">
+                {role === "student" ? "Student Pass: ₹200/mo" : "Vendor Listing: ₹300/mo"}
+              </h4>
+              <p className="text-[11px] text-slate-500 font-medium">
+                {role === "student"
+                  ? "Unlimited bookings, roommate chats & counter QR perks"
+                  : "Direct student leads, order manager & live broadcast"}
+              </p>
+            </div>
+            <div className="w-10 h-10 rounded-2xl bg-white text-[#6C47FF] font-black flex items-center justify-center text-lg shadow-sm shrink-0">
+              ₹
+            </div>
+          </div>
+
           <div className="space-y-3.5 pt-1">
             {role === "student" ? (
               <>
@@ -265,7 +325,6 @@ const getCategoryKey = (category = "", businessName = "") => {
             )}
           </div>
 
-          {/* Bottom Card With Image */}
           <div className="pt-1">
             <div className="inline-block px-4 py-2 rounded-2xl bg-[#ECE7FE] text-[#6C47FF] text-xs font-extrabold mb-3">
               {role === "student" ? "Your campus. Our priority. ♡" : "Serve students. Build your campus business."}
@@ -281,70 +340,60 @@ const getCategoryKey = (category = "", businessName = "") => {
           </div>
         </div>
 
-        {/* ===================================================
-            RIGHT COLUMN (FORM CARD)
-        ==================================================== */}
         <div className="w-full lg:w-[480px] bg-white rounded-[36px] p-7 sm:p-8 shadow-[0_20px_50px_rgba(108,71,255,0.07)] border border-slate-100 space-y-5">
-          
-          {/* Tag Pill */}
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#ECE7FE] text-[#6C47FF] text-[10px] font-black uppercase tracking-wider">
             {role === "student" ? (
               <>
                 <GraduationCap className="w-3.5 h-3.5" />
-                <span>Student Registration</span>
+                <span>Student Plan • ₹200/mo</span>
               </>
             ) : (
               <>
                 <Store className="w-3.5 h-3.5" />
-                <span>Vendor Registration</span>
+                <span>Vendor Plan • ₹300/mo</span>
               </>
             )}
           </div>
 
-          {/* Form Header */}
           <div className="space-y-1">
             <h2 className="text-2xl font-black text-[#14244A]">
               {role === "student" ? "Let’s get you started!" : "Welcome, Vendor! 👋"}
             </h2>
             <p className="text-xs font-semibold text-slate-400">
               {role === "student"
-                ? "Fill in your details to create your account."
-                : "Create your business profile and start serving students."}
+                ? "Fill in your details and subscribe to activate your student account."
+                : "Create your business profile with our monthly vendor subscription."}
             </p>
           </div>
 
-          {/* Role Switcher */}
           <div className="p-1 rounded-2xl bg-[#F4F5F9] border border-slate-200/70 flex items-center">
             <button
               type="button"
-              suppressHydrationWarning
               onClick={() => setRole("student")}
-              className={`flex-1 py-2.5 rounded-xl text-xs font-black flex items-center justify-center gap-2 transition-all ${
+              className={`flex-1 py-2.5 rounded-xl text-xs font-black flex items-center justify-center gap-2 transition-all cursor-pointer ${
                 role === "student"
                   ? "bg-[#6C47FF] text-white shadow-md shadow-purple-200"
                   : "text-slate-500 hover:text-slate-900"
               }`}
             >
               <GraduationCap className="w-4 h-4" />
-              <span>Student</span>
+              <span>Student (₹200)</span>
             </button>
 
             <button
               type="button"
-              suppressHydrationWarning
               onClick={() => setRole("vendor")}
-              className={`flex-1 py-2.5 rounded-xl text-xs font-black flex items-center justify-center gap-2 transition-all ${
+              className={`flex-1 py-2.5 rounded-xl text-xs font-black flex items-center justify-center gap-2 transition-all cursor-pointer ${
                 role === "vendor"
                   ? "bg-[#6C47FF] text-white shadow-md shadow-purple-200"
                   : "text-slate-500 hover:text-slate-900"
               }`}
             >
               <Store className="w-4 h-4" />
-              <span>Vendor</span>
+              <span>Vendor (₹300)</span>
             </button>
           </div>
 
-          {/* Student Form */}
           {role === "student" && (
             <form onSubmit={handleStudentSubmit} className="space-y-3.5">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -359,9 +408,7 @@ const getCategoryKey = (category = "", businessName = "") => {
                     placeholder="Enter your full name"
                     value={studentData.fullName}
                     onChange={(e) => setStudentData({ ...studentData, fullName: e.target.value })}
-                    suppressHydrationWarning
-                    data-lpignore="true"
-                    className="w-full text-xs font-medium text-slate-800 bg-[#FBFBFE] border border-slate-200 rounded-xl p-3 focus:outline-none focus:border-[#6C47FF] focus:ring-1 focus:ring-purple-200"
+                    className="w-full text-xs font-medium text-slate-800 bg-[#FBFBFE] border border-slate-200 rounded-xl p-3 focus:outline-none focus:border-[#6C47FF]"
                   />
                 </div>
 
@@ -376,9 +423,7 @@ const getCategoryKey = (category = "", businessName = "") => {
                     placeholder="Enter your college name"
                     value={studentData.college}
                     onChange={(e) => setStudentData({ ...studentData, college: e.target.value })}
-                    suppressHydrationWarning
-                    data-lpignore="true"
-                    className="w-full text-xs font-medium text-slate-800 bg-[#FBFBFE] border border-slate-200 rounded-xl p-3 focus:outline-none focus:border-[#6C47FF] focus:ring-1 focus:ring-purple-200"
+                    className="w-full text-xs font-medium text-slate-800 bg-[#FBFBFE] border border-slate-200 rounded-xl p-3 focus:outline-none focus:border-[#6C47FF]"
                   />
                 </div>
               </div>
@@ -391,8 +436,7 @@ const getCategoryKey = (category = "", businessName = "") => {
                       value={studentData.year}
                       onChange={(e) => setStudentData({ ...studentData, year: e.target.value })}
                       required
-                      suppressHydrationWarning
-                      className="w-full text-xs font-medium text-slate-800 bg-[#FBFBFE] border border-slate-200 rounded-xl p-3 appearance-none focus:outline-none focus:border-[#6C47FF] focus:ring-1 focus:ring-purple-200"
+                      className="w-full text-xs font-medium text-slate-800 bg-[#FBFBFE] border border-slate-200 rounded-xl p-3 appearance-none focus:outline-none focus:border-[#6C47FF] cursor-pointer"
                     >
                       <option value="">Select your year</option>
                       <option value="1st Year">1st Year (Fresher)</option>
@@ -415,9 +459,7 @@ const getCategoryKey = (category = "", businessName = "") => {
                     placeholder="you@example.com"
                     value={studentData.email}
                     onChange={(e) => setStudentData({ ...studentData, email: e.target.value })}
-                    suppressHydrationWarning
-                    data-lpignore="true"
-                    className="w-full text-xs font-medium text-slate-800 bg-[#FBFBFE] border border-slate-200 rounded-xl p-3 focus:outline-none focus:border-[#6C47FF] focus:ring-1 focus:ring-purple-200"
+                    className="w-full text-xs font-medium text-slate-800 bg-[#FBFBFE] border border-slate-200 rounded-xl p-3 focus:outline-none focus:border-[#6C47FF]"
                   />
                 </div>
               </div>
@@ -435,13 +477,10 @@ const getCategoryKey = (category = "", businessName = "") => {
                       placeholder="Create password"
                       value={studentData.password}
                       onChange={(e) => setStudentData({ ...studentData, password: e.target.value })}
-                      suppressHydrationWarning
-                      data-lpignore="true"
-                      className="w-full text-xs font-medium text-slate-800 bg-[#FBFBFE] border border-slate-200 rounded-xl p-3 pr-9 focus:outline-none focus:border-[#6C47FF] focus:ring-1 focus:ring-purple-200"
+                      className="w-full text-xs font-medium text-slate-800 bg-[#FBFBFE] border border-slate-200 rounded-xl p-3 pr-9 focus:outline-none focus:border-[#6C47FF]"
                     />
                     <button
                       type="button"
-                      suppressHydrationWarning
                       onClick={() => setShowPassword(!showPassword)}
                       className="absolute right-3 top-3 text-slate-400 hover:text-slate-600"
                     >
@@ -462,13 +501,10 @@ const getCategoryKey = (category = "", businessName = "") => {
                       placeholder="Confirm password"
                       value={studentData.confirmPassword}
                       onChange={(e) => setStudentData({ ...studentData, confirmPassword: e.target.value })}
-                      suppressHydrationWarning
-                      data-lpignore="true"
-                      className="w-full text-xs font-medium text-slate-800 bg-[#FBFBFE] border border-slate-200 rounded-xl p-3 pr-9 focus:outline-none focus:border-[#6C47FF] focus:ring-1 focus:ring-purple-200"
+                      className="w-full text-xs font-medium text-slate-800 bg-[#FBFBFE] border border-slate-200 rounded-xl p-3 pr-9 focus:outline-none focus:border-[#6C47FF]"
                     />
                     <button
                       type="button"
-                      suppressHydrationWarning
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                       className="absolute right-3 top-3 text-slate-400 hover:text-slate-600"
                     >
@@ -480,16 +516,14 @@ const getCategoryKey = (category = "", businessName = "") => {
 
               <button
                 type="submit"
-                suppressHydrationWarning
                 className="w-full py-3.5 rounded-2xl bg-[#6C47FF] hover:bg-[#5835E5] text-white text-xs font-black shadow-lg shadow-purple-200 transition active:scale-[0.99] flex items-center justify-center gap-2 mt-2 cursor-pointer"
               >
-                <span>Create Account</span>
+                <span>Proceed to Pay ₹200 &amp; Create Account</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </form>
           )}
 
-          {/* Vendor Form */}
           {role === "vendor" && (
             <form onSubmit={handleVendorSubmit} className="space-y-3.5">
               <div className="space-y-1">
@@ -503,9 +537,7 @@ const getCategoryKey = (category = "", businessName = "") => {
                   placeholder="e.g. Annapurna Home Mess, Cotton Spa"
                   value={vendorData.businessName}
                   onChange={(e) => setVendorData({ ...vendorData, businessName: e.target.value })}
-                  suppressHydrationWarning
-                  data-lpignore="true"
-                  className="w-full text-xs font-medium text-slate-800 bg-[#FBFBFE] border border-slate-200 rounded-xl p-3 focus:outline-none focus:border-[#6C47FF] focus:ring-1 focus:ring-purple-200"
+                  className="w-full text-xs font-medium text-slate-800 bg-[#FBFBFE] border border-slate-200 rounded-xl p-3 focus:outline-none focus:border-[#6C47FF]"
                 />
               </div>
 
@@ -521,9 +553,7 @@ const getCategoryKey = (category = "", businessName = "") => {
                     placeholder="e.g. Rahul Patil"
                     value={vendorData.ownerName}
                     onChange={(e) => setVendorData({ ...vendorData, ownerName: e.target.value })}
-                    suppressHydrationWarning
-                    data-lpignore="true"
-                    className="w-full text-xs font-medium text-slate-800 bg-[#FBFBFE] border border-slate-200 rounded-xl p-3 focus:outline-none focus:border-[#6C47FF] focus:ring-1 focus:ring-purple-200"
+                    className="w-full text-xs font-medium text-slate-800 bg-[#FBFBFE] border border-slate-200 rounded-xl p-3 focus:outline-none focus:border-[#6C47FF]"
                   />
                 </div>
 
@@ -534,8 +564,7 @@ const getCategoryKey = (category = "", businessName = "") => {
                       value={vendorData.serviceCategory}
                       onChange={(e) => setVendorData({ ...vendorData, serviceCategory: e.target.value })}
                       required
-                      suppressHydrationWarning
-                      className="w-full text-xs font-medium text-slate-800 bg-[#FBFBFE] border border-slate-200 rounded-xl p-3 appearance-none focus:outline-none focus:border-[#6C47FF] focus:ring-1 focus:ring-purple-200"
+                      className="w-full text-xs font-medium text-slate-800 bg-[#FBFBFE] border border-slate-200 rounded-xl p-3 appearance-none focus:outline-none focus:border-[#6C47FF] cursor-pointer"
                     >
                       <option value="Mess & Food">Mess &amp; Food</option>
                       <option value="Laundry">Laundry</option>
@@ -559,9 +588,7 @@ const getCategoryKey = (category = "", businessName = "") => {
                   placeholder="Enter shop/service location near campus"
                   value={vendorData.businessLocation}
                   onChange={(e) => setVendorData({ ...vendorData, businessLocation: e.target.value })}
-                  suppressHydrationWarning
-                  data-lpignore="true"
-                  className="w-full text-xs font-medium text-slate-800 bg-[#FBFBFE] border border-slate-200 rounded-xl p-3 focus:outline-none focus:border-[#6C47FF] focus:ring-1 focus:ring-purple-200"
+                  className="w-full text-xs font-medium text-slate-800 bg-[#FBFBFE] border border-slate-200 rounded-xl p-3 focus:outline-none focus:border-[#6C47FF]"
                 />
               </div>
 
@@ -577,9 +604,7 @@ const getCategoryKey = (category = "", businessName = "") => {
                     placeholder="10-digit mobile number"
                     value={vendorData.contactNumber}
                     onChange={(e) => setVendorData({ ...vendorData, contactNumber: e.target.value })}
-                    suppressHydrationWarning
-                    data-lpignore="true"
-                    className="w-full text-xs font-medium text-slate-800 bg-[#FBFBFE] border border-slate-200 rounded-xl p-3 focus:outline-none focus:border-[#6C47FF] focus:ring-1 focus:ring-purple-200"
+                    className="w-full text-xs font-medium text-slate-800 bg-[#FBFBFE] border border-slate-200 rounded-xl p-3 focus:outline-none focus:border-[#6C47FF]"
                   />
                 </div>
 
@@ -594,9 +619,7 @@ const getCategoryKey = (category = "", businessName = "") => {
                     placeholder="business@example.com"
                     value={vendorData.email}
                     onChange={(e) => setVendorData({ ...vendorData, email: e.target.value })}
-                    suppressHydrationWarning
-                    data-lpignore="true"
-                    className="w-full text-xs font-medium text-slate-800 bg-[#FBFBFE] border border-slate-200 rounded-xl p-3 focus:outline-none focus:border-[#6C47FF] focus:ring-1 focus:ring-purple-200"
+                    className="w-full text-xs font-medium text-slate-800 bg-[#FBFBFE] border border-slate-200 rounded-xl p-3 focus:outline-none focus:border-[#6C47FF]"
                   />
                 </div>
               </div>
@@ -614,13 +637,10 @@ const getCategoryKey = (category = "", businessName = "") => {
                       placeholder="Create password"
                       value={vendorData.password}
                       onChange={(e) => setVendorData({ ...vendorData, password: e.target.value })}
-                      suppressHydrationWarning
-                      data-lpignore="true"
-                      className="w-full text-xs font-medium text-slate-800 bg-[#FBFBFE] border border-slate-200 rounded-xl p-3 pr-9 focus:outline-none focus:border-[#6C47FF] focus:ring-1 focus:ring-purple-200"
+                      className="w-full text-xs font-medium text-slate-800 bg-[#FBFBFE] border border-slate-200 rounded-xl p-3 pr-9 focus:outline-none focus:border-[#6C47FF]"
                     />
                     <button
                       type="button"
-                      suppressHydrationWarning
                       onClick={() => setShowPassword(!showPassword)}
                       className="absolute right-3 top-3 text-slate-400 hover:text-slate-600"
                     >
@@ -641,13 +661,10 @@ const getCategoryKey = (category = "", businessName = "") => {
                       placeholder="Confirm password"
                       value={vendorData.confirmPassword}
                       onChange={(e) => setVendorData({ ...vendorData, confirmPassword: e.target.value })}
-                      suppressHydrationWarning
-                      data-lpignore="true"
-                      className="w-full text-xs font-medium text-slate-800 bg-[#FBFBFE] border border-slate-200 rounded-xl p-3 pr-9 focus:outline-none focus:border-[#6C47FF] focus:ring-1 focus:ring-purple-200"
+                      className="w-full text-xs font-medium text-slate-800 bg-[#FBFBFE] border border-slate-200 rounded-xl p-3 pr-9 focus:outline-none focus:border-[#6C47FF]"
                     />
                     <button
                       type="button"
-                      suppressHydrationWarning
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                       className="absolute right-3 top-3 text-slate-400 hover:text-slate-600"
                     >
@@ -659,16 +676,14 @@ const getCategoryKey = (category = "", businessName = "") => {
 
               <button
                 type="submit"
-                suppressHydrationWarning
                 className="w-full py-3.5 rounded-2xl bg-[#6C47FF] hover:bg-[#5835E5] text-white text-xs font-black shadow-lg shadow-purple-200 transition active:scale-[0.99] flex items-center justify-center gap-2 mt-2 cursor-pointer"
               >
-                <span>Create Vendor Account</span>
+                <span>Proceed to Pay ₹300 &amp; Create Vendor Account</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </form>
           )}
 
-          {/* Social Divider */}
           <div className="relative flex items-center justify-center my-2">
             <div className="border-t border-slate-200 w-full" />
             <span className="bg-white px-3 text-[10px] font-black text-slate-400 uppercase tracking-widest absolute">
@@ -676,10 +691,8 @@ const getCategoryKey = (category = "", businessName = "") => {
             </span>
           </div>
 
-          {/* Google Sign-in */}
           <button
             type="button"
-            suppressHydrationWarning
             className="w-full py-3 rounded-2xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold transition flex items-center justify-center gap-2.5 cursor-pointer shadow-sm"
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24">
@@ -703,7 +716,6 @@ const getCategoryKey = (category = "", businessName = "") => {
             <span>Continue with Google</span>
           </button>
 
-          {/* Footer note */}
           <div className="text-center space-y-1.5 pt-1">
             <p className="text-xs font-semibold text-slate-500">
               Already have an account?{" "}
@@ -720,6 +732,162 @@ const getCategoryKey = (category = "", businessName = "") => {
           </div>
         </div>
       </main>
+
+      {/* SUBSCRIPTION MODAL */}
+      {isPaymentModalOpen && (
+        <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-in fade-in duration-150">
+          <div className="bg-white rounded-[32px] p-6 sm:p-8 max-w-md w-full border border-slate-100 shadow-2xl space-y-5 animate-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+              <div className="flex items-center gap-2.5">
+                <div className="w-10 h-10 rounded-2xl bg-purple-100 text-[#6C47FF] flex items-center justify-center text-xl shadow-xs">
+                  💳
+                </div>
+                <div>
+                  <h3 className="text-base font-black text-[#14244A]">
+                    Activate Account Subscription
+                  </h3>
+                  <p className="text-[10px] text-slate-400 font-bold">
+                    {role === "student" ? "Student Access Pass" : "Vendor Business Listing"}
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setIsPaymentModalOpen(false)}
+                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition cursor-pointer"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <div className="rounded-2xl p-4 bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-100 flex items-center justify-between">
+              <div>
+                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                  Plan Duration: 30 Days
+                </p>
+                <h4 className="text-base font-black text-[#14244A] mt-0.5">
+                  {role === "student" ? "Student Membership" : "Vendor Platform Access"}
+                </h4>
+                <p className="text-[11px] text-[#6C47FF] font-bold mt-0.5">
+                  ✓ Instant activation on payment
+                </p>
+              </div>
+
+              <div className="text-right">
+                <span className="text-2xl font-black text-[#6C47FF]">
+                  ₹{subscriptionAmount}
+                </span>
+                <span className="text-[10px] text-slate-400 font-bold block">/ month</span>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-[11px] font-black text-slate-700 block uppercase">
+                Select Payment Method:
+              </label>
+
+              <div className="grid grid-cols-3 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setPaymentMethod("upi")}
+                  className={`p-3 rounded-2xl border text-center transition cursor-pointer ${
+                    paymentMethod === "upi"
+                      ? "border-[#6C47FF] bg-purple-50/70 text-[#6C47FF] font-black shadow-xs"
+                      : "border-slate-200 text-slate-600 hover:bg-slate-50 font-bold"
+                  }`}
+                >
+                  <QrCode className="w-4 h-4 mx-auto mb-1" />
+                  <span className="text-[11px] block">UPI / QR</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setPaymentMethod("card")}
+                  className={`p-3 rounded-2xl border text-center transition cursor-pointer ${
+                    paymentMethod === "card"
+                      ? "border-[#6C47FF] bg-purple-50/70 text-[#6C47FF] font-black shadow-xs"
+                      : "border-slate-200 text-slate-600 hover:bg-slate-50 font-bold"
+                  }`}
+                >
+                  <CreditCard className="w-4 h-4 mx-auto mb-1" />
+                  <span className="text-[11px] block">Card</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setPaymentMethod("net")}
+                  className={`p-3 rounded-2xl border text-center transition cursor-pointer ${
+                    paymentMethod === "net"
+                      ? "border-[#6C47FF] bg-purple-50/70 text-[#6C47FF] font-black shadow-xs"
+                      : "border-slate-200 text-slate-600 hover:bg-slate-50 font-bold"
+                  }`}
+                >
+                  <Building className="w-4 h-4 mx-auto mb-1" />
+                  <span className="text-[11px] block">Net Banking</span>
+                </button>
+              </div>
+            </div>
+
+            {paymentMethod === "upi" && (
+              <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/70 flex items-center gap-3">
+                <div className="w-16 h-16 bg-white p-1 rounded-xl border border-slate-200 shrink-0">
+                  <img
+                    src={`https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=upi://pay?pa=studentica@axisbank&pn=Studentica&am=${subscriptionAmount}&cu=INR`}
+                    alt="UPI QR Code"
+                    className="w-full h-full object-contain"
+                  />
+                </div>
+                <div className="text-xs">
+                  <p className="font-extrabold text-slate-900">Scan via any UPI App</p>
+                  <p className="text-[10px] text-slate-500">Google Pay, PhonePe, Paytm, BHIM</p>
+                  <p className="text-[10px] font-bold text-emerald-600 mt-1">Verified Axis UPI Gateway</p>
+                </div>
+              </div>
+            )}
+
+            <div className="space-y-2 pt-1">
+              <button
+                type="button"
+                disabled={isProcessing || paymentSuccess}
+                onClick={handleCompleteSubscription}
+                className={`w-full py-3.5 rounded-2xl text-white text-xs font-black shadow-lg transition flex items-center justify-center gap-2 cursor-pointer ${
+                  paymentSuccess
+                    ? "bg-emerald-600 shadow-emerald-200"
+                    : "bg-[#6C47FF] hover:bg-[#5835E5] shadow-purple-200 active:scale-[0.99]"
+                }`}
+              >
+                {isProcessing ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    <span>Processing Subscription...</span>
+                  </>
+                ) : paymentSuccess ? (
+                  <>
+                    <Check className="w-4 h-4" />
+                    <span>Payment Received! Activating...</span>
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="w-4 h-4" />
+                    <span>Pay ₹{subscriptionAmount} &amp; Create Account</span>
+                  </>
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setIsPaymentModalOpen(false)}
+                className="w-full py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-600 text-xs font-bold transition cursor-pointer"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+
+export default RegisterPage;

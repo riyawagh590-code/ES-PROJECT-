@@ -2,7 +2,6 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-{/*import Navbar from "@/components/common/Navbar";*/}
 import {
   GraduationCap,
   Search,
@@ -15,26 +14,26 @@ import {
   SlidersHorizontal,
   Home as HomeIcon,
   Shirt,
-  Sparkle,
   Coffee,
-  UserCheck,
-  Check,
   ChevronDown,
   ArrowRight,
   ShieldCheck,
-  Tag,
-  ThumbsUp,
-  Grid,
   Building,
   Users,
   Award,
   User,
   Settings,
   MessageCircle,
+  RotateCcw,
 } from "lucide-react";
 
 export default function StudentMessPage() {
-  const [messType, setMessType] = useState({ veg: true, nonVeg: false, jain: false });
+  const [searchTerm, setSearchTerm] = useState("");
+  const [messType, setMessType] = useState({ veg: true, nonVeg: true, jain: false });
+  const [selectedTypeDropdown, setSelectedTypeDropdown] = useState("All Types");
+  const [selectedRatingDropdown, setSelectedRatingDropdown] = useState("All Ratings");
+  const [selectedLocation, setSelectedLocation] = useState("All Locations");
+  const [ratingCheckbox, setRatingCheckbox] = useState(false);
   const [priceRange, setPriceRange] = useState(3000);
   const [selectedSort, setSelectedSort] = useState("Rating");
 
@@ -42,13 +41,12 @@ export default function StudentMessPage() {
     { label: "Home", href: "/", icon: HomeIcon },
     { label: "Mess", href: "/student/mess", icon: Utensils, active: true },
     { label: "Hostel / PG", href: "/student/pg", icon: Building },
-    { label: "Restaurant", href: "/student/cafes", icon: Utensils },
     { label: "Cafe", href: "/student/cafes", icon: Coffee },
     { label: "Laundry", href: "/student/laundry", icon: Shirt },
     { label: "Housekeeping", href: "/student/cleaning", icon: Sparkles },
     { label: "Roommate Finder", href: "/student/roommates", icon: Users },
     { label: "Freshers Pass", href: "/pass", icon: Award },
-    { label: "about", href: "/student/about", icon: Bell },
+    { label: "About", href: "/student/about", icon: Bell },
     { label: "Profile", href: "/student/profile", icon: User },
     { label: "Settings", href: "/settings", icon: Settings },
   ];
@@ -64,6 +62,7 @@ export default function StudentMessPage() {
       reviews: "312",
       location: "Opp. MIT - ACSC college",
       price: "1,900",
+      rawPrice: 1900,
       features: ["Home Style Food", "Clean Hygienic", "Student Friendly"],
       image: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&auto=format&fit=crop&q=80",
     },
@@ -75,6 +74,7 @@ export default function StudentMessPage() {
       reviews: "198",
       location: "MIT- AOE Road",
       price: "1,800",
+      rawPrice: 1800,
       features: ["Tasty Meals", "Clean Kitchen", "Good Location"],
       image: "https://images.unsplash.com/photo-1589302168068-964664d93dc0?w=600&auto=format&fit=crop&q=80",
     },
@@ -86,6 +86,7 @@ export default function StudentMessPage() {
       reviews: "146",
       location: "Snesparsh Residency, DuDulgaon",
       price: "2,000",
+      rawPrice: 2000,
       features: ["Homely Food", "Spacious Dining", "Student Friendly"],
       image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=600&auto=format&fit=crop&q=80",
     },
@@ -97,6 +98,7 @@ export default function StudentMessPage() {
       reviews: "210",
       location: "Near MIT girls hostel",
       price: "1,600",
+      rawPrice: 1600,
       features: ["Pure Veg", "Hygienic", "Affordable"],
       image: "https://images.unsplash.com/photo-1626777552726-4a6b54c97e46?w=600&auto=format&fit=crop&q=80",
     },
@@ -108,6 +110,7 @@ export default function StudentMessPage() {
       reviews: "170",
       location: "MIT- AOE Road",
       price: "1,700",
+      rawPrice: 1700,
       features: ["Healthy Food", "Regular Menu", "Friendly Staff"],
       image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&auto=format&fit=crop&q=80",
     },
@@ -119,6 +122,7 @@ export default function StudentMessPage() {
       reviews: "156",
       location: "Dehu - Alandi Rd, Vishweshwar Nagar",
       price: "1,700",
+      rawPrice: 1700,
       features: ["Veg & Non-Veg", "Tasty Food", "Good Hygiene"],
       image: "https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=600&auto=format&fit=crop&q=80",
     },
@@ -130,6 +134,7 @@ export default function StudentMessPage() {
       reviews: "120",
       location: "MIT College Rd, Vishweshwar Nagar",
       price: "1,800",
+      rawPrice: 1800,
       features: ["Homely Food", "Clean Kitchen", "Spacious"],
       image: "https://images.unsplash.com/photo-1552566626-52f8b828add9?w=600&auto=format&fit=crop&q=80",
     },
@@ -141,6 +146,7 @@ export default function StudentMessPage() {
       reviews: "134",
       location: "Dehu - Alandi Rd, Vishweshwar Nagar",
       price: "1,700",
+      rawPrice: 1700,
       features: ["Fresh Food", "Clean & Safe", "Affordable"],
       image: "https://images.unsplash.com/photo-1610057099443-fde8c4d50f91?w=600&auto=format&fit=crop&q=80",
     },
@@ -152,6 +158,7 @@ export default function StudentMessPage() {
       reviews: "98",
       location: "Dehu Phata",
       price: "1,600",
+      rawPrice: 1600,
       features: ["Home Style", "Hygienic", "Good Location"],
       image: "https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=600&auto=format&fit=crop&q=80",
     },
@@ -163,6 +170,7 @@ export default function StudentMessPage() {
       reviews: "92",
       location: "Indrayani Nagar, Pata, Alandi",
       price: "1,800",
+      rawPrice: 1800,
       features: ["Tasty Food", "Clean Kitchen", "Friendly Staff"],
       image: "https://images.unsplash.com/photo-1540420773420-3366772f4999?w=600&auto=format&fit=crop&q=80",
     },
@@ -174,6 +182,7 @@ export default function StudentMessPage() {
       reviews: "118",
       location: "Vishweshwar Nagar, Dehu Phata, Alandi",
       price: "1,700",
+      rawPrice: 1700,
       features: ["Homely Food", "Clean Kitchen", "Good Hygiene"],
       image: "https://images.unsplash.com/photo-1590846406792-0adc7f938f1d?w=600&auto=format&fit=crop&q=80",
     },
@@ -185,29 +194,98 @@ export default function StudentMessPage() {
       reviews: "105",
       location: "Near Devkrupa Petrol Pump, Vishweshwar Nagar",
       price: "1,800",
+      rawPrice: 1800,
       features: ["Tasty Food", "Clean & Safe", "Affordable"],
       image: "https://images.unsplash.com/photo-1578474846511-04ba529f0b88?w=600&auto=format&fit=crop&q=80",
     },
   ];
 
+  const handleResetFilters = () => {
+    setSearchTerm("");
+    setMessType({ veg: true, nonVeg: true, jain: false });
+    setSelectedTypeDropdown("All Types");
+    setSelectedRatingDropdown("All Ratings");
+    setSelectedLocation("All Locations");
+    setRatingCheckbox(false);
+    setPriceRange(3000);
+    setSelectedSort("Rating");
+  };
+
+  // Live Comprehensive Filter & Sort Logic
+  const filteredMesses = messes
+    .filter((item) => {
+      // 1. Search Query
+      const query = searchTerm.trim().toLowerCase();
+      const matchesSearch =
+        query === "" ||
+        item.name.toLowerCase().includes(query) ||
+        item.location.toLowerCase().includes(query);
+
+      // 2. Mess Type Checkboxes & Dropdown
+      const itemType = (item.type || "").toLowerCase();
+      let matchesTypeCheckbox = false;
+
+      if (messType.veg && itemType.includes("veg") && !itemType.includes("non")) matchesTypeCheckbox = true;
+      if (messType.nonVeg && itemType.includes("non")) matchesTypeCheckbox = true;
+      if (messType.jain && itemType.includes("jain")) matchesTypeCheckbox = true;
+      if (!messType.veg && !messType.nonVeg && !messType.jain) matchesTypeCheckbox = true;
+
+      let matchesTypeDropdown = true;
+      if (selectedTypeDropdown !== "All Types") {
+        matchesTypeDropdown = itemType.includes(selectedTypeDropdown.toLowerCase());
+      }
+
+      const matchesType = matchesTypeCheckbox && matchesTypeDropdown;
+
+      // 3. Price Range Slider
+      const matchesPrice = item.rawPrice <= Number(priceRange);
+
+      // 4. Rating Filters (Dropdown & Checkbox)
+      const ratingNum = parseFloat(item.rating) || 0;
+      let matchesRating = true;
+
+      if (selectedRatingDropdown === "4.5 & above") {
+        matchesRating = ratingNum >= 4.5;
+      } else if (selectedRatingDropdown === "4.0 & above") {
+        matchesRating = ratingNum >= 4.0;
+      }
+
+      if (ratingCheckbox) {
+        matchesRating = matchesRating && ratingNum >= 4.0;
+      }
+
+      // 5. Location Select
+      let matchesLocation = true;
+      if (selectedLocation !== "All Locations" && selectedLocation !== "Select location") {
+        matchesLocation = item.location.toLowerCase().includes(selectedLocation.toLowerCase());
+      }
+
+      return matchesSearch && matchesType && matchesPrice && matchesRating && matchesLocation;
+    })
+    .sort((a, b) => {
+      if (selectedSort === "Rating") {
+        return parseFloat(b.rating) - parseFloat(a.rating);
+      } else if (selectedSort === "Price: Low to High") {
+        return a.rawPrice - b.rawPrice;
+      } else if (selectedSort === "Price: High to Low") {
+        return b.rawPrice - a.rawPrice;
+      }
+      return 0;
+    });
+
   return (
     <div className="min-h-screen bg-[#FAF9FD] text-slate-900 font-sans selection:bg-purple-100 selection:text-purple-700">
-      {/* 1. TOP NAVBAR */}
-     
-
-      {/* 2. HERO BANNER */}
+      {/* HERO BANNER */}
       <section className="max-w-[1550px] mx-auto px-4 md:px-6 pt-6 pb-4">
         <div className="relative rounded-[36px] bg-gradient-to-r from-[#FFF1F2] via-[#FDF2F8] to-[#F5F3FF] border border-rose-100/60 p-8 md:p-12 overflow-hidden flex flex-col lg:flex-row items-center justify-between gap-8 shadow-sm">
-          {/* Decorative Doodles */}
           <div className="absolute top-6 left-1/3 hidden md:block text-rose-500 text-xs font-bold rotate-[-10deg]">
             Good Food <br /> Good Mood ッ
           </div>
 
-          {/* Left Text */}
           <div className="space-y-4 max-w-xl z-10">
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-rose-100 text-rose-600 text-xs font-bold uppercase tracking-wider">
               <Utensils className="w-3.5 h-3.5" />
-              Food & Mess Services
+              Food &amp; Mess Services
             </div>
 
             <h1 className="text-4xl md:text-5xl font-black text-slate-950 tracking-tight leading-[1.15]">
@@ -223,7 +301,6 @@ export default function StudentMessPage() {
             </p>
           </div>
 
-          {/* Center Circular Indian Thali Graphic */}
           <div className="relative z-10 shrink-0">
             <div className="w-56 h-56 md:w-64 md:h-64 rounded-full overflow-hidden shadow-2xl border-4 border-white ring-8 ring-rose-200/50">
               <img
@@ -234,29 +311,45 @@ export default function StudentMessPage() {
             </div>
           </div>
 
-          {/* Right Quick Search Box */}
+          {/* Quick Search Card in Banner */}
           <div className="w-full lg:w-80 bg-white/90 backdrop-blur-md rounded-3xl p-5 border border-purple-100 shadow-xl space-y-3 z-10">
             <div className="flex items-center gap-2 bg-slate-50 border border-slate-200/80 rounded-2xl px-3 py-2.5">
               <MapPin className="w-4 h-4 text-purple-600 shrink-0" />
               <input
                 type="text"
-                placeholder="Search messes near your campus..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Search messes near campus..."
                 className="w-full text-xs font-semibold text-slate-800 placeholder-slate-400 bg-transparent focus:outline-none"
               />
-              <button className="w-8 h-8 rounded-xl bg-[#201B52] text-white flex items-center justify-center shrink-0 shadow-md">
+              <button
+                type="button"
+                className="w-8 h-8 rounded-xl bg-[#201B52] text-white flex items-center justify-center shrink-0 shadow-md"
+              >
                 <Search className="w-3.5 h-3.5" />
               </button>
             </div>
 
-            {/* Quick Pills */}
             <div className="grid grid-cols-3 gap-1.5 text-[10px] font-bold">
-              <button className="py-2 px-1 rounded-xl bg-slate-100 hover:bg-purple-100 text-slate-700 flex items-center justify-center gap-1 transition">
+              <button
+                type="button"
+                onClick={() => setSelectedLocation("Alandi")}
+                className="py-2 px-1 rounded-xl bg-slate-100 hover:bg-purple-100 text-slate-700 flex items-center justify-center gap-1 transition"
+              >
                 <MapPin className="w-3 h-3 text-[#6C47FF]" /> Near Me
               </button>
-              <button className="py-2 px-1 rounded-xl bg-slate-100 hover:bg-purple-100 text-slate-700 flex items-center justify-center gap-1 transition">
+              <button
+                type="button"
+                onClick={() => setSelectedSort("Rating")}
+                className="py-2 px-1 rounded-xl bg-slate-100 hover:bg-purple-100 text-slate-700 flex items-center justify-center gap-1 transition"
+              >
                 <Star className="w-3 h-3 text-amber-500 fill-amber-500" /> Best Rated
               </button>
-              <button className="py-2 px-1 rounded-xl bg-slate-100 hover:bg-purple-100 text-slate-700 flex items-center justify-center gap-1 transition">
+              <button
+                type="button"
+                onClick={() => setPriceRange(1800)}
+                className="py-2 px-1 rounded-xl bg-slate-100 hover:bg-purple-100 text-slate-700 flex items-center justify-center gap-1 transition"
+              >
                 <span>₹</span> Affordable
               </button>
             </div>
@@ -264,7 +357,7 @@ export default function StudentMessPage() {
             <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px]">
               <div className="flex items-center gap-2 text-slate-600">
                 <Headphones className="w-3.5 h-3.5 text-[#6C47FF]" />
-                <span>Need help? Our support team is always here for you.</span>
+                <span>Need help? Our support team is always here.</span>
               </div>
               <ArrowRight className="w-3.5 h-3.5 text-slate-400" />
             </div>
@@ -272,15 +365,25 @@ export default function StudentMessPage() {
         </div>
       </section>
 
-      {/* 3. MAIN WORKSPACE: LEFT FILTERS + CENTER MESS CARDS + RIGHT QUICK NAV */}
+      {/* MAIN WORKSPACE */}
       <section className="max-w-[1550px] mx-auto px-4 md:px-6 py-8">
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
+          
           {/* LEFT SIDEBAR: FILTERS */}
           <aside className="xl:col-span-3 space-y-6">
             <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm space-y-6">
               <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-                <h3 className="font-extrabold text-sm text-slate-900">Filter Messes</h3>
-                <SlidersHorizontal className="w-4 h-4 text-slate-400" />
+                <h3 className="font-extrabold text-sm text-slate-900 flex items-center gap-2">
+                  <SlidersHorizontal className="w-4 h-4 text-[#6C47FF]" />
+                  Filter Messes
+                </h3>
+                <button
+                  type="button"
+                  onClick={handleResetFilters}
+                  className="text-[11px] font-bold text-[#6C47FF] hover:underline"
+                >
+                  Clear all
+                </button>
               </div>
 
               {/* Mess Type Checkboxes */}
@@ -345,20 +448,25 @@ export default function StudentMessPage() {
                   max="3000"
                   step="50"
                   value={priceRange}
-                  onChange={(e) => setPriceRange(e.target.value)}
+                  onChange={(e) => setPriceRange(Number(e.target.value))}
                   className="w-full accent-[#6C47FF] cursor-pointer"
                 />
                 <div className="flex items-center justify-between text-[11px] font-bold text-slate-500">
                   <span>₹1,500</span>
-                  <span>₹{priceRange}+</span>
+                  <span>Up to ₹{Number(priceRange).toLocaleString()}</span>
                 </div>
               </div>
 
-              {/* Rating Filter */}
+              {/* Rating Checkbox */}
               <div className="space-y-2">
                 <label className="text-xs font-bold text-slate-700 block">Rating</label>
                 <label className="flex items-center gap-2 text-xs text-slate-600 cursor-pointer">
-                  <input type="checkbox" className="rounded accent-[#6C47FF]" />
+                  <input
+                    type="checkbox"
+                    checked={ratingCheckbox}
+                    onChange={(e) => setRatingCheckbox(e.target.checked)}
+                    className="rounded accent-[#6C47FF]"
+                  />
                   <div className="flex items-center text-amber-500">
                     <Star className="w-3.5 h-3.5 fill-amber-500" />
                     <Star className="w-3.5 h-3.5 fill-amber-500" />
@@ -366,7 +474,7 @@ export default function StudentMessPage() {
                     <Star className="w-3.5 h-3.5 fill-amber-500" />
                     <Star className="w-3.5 h-3.5 fill-amber-500" />
                   </div>
-                  <span className="text-[11px] font-semibold text-slate-500">4+ & above</span>
+                  <span className="text-[11px] font-semibold text-slate-500">4+ &amp; above</span>
                 </label>
               </div>
 
@@ -374,10 +482,14 @@ export default function StudentMessPage() {
               <div className="space-y-2">
                 <label className="text-xs font-bold text-slate-700 block">Location</label>
                 <div className="relative">
-                  <select className="w-full text-xs font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-2xl p-3 appearance-none focus:outline-none cursor-pointer">
-                    <option>Select location</option>
+                  <select
+                    value={selectedLocation}
+                    onChange={(e) => setSelectedLocation(e.target.value)}
+                    className="w-full text-xs font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-2xl p-3 appearance-none focus:outline-none cursor-pointer"
+                  >
+                    <option>All Locations</option>
                     <option>Alandi</option>
-                    <option>MIT Campus Road</option>
+                    <option>MIT College</option>
                     <option>Dehu Phata</option>
                     <option>Vishweshwar Nagar</option>
                   </select>
@@ -385,13 +497,16 @@ export default function StudentMessPage() {
                 </div>
               </div>
 
-              {/* Apply Button */}
-              <button className="w-full py-3 rounded-2xl bg-[#6C47FF] hover:bg-[#5835e5] text-white text-xs font-extrabold shadow-md shadow-purple-200 transition">
-                Apply Filters
+              {/* Reset Button */}
+              <button
+                type="button"
+                onClick={handleResetFilters}
+                className="w-full py-3 rounded-2xl bg-[#6C47FF] hover:bg-[#5835e5] text-white text-xs font-extrabold shadow-md shadow-purple-200 transition"
+              >
+                Reset All Filters
               </button>
             </div>
 
-            {/* Bottom Left Doodle Box */}
             <div className="rounded-3xl p-5 bg-[#FFF4EE] border border-orange-100 text-center space-y-2 shadow-sm">
               <div className="text-xs font-extrabold text-indigo-700 rotate-[-4deg]">
                 Good Food, Best Vibes! ッ
@@ -407,16 +522,68 @@ export default function StudentMessPage() {
             </div>
           </aside>
 
-          {/* CENTER CONTENT: MESS CARDS */}
+          {/* CENTER CONTENT */}
           <main className="xl:col-span-7 space-y-5">
-            {/* Top Bar with count & sort */}
+            {/* Top Search & Filter Dropdown Bar */}
+            <div className="bg-white rounded-2xl p-3 border border-slate-100 shadow-sm flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-2 px-3 py-2 bg-slate-50 border border-slate-200/70 rounded-xl flex-1 min-w-[180px]">
+                <Search className="w-4 h-4 text-slate-400" />
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Search mess by name or locality..."
+                  className="w-full text-xs font-semibold text-slate-800 placeholder-slate-400 bg-transparent focus:outline-none"
+                />
+              </div>
+
+              {/* Food Type Selector */}
+              <div className="relative min-w-[120px]">
+                <select
+                  value={selectedTypeDropdown}
+                  onChange={(e) => setSelectedTypeDropdown(e.target.value)}
+                  className="w-full text-xs font-semibold text-slate-700 bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2 appearance-none cursor-pointer focus:outline-none"
+                >
+                  <option>All Types</option>
+                  <option>Veg</option>
+                  <option>Non-Veg</option>
+                </select>
+                <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-3 top-3 pointer-events-none" />
+              </div>
+
+              {/* Rating Dropdown */}
+              <div className="relative min-w-[125px]">
+                <select
+                  value={selectedRatingDropdown}
+                  onChange={(e) => setSelectedRatingDropdown(e.target.value)}
+                  className="w-full text-xs font-semibold text-slate-700 bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2 appearance-none cursor-pointer focus:outline-none"
+                >
+                  <option>All Ratings</option>
+                  <option>4.5 &amp; above</option>
+                  <option>4.0 &amp; above</option>
+                </select>
+                <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-3 top-3 pointer-events-none" />
+              </div>
+
+              {/* Reset Trigger */}
+              <button
+                type="button"
+                onClick={handleResetFilters}
+                className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-slate-600 hover:text-[#6C47FF] transition cursor-pointer"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                Reset
+              </button>
+            </div>
+
+            {/* Count & Sort Bar */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="w-7 h-7 rounded-xl bg-purple-100 text-[#6C47FF] flex items-center justify-center text-xs font-black">
                   🍱
                 </span>
                 <span className="text-sm font-extrabold text-slate-900">
-                  {messes.length} Messes Found
+                  {filteredMesses.length} Messes Found
                 </span>
               </div>
 
@@ -434,93 +601,108 @@ export default function StudentMessPage() {
               </div>
             </div>
 
-            {/* Mess Cards Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {messes.map((item) => (
-                <div
-                  key={item.id}
-                  className="bg-white rounded-3xl p-3.5 border border-slate-100 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between group"
+            {/* Empty State */}
+            {filteredMesses.length === 0 ? (
+              <div className="bg-white rounded-3xl p-12 text-center border border-slate-100 space-y-2">
+                <p className="text-sm font-bold text-slate-700">No mess facilities match your criteria</p>
+                <p className="text-xs text-slate-400">Try adjusting your monthly price or resetting the filters.</p>
+                <button
+                  type="button"
+                  onClick={handleResetFilters}
+                  className="mt-3 px-5 py-2 rounded-xl bg-purple-50 text-[#6C47FF] text-xs font-extrabold hover:bg-purple-100 transition"
                 >
-                  <div>
-                    {/* Image & Header Tags */}
-                    <div className="relative w-full h-40 rounded-2xl overflow-hidden mb-3">
-                      <img
-                        src={item.image}
-                        alt={item.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
-                      
-                      {/* Veg / Non-Veg Badge */}
-                      <span className="absolute top-2.5 left-2.5 flex items-center gap-1 text-[10px] font-black px-2 py-0.5 rounded-md bg-emerald-600 text-white shadow-sm">
-                        <span className="w-1.5 h-1.5 rounded-full bg-white" />
-                        {item.type}
-                      </span>
-
-                      {/* Optional Popular Tag */}
-                      {item.tag && (
-                        <span
-                          className={`absolute bottom-2.5 left-2.5 text-[9px] font-black px-2 py-0.5 rounded-full ${item.tagColor} shadow-sm`}
-                        >
-                          {item.tag}
+                  Reset All Filters
+                </button>
+              </div>
+            ) : (
+              /* Mess Cards Grid */
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {filteredMesses.map((item) => (
+                  <div
+                    key={item.id}
+                    className="bg-white rounded-3xl p-3.5 border border-slate-100 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between group"
+                  >
+                    <div>
+                      {/* Image & Header Tags */}
+                      <div className="relative w-full h-40 rounded-2xl overflow-hidden mb-3">
+                        <img
+                          src={item.image}
+                          alt={item.name}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                        
+                        {/* Veg / Non-Veg Badge */}
+                        <span className="absolute top-2.5 left-2.5 flex items-center gap-1 text-[10px] font-black px-2 py-0.5 rounded-md bg-emerald-600 text-white shadow-sm">
+                          <span className="w-1.5 h-1.5 rounded-full bg-white" />
+                          {item.type}
                         </span>
-                      )}
 
-                      {/* Rating Pill */}
-                      <div className="absolute top-2.5 right-2.5 bg-white/90 backdrop-blur-md rounded-full px-2.5 py-0.5 flex items-center gap-1 shadow-sm">
-                        <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
-                        <span className="text-[11px] font-black text-slate-900">{item.rating}</span>
-                        <span className="text-[10px] text-slate-400">({item.reviews})</span>
+                        {/* Optional Popular Tag */}
+                        {item.tag && (
+                          <span
+                            className={`absolute bottom-2.5 left-2.5 text-[9px] font-black px-2 py-0.5 rounded-full ${item.tagColor} shadow-sm`}
+                          >
+                            {item.tag}
+                          </span>
+                        )}
+
+                        {/* Rating Pill */}
+                        <div className="absolute top-2.5 right-2.5 bg-white/90 backdrop-blur-md rounded-full px-2.5 py-0.5 flex items-center gap-1 shadow-sm">
+                          <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
+                          <span className="text-[11px] font-black text-slate-900">{item.rating}</span>
+                          <span className="text-[10px] text-slate-400">({item.reviews})</span>
+                        </div>
+                      </div>
+
+                      {/* Title & Location */}
+                      <div className="px-1 space-y-1">
+                        <h4 className="text-sm font-black text-slate-900 leading-snug">
+                          {item.name}
+                        </h4>
+                        <p className="text-[11px] text-slate-400 flex items-center gap-1 truncate">
+                          <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
+                          {item.location}
+                        </p>
+                      </div>
+
+                      {/* Pricing */}
+                      <div className="px-1 pt-2 flex items-baseline gap-1">
+                        <span className="text-lg font-black text-slate-900">₹{item.price}</span>
+                        <span className="text-[10px] text-slate-400 font-semibold">/month</span>
+                      </div>
+
+                      {/* Feature Pills */}
+                      <div className="px-1 pt-3 flex flex-wrap gap-1.5">
+                        {item.features.map((feat, fIdx) => (
+                          <span
+                            key={fIdx}
+                            className="text-[9px] font-semibold text-slate-600 bg-slate-100 rounded-lg px-2 py-1 flex items-center gap-1"
+                          >
+                            <ShieldCheck className="w-2.5 h-2.5 text-[#6C47FF]" />
+                            {feat}
+                          </span>
+                        ))}
                       </div>
                     </div>
 
-                    {/* Title & Location */}
-                    <div className="px-1 space-y-1">
-                      <h4 className="text-sm font-black text-slate-900 leading-snug">
-                        {item.name}
-                      </h4>
-                      <p className="text-[11px] text-slate-400 flex items-center gap-1 truncate">
-                        <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
-                        {item.location}
-                      </p>
-                    </div>
-
-                    {/* Pricing */}
-                    <div className="px-1 pt-2 flex items-baseline gap-1">
-                      <span className="text-lg font-black text-slate-900">₹{item.price}</span>
-                      <span className="text-[10px] text-slate-400 font-semibold">/month</span>
-                    </div>
-
-                    {/* Feature Pills */}
-                    <div className="px-1 pt-3 flex flex-wrap gap-1.5">
-                      {item.features.map((feat, fIdx) => (
-                        <span
-                          key={fIdx}
-                          className="text-[9px] font-semibold text-slate-600 bg-slate-100 rounded-lg px-2 py-1 flex items-center gap-1"
-                        >
-                          <ShieldCheck className="w-2.5 h-2.5 text-[#6C47FF]" />
-                          {feat}
-                        </span>
-                      ))}
+                    {/* View Details Button */}
+                    <div className="pt-4 px-1">
+                      <Link
+                        href={
+                          item.id === "annapurna" || item.name?.toLowerCase().includes("annapurna")
+                            ? "/student/mess/annapurna"
+                            : `/service/${item.id}`
+                        }
+                        className="w-full py-2.5 rounded-xl bg-[#6C47FF] hover:bg-[#5835e5] text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition shadow-sm"
+                      >
+                        <span>View Details</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </Link>
                     </div>
                   </div>
-
-                  {/* View Details Button */}
-                  <div className="pt-4 px-1">
-                    <Link
-                      href={
-                        item.id === "annapurna" || item.name?.toLowerCase().includes("annapurna")
-                          ? "/student/mess/annapurna"
-                          : `/service/${item.id}`
-                      }
-                      className="w-full py-2.5 rounded-xl bg-[#6C47FF] hover:bg-[#5835e5] text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition shadow-sm"
-                    >
-                      <span>View Details</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </Link>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </main>
 
           {/* RIGHT SIDEBAR: QUICK NAV */}
@@ -550,7 +732,6 @@ export default function StudentMessPage() {
               </nav>
             </div>
 
-            {/* Need Help Live Chat Card */}
             <div className="rounded-2xl p-4 bg-purple-50 border border-purple-100 space-y-3">
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
@@ -571,7 +752,7 @@ export default function StudentMessPage() {
         </div>
       </section>
 
-      {/* 4. BOTTOM PROMO BANNER */}
+      {/* BOTTOM PROMO BANNER */}
       <section className="max-w-[1550px] mx-auto px-4 md:px-6 py-6">
         <div className="relative rounded-[32px] bg-gradient-to-r from-[#6C47FF] via-[#7C3AED] to-[#EC4899] p-6 md:p-8 text-white flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl">
           <div className="flex items-center gap-4">
@@ -581,22 +762,23 @@ export default function StudentMessPage() {
             <div>
               <h3 className="text-xl font-black">Good Food = Better Days!</h3>
               <p className="text-xs text-white/80 mt-0.5">
-                Choose your favourite mess and enjoy a healthy & happy campus life.
+                Choose your favourite mess and enjoy a healthy &amp; happy campus life.
               </p>
             </div>
           </div>
 
-          <Link
-            href="/student/services"
-            className="px-6 py-3 rounded-2xl bg-white hover:bg-slate-100 text-slate-900 text-xs font-extrabold flex items-center gap-2 transition shadow-md shrink-0"
+          <button
+            type="button"
+            onClick={handleResetFilters}
+            className="px-6 py-3 rounded-2xl bg-white hover:bg-slate-100 text-slate-900 text-xs font-extrabold flex items-center gap-2 transition shadow-md shrink-0 cursor-pointer"
           >
             <span className="text-slate-900">Explore All Messes</span>
             <ArrowRight className="w-4 h-4 text-[#6C47FF]" />
-          </Link>
+          </button>
         </div>
       </section>
 
-      {/* 5. FOOTER */}
+      {/* FOOTER */}
       <footer className="w-full bg-white border-t border-slate-100 py-8 px-6 mt-8">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-xs font-semibold text-slate-500">
           <div className="flex items-center gap-3">
@@ -611,9 +793,9 @@ export default function StudentMessPage() {
 
           <div className="flex items-center gap-6">
             <Link href="/about" className="hover:text-slate-900 transition">About Us</Link>
-            <Link href="/support" className="hover:text-slate-900 transition">Help & Support</Link>
+            <Link href="/support" className="hover:text-slate-900 transition">Help &amp; Support</Link>
             <Link href="/privacy" className="hover:text-slate-900 transition">Privacy Policy</Link>
-            <Link href="/terms" className="hover:text-slate-900 transition">Terms & Conditions</Link>
+            <Link href="/terms" className="hover:text-slate-900 transition">Terms &amp; Conditions</Link>
           </div>
 
           <div className="flex items-center gap-3">

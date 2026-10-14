@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -18,12 +18,83 @@ import {
   Coffee,
   CheckCircle2,
   Plus,
+  Sparkles,
 } from "lucide-react";
 
 export default function Cafe24DetailsPage() {
   const router = useRouter();
   const [selectedCombo, setSelectedCombo] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [reviewsList, setReviewsList] = useState([]);
+
+  // Base fallback reviews
+  const defaultReviews = [
+    {
+      id: "base-1",
+      reviewer: "Sneha P.",
+      avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&auto=format&fit=crop&q=80",
+      reviewText: "Amazing cold coffee & cheesy fries! Best place to hang out.",
+      rating: 5,
+      date: "Oct 10, 2026",
+      tag: "① 🥤🍟😁",
+    },
+    {
+      id: "base-2",
+      reviewer: "Rajat M.",
+      avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80",
+      reviewText: "Affordable prices, very friendly staff.",
+      rating: 4.5,
+      date: "Oct 8, 2026",
+      tag: "② 👤👍😊",
+    },
+    {
+      id: "base-3",
+      reviewer: "Kabir D.",
+      avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&auto=format&fit=crop&q=80",
+      reviewText: "Waffles are worth every rupee. Super fast service!",
+      rating: 5,
+      date: "Oct 5, 2026",
+      tag: "③ 👤🧇⚡",
+    },
+  ];
+
+  // Dynamic review loading from LocalStorage
+  // Dynamic review loading from LocalStorage
+  useEffect(() => {
+    try {
+      // 1. Get currently logged-in student name dynamically
+      const sessionUser = JSON.parse(
+        localStorage.getItem("current_user") ||
+        localStorage.getItem("currentUser") ||
+        "{}"
+      );
+      const currentStudentName = sessionUser.fullName || sessionUser.name || "Verified Student";
+      const currentStudentAvatar = localStorage.getItem("profile_avatar") || sessionUser.avatar;
+
+      const stored = JSON.parse(localStorage.getItem("student_reviews") || "[]");
+      
+      // Filter reviews specific to Cafe 24 or show general ones
+      const cafeReviews = stored
+        .filter((r) => !r.vendor || r.vendor === "Cafe 24")
+        .map((r) => ({
+          id: r.id,
+          reviewer: r.reviewer || (r.anonymous ? "Anonymous Student" : currentStudentName),
+          avatar: r.anonymous
+            ? "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=80"
+            : (r.avatar || currentStudentAvatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80"),
+          reviewText: r.reviewText,
+          rating: r.rating || 5,
+          date: r.date || "Just now",
+          categoryRatings: r.categoryRatings,
+          tag: "Verified Student ★",
+        }));
+
+      setReviewsList([...cafeReviews, ...defaultReviews]);
+    } catch (e) {
+      console.error(e);
+      setReviewsList(defaultReviews);
+    }
+  }, []);
 
   const combos = [
     {
@@ -85,9 +156,7 @@ export default function Cafe24DetailsPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#FFF5F7] via-[#F6F0FF] to-[#E8F5FF] text-[#14244A] font-sans flex antialiased selection:bg-purple-200">
-      {/* =====================================================
-          1. LEFT SIDEBAR (STICKY & COLOR-MATCHED)
-      ====================================================== */}
+      {/* 1. LEFT SIDEBAR */}
       <aside className="hidden lg:flex flex-col w-[230px] bg-white/80 backdrop-blur-md border-r border-purple-100/60 p-4 shrink-0 justify-between sticky top-0 h-screen z-30">
         <div className="space-y-6">
           {/* Logo */}
@@ -109,13 +178,12 @@ export default function Cafe24DetailsPage() {
           <nav className="space-y-1 pt-2">
             <Link
               href="/student"
-              className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-bold bg-[#6C47FF] text-white shadow-md shadow-purple-200 transition"
+              className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-bold text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition"
             >
               <div className="flex items-center gap-3">
-                <LayoutDashboard className="w-4 h-4 shrink-0 text-white" />
+                <LayoutDashboard className="w-4 h-4 shrink-0 text-slate-400" />
                 <span>Dashboard</span>
               </div>
-              <span className="text-sm">👆</span>
             </Link>
 
             <Link
@@ -126,31 +194,36 @@ export default function Cafe24DetailsPage() {
               <span>My Bookings</span>
             </Link>
 
+            {/* Ratings & Review (Points to review page) */}
             <Link
-             href="/student/cafes/cafe24/review"
-            className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-bold text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition"
+              href="/student/cafes/cafe24/review"
+              className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-bold bg-[#6C47FF] text-white shadow-md shadow-purple-200 transition"
             >
-          <MessageSquarePlus className="w-4 h-4 shrink-0 text-slate-400" />
-             <span>Ratings & Review</span>
+              <div className="flex items-center gap-3">
+                <MessageSquarePlus className="w-4 h-4 shrink-0 text-white" />
+                <span>Ratings &amp; Review</span>
+              </div>
+              <span className="text-sm">✍️</span>
             </Link>
+
             <Link
               href="/pass"
               className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-bold text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition"
             >
               <Settings className="w-4 h-4 shrink-0 text-slate-400" />
-              <span>freshers pass</span>
+              <span>Freshers Pass</span>
             </Link>
+
             <Link
               href="/student/profile"
               className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-bold text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition"
             >
               <Settings className="w-4 h-4 shrink-0 text-slate-400" />
-              <span>profile</span>
+              <span>Profile</span>
             </Link>
           </nav>
         </div>
 
-        {/* Bottom Badge Stamp */}
         <div className="flex items-center justify-center pb-2">
           <div className="w-20 h-20 rounded-full border-2 border-dashed border-purple-300 flex items-center justify-center text-center rotate-[-10deg] opacity-80">
             <span className="text-[10px] font-black leading-tight text-purple-400">
@@ -160,24 +233,22 @@ export default function Cafe24DetailsPage() {
         </div>
       </aside>
 
-      {/* =====================================================
-          2. MAIN CONTENT VIEWPORT
-      ====================================================== */}
+      {/* 2. MAIN CONTENT VIEWPORT */}
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Top Navbar */}
         <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-purple-100/60 px-6 sm:px-10 h-20 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-2 bg-[#F4F5F9] p-1.5 rounded-2xl border border-slate-200/50">
-            
-          </div>
+          <div className="flex items-center gap-2 bg-[#F4F5F9] p-1.5 rounded-2xl border border-slate-200/50" />
 
           <div className="flex items-center gap-4">
             <div className="hidden md:flex items-center gap-2 px-3.5 py-2 bg-white/90 rounded-xl w-64 border border-purple-100/80 shadow-sm">
               <Search className="w-4 h-4 text-slate-400 shrink-0" />
               <input
-                type="text"
-                placeholder="Search cafes, menu items..."
-                className="w-full text-xs font-medium text-slate-800 placeholder-slate-400 bg-transparent focus:outline-none"
-              />
+  type="text"
+  placeholder="Search cafes, menu items..."
+  className="w-full text-xs font-medium text-slate-800 placeholder-slate-400 bg-transparent focus:outline-none"
+  suppressHydrationWarning
+  data-lpignore="true"
+  autoComplete="off"
+/>
             </div>
 
             <button
@@ -218,11 +289,8 @@ export default function Cafe24DetailsPage() {
             <span>Back to Cafes &amp; Restaurants</span>
           </Link>
 
-          {/* ===================================================
-              HERO CARD SECTION
-          ==================================================== */}
+          {/* HERO CARD */}
           <div className="relative rounded-[32px] bg-gradient-to-br from-white/90 via-[#FDF8FF]/95 to-[#F1F6FF]/90 p-6 sm:p-8 border border-purple-100 shadow-[0_15px_40px_rgba(108,71,255,0.06)] space-y-6">
-            {/* Header Titles & Badges */}
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex flex-wrap items-center gap-3">
                 <h1 className="text-2xl sm:text-3xl font-black text-[#14244A] tracking-tight flex items-center gap-2">
@@ -236,37 +304,38 @@ export default function Cafe24DetailsPage() {
                 </span>
 
                 <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#FFF5DC] text-[#D98200] text-xs font-black border border-amber-100">
-                  4.6 ★ <span className="text-slate-500 font-medium">(234 reviews)</span>
+                  4.6 ★ <span className="text-slate-500 font-medium">({reviewsList.length * 75 + 9} reviews)</span>
                 </span>
 
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/90 border border-slate-200/80 text-slate-600 text-xs font-semibold shadow-sm">
                   <MapPin className="w-3.5 h-3.5 text-slate-400" />
-                  Main Campus Food Court • Distance from College: 100 m
+                  Main Campus Food Court • Distance: 100 m
                 </span>
               </div>
+
+              <Link
+                href="/student/cafes/cafe24/review"
+                className="px-5 py-2.5 rounded-2xl bg-[#6C47FF] hover:bg-[#5835e5] text-white text-xs font-black shadow-md shadow-purple-200 transition flex items-center gap-2"
+              >
+                <MessageSquarePlus className="w-4 h-4" />
+                <span>Write a Review</span>
+              </Link>
             </div>
 
             {/* Gallery + Price Card */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
-              {/* Photo 1: Seating & Tape */}
               <div className="lg:col-span-5 h-[280px] rounded-3xl overflow-hidden shadow-sm relative group bg-white border border-purple-100/60 p-2">
                 <div className="absolute top-1 left-2 w-14 h-6 bg-gradient-to-r from-pink-400 to-purple-400 opacity-80 -rotate-12 rounded-sm shadow-sm z-10" />
-
                 <img
                   src="https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=800&auto=format&fit=crop&q=80"
                   alt="Cafe 24 Ambient Seating"
                   className="w-full h-full object-cover rounded-2xl group-hover:scale-105 transition-transform duration-500"
                 />
-
                 <div className="absolute bottom-4 left-4 bg-purple-600/90 text-white text-[10px] font-black px-2.5 py-1 rounded-full shadow-sm -rotate-3">
                   Campus Chill Corner ッ
                 </div>
-                <div className="absolute top-3 right-4 text-2xl">
-                  👾
-                </div>
               </div>
 
-              {/* Photo 2 & 3: Pizza and Coffee */}
               <div className="lg:col-span-4 flex flex-col gap-3.5 h-[280px]">
                 <div className="flex-1 rounded-2xl overflow-hidden shadow-sm border border-purple-50">
                   <img
@@ -287,19 +356,16 @@ export default function Cafe24DetailsPage() {
                 </div>
               </div>
 
-              {/* Avg Cost & Type Box */}
               <div className="lg:col-span-3 rounded-3xl p-6 bg-gradient-to-br from-[#FF9E44] via-[#F87171] to-[#8B5CF6] text-white shadow-lg shadow-orange-100 flex flex-col justify-center items-center text-center relative overflow-hidden">
                 <div className="absolute top-3 right-3 w-10 h-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white">
                   <Clock className="w-5 h-5" />
                 </div>
-
                 <span className="text-xs font-bold uppercase tracking-wider text-white/90">
                   Avg. Cost:
                 </span>
                 <h3 className="text-3xl font-black text-white tracking-tight mt-1">
                   ₹150 for two
                 </h3>
-
                 <div className="mt-4 pt-3 border-t border-white/20 w-full">
                   <p className="text-xs font-bold text-white/90">Type:</p>
                   <p className="text-sm font-black text-white mt-0.5 flex items-center justify-center gap-1.5">
@@ -310,12 +376,34 @@ export default function Cafe24DetailsPage() {
             </div>
           </div>
 
-          {/* ===================================================
-              MENU DESCRIPTION & CUSTOMER REVIEWS
-          ==================================================== */}
+          {/* 4 CATEGORY PERFORMANCE STATS */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            {[
+              { label: "Taste & Food Quality", icon: "🍔", val: "4.9/5", bar: "w-[98%]" },
+              { label: "Drinks & Beverages", icon: "☕", val: "4.8/5", bar: "w-[96%]" },
+              { label: "Value for Money", icon: "💰", val: "4.7/5", bar: "w-[94%]" },
+              { label: "Speed & Service", icon: "⚡", val: "4.9/5", bar: "w-[98%]" },
+            ].map((stat, i) => (
+              <div
+                key={i}
+                className="p-4 rounded-2xl bg-white/90 backdrop-blur-sm border border-purple-100/70 shadow-sm space-y-2"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-base">{stat.icon}</span>
+                  <span className="text-xs font-black text-[#6C47FF]">{stat.val}</span>
+                </div>
+                <p className="text-[11px] font-bold text-slate-700">{stat.label}</p>
+                <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                  <div className={`bg-[#6C47FF] h-full rounded-full ${stat.bar}`} />
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* MENU & REVIEWS GRID */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
             {/* Menu Highlights (6 Cols) */}
-            <div className="lg:col-span-6 bg-white/90 backdrop-blur-sm rounded-[32px] p-7 border border-purple-100/80 shadow-sm space-y-4 relative overflow-hidden">
+            <div className="lg:col-span-6 bg-white/90 backdrop-blur-sm rounded-[32px] p-7 border border-purple-100/80 shadow-sm space-y-4">
               <div>
                 <h3 className="text-base font-black text-[#14244A] flex items-center gap-1.5">
                   Menu &amp; Service description ッ
@@ -360,70 +448,55 @@ export default function Cafe24DetailsPage() {
               </div>
             </div>
 
-            {/* Customer Reviews (6 Cols) */}
+            {/* Dynamic Customer Reviews (6 Cols) */}
             <div className="lg:col-span-6 bg-white/90 backdrop-blur-sm rounded-[32px] p-7 border border-purple-100/80 shadow-sm space-y-4">
-              <h3 className="text-base font-black text-[#14244A]">
-                Customer Reviews
-              </h3>
+              <div className="flex items-center justify-between">
+                <h3 className="text-base font-black text-[#14244A]">
+                  Customer Reviews ({reviewsList.length})
+                </h3>
+                <Link
+                  href="/student/cafes/cafe24/review"
+                  className="text-xs font-extrabold text-[#6C47FF] hover:underline"
+                >
+                  + Add Review
+                </Link>
+              </div>
 
-              <div className="space-y-2.5">
-                <div className="p-3.5 rounded-2xl bg-gradient-to-r from-[#F7F9FF] to-[#FAF7FF] border border-blue-100/60 flex items-center justify-between gap-3">
-                  <div className="text-xs sm:text-sm font-bold text-slate-800">
-                    <p className="text-xs leading-relaxed font-semibold">
-                      &quot;Amazing cold coffee &amp; cheesy fries! Best place to hang out.&quot;
-                    </p>
-                    <p className="text-[10px] text-slate-400 mt-1 font-bold">① 🥤🍟😁</p>
+              <div className="space-y-3 max-h-[380px] overflow-y-auto pr-1">
+                {reviewsList.map((rev) => (
+                  <div
+                    key={rev.id}
+                    className="p-3.5 rounded-2xl bg-gradient-to-r from-[#F7F9FF] to-[#FAF7FF] border border-blue-100/60 flex items-start justify-between gap-3 shadow-sm"
+                  >
+                    <div className="text-xs font-bold text-slate-800 space-y-1">
+                      <p className="text-xs leading-relaxed font-semibold text-slate-700">
+                        &quot;{rev.reviewText}&quot;
+                      </p>
+                      <div className="flex items-center gap-2 pt-1 text-[10px] text-slate-400 font-bold">
+                        <span className="text-amber-500">★ {rev.rating}/5</span>
+                        <span>•</span>
+                        <span>{rev.date}</span>
+                        <span>•</span>
+                        <span className="text-purple-600 font-extrabold">{rev.tag}</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <img
+                        src={rev.avatar}
+                        alt={rev.reviewer}
+                        className="w-8 h-8 rounded-full object-cover ring-2 ring-purple-100 shadow-sm"
+                      />
+                      <span className="text-[11px] font-bold text-slate-600 hidden sm:inline">
+                        {rev.reviewer}
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-1.5 shrink-0">
-                    <img
-                      src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&auto=format&fit=crop&q=80"
-                      alt="Sneha P."
-                      className="w-8 h-8 rounded-full object-cover ring-2 ring-purple-100"
-                    />
-                    <span className="text-[10px] font-bold text-slate-500 hidden sm:inline">- Sneha P.</span>
-                  </div>
-                </div>
-
-                <div className="p-3.5 rounded-2xl bg-gradient-to-r from-[#F7F9FF] to-[#FAF7FF] border border-blue-100/60 flex items-center justify-between gap-3">
-                  <div className="text-xs sm:text-sm font-bold text-slate-800">
-                    <p className="text-xs leading-relaxed font-semibold">
-                      &quot;Affordable prices, very friendly staff.&quot;
-                    </p>
-                    <p className="text-[10px] text-slate-400 mt-1 font-bold">② 👤👍😊</p>
-                  </div>
-                  <div className="flex items-center gap-1.5 shrink-0">
-                    <img
-                      src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80"
-                      alt="Rajat M."
-                      className="w-8 h-8 rounded-full object-cover ring-2 ring-purple-100"
-                    />
-                    <span className="text-[10px] font-bold text-slate-500 hidden sm:inline">- Rajat M.</span>
-                  </div>
-                </div>
-
-                <div className="p-3.5 rounded-2xl bg-gradient-to-r from-[#F7F9FF] to-[#FAF7FF] border border-blue-100/60 flex items-center justify-between gap-3">
-                  <div className="text-xs sm:text-sm font-bold text-slate-800">
-                    <p className="text-xs leading-relaxed font-semibold">
-                      &quot;Waffles are worth every rupee. Super fast service!&quot;
-                    </p>
-                    <p className="text-[10px] text-slate-400 mt-1 font-bold">③ 👤🧇⚡</p>
-                  </div>
-                  <div className="flex items-center gap-1.5 shrink-0">
-                    <img
-                      src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&auto=format&fit=crop&q=80"
-                      alt="Kabir D."
-                      className="w-8 h-8 rounded-full object-cover ring-2 ring-purple-100"
-                    />
-                    <span className="text-[10px] font-bold text-slate-500 hidden sm:inline">- Kabir D.</span>
-                  </div>
-                </div>
+                ))}
               </div>
             </div>
           </div>
 
-          {/* ===================================================
-              TODAY'S SPECIAL COMBOS SECTION (BETWEEN LUNCH & DINNER)
-          ==================================================== */}
+          {/* TODAY'S SPECIAL COMBOS SECTION */}
           <div className="space-y-4 pt-2">
             <div className="text-center space-y-1">
               <h2 className="text-2xl font-black text-[#14244A] flex items-center justify-center gap-2">
@@ -481,9 +554,7 @@ export default function Cafe24DetailsPage() {
         </main>
       </div>
 
-      {/* =====================================================
-          3. SUCCESS POPUP MODAL (SYNCED TO /BOOKINGS)
-      ====================================================== */}
+      {/* 3. ORDER CONFIRMATION MODAL */}
       {isModalOpen && selectedCombo && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
           <div className="bg-white rounded-[32px] p-8 max-w-md w-full shadow-2xl border border-slate-100 space-y-6 text-center animate-in fade-in zoom-in-95 duration-200">

@@ -1,13 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import {
   Home,
   LayoutGrid,
   UtensilsCrossed,
   Building2,
-  Utensils,
   Coffee,
   Shirt,
   Sparkle,
@@ -21,20 +20,53 @@ import {
   Filter,
   Flame,
   Heart,
-  PlusCircle,
+  BookmarkCheck,
   MapPin,
   ChevronRight,
   ArrowRight,
   SlidersHorizontal,
   User,
+  X,
+  Trash2,
 } from "lucide-react";
 
 export default function RoommateFinderPage() {
   const [activeTab, setActiveTab] = useState("find");
   const [genderFilter, setGenderFilter] = useState("both");
   const [foodFilter, setFoodFilter] = useState("both");
-  const [budgetVal, setBudgetVal] = useState(7000);
+  const [budgetVal, setBudgetVal] = useState(8000);
   const [searchQuery, setSearchQuery] = useState("");
+
+  // In-Page Saved Matches Modal State
+  const [isSavedModalOpen, setIsSavedModalOpen] = useState(false);
+  const [savedMatches, setSavedMatches] = useState([]);
+
+  // Load Saved Matches from localStorage
+  const loadSavedMatches = useCallback(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem("saved_roommates") || "[]");
+      setSavedMatches(saved);
+    } catch (e) {
+      console.error(e);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadSavedMatches();
+    window.addEventListener("storage", loadSavedMatches);
+    window.addEventListener("focus", loadSavedMatches);
+    return () => {
+      window.removeEventListener("storage", loadSavedMatches);
+      window.removeEventListener("focus", loadSavedMatches);
+    };
+  }, [loadSavedMatches]);
+
+  const handleRemoveSaved = (id) => {
+    const updated = savedMatches.filter((p) => p.id !== id);
+    localStorage.setItem("saved_roommates", JSON.stringify(updated));
+    setSavedMatches(updated);
+    window.dispatchEvent(new Event("storage"));
+  };
 
   const sidebarLinks = [
     { label: "Home", icon: Home, href: "/student", active: false },
@@ -59,6 +91,7 @@ export default function RoommateFinderPage() {
       icon: User,
       color: "text-blue-500",
       bg: "bg-blue-50",
+      action: () => setActiveTab("find"),
     },
     {
       id: "popular",
@@ -67,6 +100,7 @@ export default function RoommateFinderPage() {
       icon: Flame,
       color: "text-rose-500",
       bg: "bg-rose-50",
+      action: () => setActiveTab("popular"),
     },
     {
       id: "my",
@@ -75,149 +109,176 @@ export default function RoommateFinderPage() {
       icon: Heart,
       color: "text-emerald-500",
       bg: "bg-emerald-50",
+      action: () => setActiveTab("my"),
     },
     {
-      id: "post",
-      title: "Post Your Need",
-      sub: "Find roommates faster",
-      icon: PlusCircle,
+      id: "saved",
+      title: `Saved Matches (${savedMatches.length})`,
+      sub: "View saved profiles popup",
+      icon: BookmarkCheck,
       color: "text-purple-500",
       bg: "bg-purple-50",
+      action: () => setIsSavedModalOpen(true),
     },
   ];
 
-  const roommates = [
+  const allRoommates = [
     {
-      id: 1,
+      id: "rm-1",
       name: "Aditi Sharma",
       genderSign: "♀",
-      age: 20,
-      college: "MIT AOE",
-      rating: 4.7,
-      reviews: 12,
-      badge: "Verified",
-      badgeStyle: "bg-emerald-100 text-emerald-700 border-emerald-200",
-      gender: "Female",
+      gender: "Girls",
       food: "Veg",
       smoking: "Non-Smoker",
-      location: "MIT AOE",
-      budget: "₹6k - ₹8k/month",
-      interests: "Music, Travel, Reading",
-      quote: "Looking for a clean, friendly and respectful roommate.",
-      img: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&auto=format&fit=crop&q=80",
+      age: "20 yrs",
+      college: "MIT AOE • 2nd Year",
+      badge: "Verified Match",
+      badgeStyle: "bg-emerald-50 text-emerald-700 border-emerald-200",
+      rating: "4.9",
+      reviews: "18",
+      location: "Near MIT AOE Gate, Alandi",
+      budget: "₹4,500/mo",
+      numericBudget: 4500,
+      interests: "Coding, Books, Classical Music",
+      quote: "Looking for a clean, quiet roommate to share a 2BHK flat near campus.",
+      img: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&auto=format&fit=crop&q=80",
       href: "/student/roomates/quiz",
     },
     {
-      id: 2,
-      name: "Rohit Verma",
+      id: "rm-2",
+      name: "Rohan Kulkarni",
       genderSign: "♂",
-      age: 21,
-      college: "MIT AOE",
-      rating: 4.5,
-      reviews: 9,
-      badge: "Popular",
-      badgeStyle: "bg-rose-100 text-rose-700 border-rose-200",
-      gender: "Male",
+      gender: "Boys",
       food: "Non-Veg",
       smoking: "Non-Smoker",
-      location: "Dehu Phata",
-      budget: "₹5k - ₹7k/month",
-      interests: "Sports, Gaming, Movies",
-      quote: "Easy going, clean and love new people.",
-      img: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=300&auto=format&fit=crop&q=80",
-      href: "/student/roommates/quiz",
+      age: "21 yrs",
+      college: "MIT AOE • 3rd Year",
+      badge: "Top Match",
+      badgeStyle: "bg-purple-50 text-purple-700 border-purple-200",
+      rating: "4.8",
+      reviews: "24",
+      location: "Dehu Phata Road",
+      budget: "₹5,000/mo",
+      numericBudget: 5000,
+      interests: "Web Dev, Gaming, Gym",
+      quote: "Friendly and easygoing. Need 1 roommate for a shared flat with Wi-Fi.",
+      img: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80",
+      href: "/student/roomates/quiz",
     },
     {
-      id: 3,
-      name: "Sneha Kulkarni",
+      id: "rm-3",
+      name: "Pooja Deshmukh",
       genderSign: "♀",
-      age: 21,
-      college: "MIT AOE",
-      rating: 4.8,
-      reviews: 15,
-      badge: "Verified",
-      badgeStyle: "bg-emerald-100 text-emerald-700 border-emerald-200",
-      gender: "Female",
+      gender: "Girls",
       food: "Veg",
       smoking: "Non-Smoker",
-      location: "Vishweswar Nagar",
-      budget: "₹5k - ₹7k/month",
-      interests: "Coding, Books, Food",
-      quote: "Looking for a peaceful and cooperative roommate.",
-      img: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=300&auto=format&fit=crop&q=80",
-      href: "/student/roommates/quiz",
+      age: "19 yrs",
+      college: "MIT AOE • 1st Year",
+      badge: "Student Friendly",
+      badgeStyle: "bg-blue-50 text-blue-700 border-blue-200",
+      rating: "4.7",
+      reviews: "12",
+      location: "Ganesh Colony",
+      budget: "₹4,000/mo",
+      numericBudget: 4000,
+      interests: "Design, Badminton, Movies",
+      quote: "Early riser who values study time. Looking for someone tidy and respectful.",
+      img: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80",
+      href: "/student/roomates/quiz",
     },
     {
-      id: 4,
-      name: "Karan Deshpande",
+      id: "rm-4",
+      name: "Aditya More",
       genderSign: "♂",
-      age: 22,
-      college: "MIT AOE",
-      rating: 4.3,
-      reviews: 4,
-      badge: "New",
-      badgeStyle: "bg-purple-100 text-purple-700 border-purple-200",
-      gender: "Male",
+      gender: "Boys",
       food: "Veg",
       smoking: "Non-Smoker",
-      location: "Alandi",
-      budget: "₹7k - ₹9k/month",
-      interests: "Cricket, Gym, Web Series",
-      quote: "Fun disciplined and always up for good conversations!",
-      img: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&auto=format&fit=crop&q=80",
-      href: "/student/roommates/quiz",
+      age: "20 yrs",
+      college: "MIT AOE • 2nd Year",
+      badge: "Study Friendly",
+      badgeStyle: "bg-amber-50 text-amber-700 border-amber-200",
+      rating: "4.9",
+      reviews: "15",
+      location: "Indrayani River Road",
+      budget: "₹6,000/mo",
+      numericBudget: 6000,
+      interests: "Hackathons, Chess, Coffee",
+      quote: "Focused on academics and tech projects. Prefer a quiet flat environment.",
+      img: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&auto=format&fit=crop&q=80",
+      href: "/student/roomates/quiz",
     },
     {
-      id: 5,
-      name: "Isha Patil",
+      id: "rm-5",
+      name: "Ananya Sharma",
       genderSign: "♀",
-      age: 20,
-      college: "MIT",
-      rating: 4.6,
-      reviews: 10,
-      badge: "Verified",
-      badgeStyle: "bg-emerald-100 text-emerald-700 border-emerald-200",
-      gender: "Female",
+      gender: "Girls",
       food: "Non-Veg",
       smoking: "Non-Smoker",
-      location: "Dehu Phata",
-      budget: "₹5k - ₹7k/month",
-      interests: "Art, Music, Cooking",
-      quote: "Love clean space and good vibes only!",
-      img: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=300&auto=format&fit=crop&q=80",
-      href: "/student/roommates/quiz",
+      age: "21 yrs",
+      college: "MIT AOE • 3rd Year",
+      badge: "Verified Match",
+      badgeStyle: "bg-emerald-50 text-emerald-700 border-emerald-200",
+      rating: "4.8",
+      reviews: "21",
+      location: "Markal Road, Alandi",
+      budget: "₹5,500/mo",
+      numericBudget: 5500,
+      interests: "Music, Travel, Photography",
+      quote: "Looking for an open-minded roommate who keeps common areas clean.",
+      img: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=200&auto=format&fit=crop&q=80",
+      href: "/student/roomates/quiz",
     },
     {
-      id: 6,
-      name: "Siddharth More",
+      id: "rm-6",
+      name: "Omkar Shinde",
       genderSign: "♂",
-      age: 21,
-      college: "AOE",
-      rating: 4.4,
-      reviews: 9,
-      badge: "Popular",
-      badgeStyle: "bg-rose-100 text-rose-700 border-rose-200",
-      gender: "Male",
-      food: "Veg",
+      gender: "Boys",
+      food: "Both",
       smoking: "Non-Smoker",
-      location: "MIT Campus",
-      budget: "₹4k - ₹5k/month",
-      interests: "Tech, Football, Travel",
-      quote: "Looking for a peaceful, respectful roommate.",
-      img: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=300&auto=format&fit=crop&q=80",
-      href: "/student/roommates/quiz",
+      age: "20 yrs",
+      college: "MIT AOE • 2nd Year",
+      badge: "Budget Match",
+      badgeStyle: "bg-blue-50 text-blue-700 border-blue-200",
+      rating: "4.6",
+      reviews: "10",
+      location: "Near Tapkir Nagar",
+      budget: "₹3,800/mo",
+      numericBudget: 3800,
+      interests: "Cricket, Coding, Anime",
+      quote: "Easy to get along with. Shared expenses and quiet nights during exams.",
+      img: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=200&auto=format&fit=crop&q=80",
+      href: "/student/roomates/quiz",
     },
   ];
+
+  const filteredRoommates = allRoommates.filter((person) => {
+    const q = searchQuery.toLowerCase().trim();
+    const matchSearch =
+      !q ||
+      person.name.toLowerCase().includes(q) ||
+      person.location.toLowerCase().includes(q) ||
+      person.interests.toLowerCase().includes(q);
+
+    let matchGender = true;
+    if (genderFilter === "boys") matchGender = person.gender === "Boys";
+    if (genderFilter === "girls") matchGender = person.gender === "Girls";
+
+    let matchFood = true;
+    if (foodFilter === "veg") matchFood = person.food === "Veg";
+    if (foodFilter === "nonveg") matchFood = person.food === "Non-Veg" || person.food === "Both";
+
+    const matchBudget = person.numericBudget <= budgetVal;
+
+    return matchSearch && matchGender && matchFood && matchBudget;
+  });
 
   return (
     <div className="min-h-screen bg-[#F4F6FC] text-slate-800 font-sans antialiased p-4 sm:p-6 lg:p-8">
       <div className="w-full max-w-[1720px] mx-auto flex flex-col lg:flex-row gap-6 items-start">
-        
         {/* =========================================================
             LEFT COLUMN: FILTERS, QUIZ & MORE FEATURES
         ========================================================= */}
         <aside className="w-full lg:w-[300px] min-w-[280px] shrink-0 space-y-4">
-          
           {/* Still Confused Quiz Box */}
           <div className="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm text-center relative overflow-hidden">
             <div className="w-16 h-16 mx-auto mb-2 flex items-center justify-center">
@@ -246,6 +307,12 @@ export default function RoommateFinderPage() {
               </h4>
               <button
                 type="button"
+                onClick={() => {
+                  setGenderFilter("both");
+                  setFoodFilter("both");
+                  setBudgetVal(8000);
+                  setSearchQuery("");
+                }}
                 className="text-[10px] font-bold text-[#5D42CE] hover:underline cursor-pointer"
               >
                 Clear All
@@ -474,7 +541,6 @@ export default function RoommateFinderPage() {
             CENTRAL COLUMN: HERO BANNER, TABS, SEARCH & CARDS
         ========================================================= */}
         <div className="flex-1 min-w-0 space-y-5">
-          
           {/* Hero Banner */}
           <div className="relative rounded-[32px] overflow-hidden bg-gradient-to-r from-[#FCE8F3] via-[#F4E8FC] to-[#E9E4FD] p-6 sm:p-8 border border-purple-100/60 shadow-sm flex flex-col md:flex-row items-center justify-between gap-6 min-h-[175px]">
             <div className="space-y-2 z-10 max-w-sm">
@@ -504,7 +570,9 @@ export default function RoommateFinderPage() {
             </div>
           </div>
 
-          {/* Top Action Tabs */}
+          {/* =========================================================
+              TOP ACTION TABS: 4th Card is "Saved Matches" (Popup Trigger)
+          ========================================================== */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
             {topCategories.map((cat) => {
               const Icon = cat.icon;
@@ -513,7 +581,7 @@ export default function RoommateFinderPage() {
                 <button
                   key={cat.id}
                   type="button"
-                  onClick={() => setActiveTab(cat.id)}
+                  onClick={cat.action}
                   className={`p-3.5 rounded-2xl bg-white border text-left transition shadow-sm flex items-center gap-3 cursor-pointer ${
                     isActive
                       ? "border-[#5D42CE] ring-2 ring-purple-100"
@@ -589,7 +657,7 @@ export default function RoommateFinderPage() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-1">
             <div>
               <h2 className="text-base font-black text-slate-900 flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-[#5D42CE]" /> Featured Roommates
+                <Sparkles className="w-4 h-4 text-[#5D42CE]" /> Featured Roommates ({filteredRoommates.length})
               </h2>
               <p className="text-[11px] text-slate-400 font-medium">
                 Handpicked matches based on your profile and preferences
@@ -608,7 +676,7 @@ export default function RoommateFinderPage() {
 
           {/* Roommate Cards Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-            {roommates.map((person) => (
+            {filteredRoommates.map((person) => (
               <div
                 key={person.id}
                 className="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm hover:shadow-md transition flex flex-col justify-between space-y-3"
@@ -672,7 +740,6 @@ export default function RoommateFinderPage() {
                   &ldquo;{person.quote}&rdquo;
                 </div>
 
-                {/* View Profile Link using person.href */}
                 <Link
                   href={person.href || "/student/roomates/quiz"}
                   className="w-full py-2 rounded-xl bg-[#5D42CE] hover:bg-[#4d34b5] text-white text-xs font-black shadow-sm transition flex items-center justify-center gap-1 cursor-pointer"
@@ -683,7 +750,6 @@ export default function RoommateFinderPage() {
               </div>
             ))}
           </div>
-
         </div>
 
         {/* =========================================================
@@ -732,8 +798,101 @@ export default function RoommateFinderPage() {
             </Link>
           </div>
         </aside>
-
       </div>
+
+      {/* =========================================================
+          IN-PAGE SAVED MATCHES POP-UP MODAL (NO SEPARATE PAGE)
+      ========================================================== */}
+      {isSavedModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-in fade-in duration-150">
+          <div className="bg-white rounded-[32px] p-6 sm:p-7 max-w-lg w-full border border-slate-100 shadow-2xl space-y-5 animate-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div className="flex items-center gap-2.5">
+                <div className="w-10 h-10 rounded-2xl bg-purple-100 text-[#5D42CE] flex items-center justify-center text-xl shadow-xs">
+                  🔖
+                </div>
+                <div>
+                  <h3 className="text-base font-black text-slate-900">Saved Roommate Matches</h3>
+                  <p className="text-[10px] text-slate-400 font-bold">Profiles you shortlisted from the compatibility quiz</p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setIsSavedModalOpen(false)}
+                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition cursor-pointer"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            {savedMatches.length === 0 ? (
+              <div className="py-10 text-center space-y-2">
+                <div className="text-3xl">📭</div>
+                <p className="text-sm font-bold text-slate-700">No saved roommates yet</p>
+                <p className="text-xs text-slate-400 max-w-xs mx-auto">
+                  Click &ldquo;Save Match&rdquo; on Aditi Sharma or any roommate&apos;s quiz page to save them here.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3 max-h-[380px] overflow-y-auto pr-1">
+                {savedMatches.map((person) => (
+                  <div
+                    key={person.id}
+                    className="p-3.5 rounded-2xl bg-[#FAF9FD] border border-slate-100 flex items-center justify-between gap-3 shadow-2xs hover:bg-white transition"
+                  >
+                    <div className="flex items-center gap-3">
+                      <img
+                        src={person.img}
+                        alt={person.name}
+                        className="w-11 h-11 rounded-full object-cover ring-2 ring-purple-100 shrink-0"
+                      />
+                      <div>
+                        <h4 className="text-xs font-black text-slate-900 flex items-center gap-1">
+                          {person.name}
+                          <span className="text-[10px] text-amber-500 font-extrabold">★ {person.rating || "4.9"}</span>
+                        </h4>
+                        <p className="text-[10px] text-slate-500 font-semibold">
+                          {person.branch || person.course} • {person.college}
+                        </p>
+                        <p className="text-[9px] text-[#5D42CE] font-bold">
+                          Budget: {person.budget || "₹4,500/mo"}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 shrink-0">
+                      <Link
+                        href="/student/roomates/quiz"
+                        onClick={() => setIsSavedModalOpen(false)}
+                        className="px-3.5 py-1.5 rounded-xl bg-[#5D42CE] hover:bg-[#4d34b5] text-white text-[10px] font-black shadow-xs transition"
+                      >
+                        Quiz
+                      </Link>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveSaved(person.id)}
+                        className="p-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer"
+                        title="Remove from saved"
+                      >
+                        <Trash2 size={15} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <button
+              type="button"
+              onClick={() => setIsSavedModalOpen(false)}
+              className="w-full py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 hover:bg-slate-50 transition cursor-pointer"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

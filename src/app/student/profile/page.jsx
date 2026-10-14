@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   ShieldCheck,
   Edit2,
@@ -20,10 +21,32 @@ import {
   Home,
   Calendar,
   Ticket,
+  Check,
+  X,
+  Copy,
+  BookOpen,
+  LogOut,
+  Upload,
 } from "lucide-react";
 
 export default function StudentProfilePage() {
-  // Lifestyle state
+  const router = useRouter();
+  const fileInputRef = useRef(null);
+
+  // Dynamic Profile Identity State
+  const [profileData, setProfileData] = useState({
+    name: "Riya Wagh",
+    studentId: "STU-2026-8942",
+    college: "MIT AOE",
+    branch: "Computer Engineering",
+    year: "3rd Year (SY)",
+    hostel: "Om Shanti Girls PG",
+    email: "riya.wagh@mitaoe.ac.in",
+    phone: "+91 91******12",
+    avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&auto=format&fit=crop&q=80",
+  });
+
+  // Lifestyle states
   const [cleanlinessFriendly, setCleanlinessFriendly] = useState("Yes");
   const [sleepWakeHour, setSleepWakeHour] = useState("Night Owl");
   const [dietPref, setDietPref] = useState("Veg");
@@ -41,6 +64,84 @@ export default function StudentProfilePage() {
   );
   const [openToInquiries, setOpenToInquiries] = useState(true);
 
+  // Modal & Toast States
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editFormData, setEditFormData] = useState({ ...profileData });
+  const [toastMessage, setToastMessage] = useState("");
+
+  const showToast = (msg) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(""), 2500);
+  };
+
+  // Load registered session user from localStorage
+  const loadProfile = useCallback(() => {
+    try {
+      const stored =
+        localStorage.getItem("current_user") ||
+        localStorage.getItem("currentUser") ||
+        localStorage.getItem("currentStudent");
+
+      const savedAvatar = localStorage.getItem("profile_avatar");
+
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        const resolvedName = parsed.fullName || parsed.name || profileData.name;
+        const resolvedEmail = parsed.email || profileData.email;
+        const resolvedCollege = parsed.college || profileData.college;
+        const resolvedYear = parsed.year || profileData.year;
+        const resolvedAvatar =
+          savedAvatar ||
+          parsed.avatar ||
+          profileData.avatar;
+
+        const updated = {
+          name: resolvedName,
+          studentId: parsed.id || profileData.studentId,
+          college: resolvedCollege,
+          branch: parsed.branch || profileData.branch,
+          year: resolvedYear,
+          hostel: parsed.hostel || profileData.hostel,
+          email: resolvedEmail,
+          phone: parsed.phone || parsed.contactNumber || profileData.phone,
+          avatar: resolvedAvatar,
+        };
+
+        setProfileData(updated);
+        setEditFormData(updated);
+      } else if (savedAvatar) {
+        setProfileData((prev) => ({ ...prev, avatar: savedAvatar }));
+        setEditFormData((prev) => ({ ...prev, avatar: savedAvatar }));
+      }
+
+      // Load saved lifestyle habits if stored
+      const savedHabits = localStorage.getItem("student_lifestyle_settings");
+      if (savedHabits) {
+        const parsedHabits = JSON.parse(savedHabits);
+        if (parsedHabits.cleanlinessFriendly) setCleanlinessFriendly(parsedHabits.cleanlinessFriendly);
+        if (parsedHabits.sleepWakeHour) setSleepWakeHour(parsedHabits.sleepWakeHour);
+        if (parsedHabits.dietPref) setDietPref(parsedHabits.dietPref);
+        if (parsedHabits.addictions) setAddictions(parsedHabits.addictions);
+        if (parsedHabits.languages) setLanguages(parsedHabits.languages);
+        if (parsedHabits.hobbies) setHobbies(parsedHabits.hobbies);
+        if (parsedHabits.shortBio) setShortBio(parsedHabits.shortBio);
+        if (parsedHabits.openToInquiries !== undefined) setOpenToInquiries(parsedHabits.openToInquiries);
+      }
+    } catch (e) {
+      console.error("Error loading profile:", e);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadProfile();
+    window.addEventListener("storage", loadProfile);
+    window.addEventListener("focus", loadProfile);
+    return () => {
+      window.removeEventListener("storage", loadProfile);
+      window.removeEventListener("focus", loadProfile);
+    };
+  }, [loadProfile]);
+
   const handleLanguageChange = (index, value) => {
     const updated = [...languages];
     updated[index] = value;
@@ -53,9 +154,124 @@ export default function StudentProfilePage() {
     setHobbies(updated);
   };
 
+  // Image File Upload Handler
+  const handleImageUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 2 * 1024 * 1024) {
+      alert("Please upload an image smaller than 2MB");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64String = reader.result;
+      setEditFormData((prev) => ({ ...prev, avatar: base64String }));
+      setProfileData((prev) => ({ ...prev, avatar: base64String }));
+      try {
+        localStorage.setItem("profile_avatar", base64String);
+        const stored = localStorage.getItem("current_user");
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          localStorage.setItem("current_user", JSON.stringify({ ...parsed, avatar: base64String }));
+        }
+        window.dispatchEvent(new Event("storage"));
+        showToast("Profile photo updated!");
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // Save Lifestyle settings
+  const handleSaveLifestyle = () => {
+    const payload = {
+      cleanlinessFriendly,
+      sleepWakeHour,
+      dietPref,
+      addictions,
+      languages,
+      hobbies,
+      shortBio,
+      openToInquiries,
+    };
+    try {
+      localStorage.setItem("student_lifestyle_settings", JSON.stringify(payload));
+      window.dispatchEvent(new Event("storage"));
+      showToast("Lifestyle & roommate preferences saved!");
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  // Save Primary Identity info
+  const handleSaveIdentity = (e) => {
+    e.preventDefault();
+    setProfileData(editFormData);
+    try {
+      const stored =
+        localStorage.getItem("current_user") ||
+        localStorage.getItem("currentUser") ||
+        "{}";
+      const parsed = JSON.parse(stored);
+      const updated = {
+        ...parsed,
+        fullName: editFormData.name,
+        name: editFormData.name,
+        college: editFormData.college,
+        branch: editFormData.branch,
+        year: editFormData.year,
+        hostel: editFormData.hostel,
+        avatar: editFormData.avatar,
+      };
+      localStorage.setItem("current_user", JSON.stringify(updated));
+      localStorage.setItem("currentUser", JSON.stringify(updated));
+      if (editFormData.avatar) {
+        localStorage.setItem("profile_avatar", editFormData.avatar);
+      }
+      window.dispatchEvent(new Event("storage"));
+      setIsEditModalOpen(false);
+      showToast("Profile details updated successfully!");
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  // Logout Function
+  const handleLogout = () => {
+    try {
+      localStorage.removeItem("current_user");
+      localStorage.removeItem("currentUser");
+      localStorage.removeItem("currentStudent");
+      localStorage.removeItem("campusConciergeLoggedIn");
+      window.dispatchEvent(new Event("storage"));
+      router.push("/login");
+    } catch (err) {
+      console.error(err);
+      router.push("/login");
+    }
+  };
+
+  const copyId = () => {
+    if (typeof navigator !== "undefined" && navigator.clipboard) {
+      navigator.clipboard.writeText(profileData.studentId);
+    }
+    showToast(`Copied ID: ${profileData.studentId}`);
+  };
+
   return (
     <div className="min-h-screen bg-[#F1F4FA] text-slate-700 font-sans antialiased p-4 sm:p-6 lg:p-8 select-none">
-      
+      {/* Hidden File Input for Avatar */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleImageUpload}
+        accept="image/*"
+        className="hidden"
+      />
+
       {/* =========================================================
           PAGE HEADER: PROFILE SECTION
       ========================================================= */}
@@ -88,97 +304,165 @@ export default function StudentProfilePage() {
           TOP ROW: 3-COLUMN PROFILE GRID
       ========================================================= */}
       <div className="max-w-[1360px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-        
         {/* =========================================================
-            CARD 1 (LEFT): IDENTITY (lg:col-span-4)
+            CARD 1 (LEFT COLUMN): IDENTITY + CAMPUS STATUS
         ========================================================= */}
-        <div className="lg:col-span-4 bg-white rounded-3xl p-6 border border-slate-100 shadow-[0_2px_12px_rgba(0,0,0,0.03)] space-y-5">
-          
-          <div className="flex items-start gap-4">
-            {/* Avatar */}
-            <div className="relative w-20 h-20 rounded-full overflow-hidden bg-slate-100 shrink-0 border-2 border-white shadow-sm">
-              <img
-                src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&auto=format&fit=crop&q=80"
-                alt="Riya Wagh"
-                className="w-full h-full object-cover"
-              />
-              <button
-                type="button"
-                className="absolute bottom-0 right-0 w-6 h-6 rounded-full bg-[#5D42CE] text-white flex items-center justify-center border border-white cursor-pointer hover:bg-[#4d34b5]"
-              >
-                <Camera className="w-3 h-3" />
-              </button>
-            </div>
-
-            {/* Name / ID / Verified Badge */}
-            <div className="flex-1 min-w-0">
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#ECFDF5] text-[#059669] text-xs font-bold border border-emerald-100 mb-1.5">
-                <CheckCircle2 className="w-3.5 h-3.5 text-[#059669]" />
-                <span>Verified Student</span>
-              </div>
-
-              <div className="flex items-center gap-1.5 mt-0.5">
-                <h2 className="text-lg font-black text-slate-900 tracking-tight truncate">
-                  Riya Wagh
-                </h2>
-                <button type="button" className="text-slate-400 hover:text-slate-600 transition">
-                  <Edit2 className="w-3.5 h-3.5" />
+        <div className="lg:col-span-4 space-y-4">
+          <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-[0_2px_12px_rgba(0,0,0,0.03)] space-y-5">
+            <div className="flex items-start gap-4">
+              {/* Avatar with click-to-upload */}
+              <div className="relative w-20 h-20 rounded-full overflow-hidden bg-purple-100 shrink-0 border-2 border-white shadow-sm flex items-center justify-center group">
+                <img
+                  src={profileData.avatar}
+                  alt={profileData.name}
+                  className="w-full h-full object-cover"
+                />
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center text-white text-[9px] font-bold transition cursor-pointer"
+                  title="Upload photo"
+                >
+                  <Camera className="w-4 h-4 mb-0.5" />
+                  <span>Change</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="absolute bottom-0 right-0 w-6 h-6 rounded-full bg-[#5D42CE] text-white flex items-center justify-center border border-white cursor-pointer hover:bg-[#4d34b5] shadow-sm"
+                  title="Change photo"
+                >
+                  <Camera className="w-3 h-3" />
                 </button>
               </div>
 
-              <p className="text-xs font-semibold text-slate-450 mt-0.5">
-                STU-2026-8942
-              </p>
-            </div>
-          </div>
+              {/* Name / ID / Verified Badge */}
+              <div className="flex-1 min-w-0">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#ECFDF5] text-[#059669] text-xs font-bold border border-emerald-100 mb-1.5">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-[#059669]" />
+                  <span>Verified Student</span>
+                </div>
 
-          {/* College / Branch Info list */}
-          <div className="space-y-3 pt-3.5 border-t border-slate-100 text-sm">
-            <div className="flex items-center justify-between">
-              <span className="text-slate-400 font-medium">College</span>
-              <span className="font-bold text-slate-800 text-right">MIT AOE</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-slate-400 font-medium">Branch</span>
-              <span className="font-bold text-slate-800 text-right">Computer Engineering</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-slate-400 font-medium">Year of Study</span>
-              <span className="font-bold text-slate-800 text-right">3rd Year (SY)</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-slate-400 font-medium">Hostel/PG Name</span>
-              <span className="font-bold text-slate-800 text-right">Om Shanti Girls PG</span>
-            </div>
-          </div>
+                <div className="flex items-center gap-1.5 mt-0.5">
+                  <h2 className="text-lg font-black text-slate-900 tracking-tight truncate">
+                    {profileData.name}
+                  </h2>
+                  <button
+                    type="button"
+                    onClick={() => setIsEditModalOpen(true)}
+                    className="text-slate-400 hover:text-[#5D42CE] transition cursor-pointer"
+                  >
+                    <Edit2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
 
-          {/* Profile Completion Bar */}
-          <div className="pt-3 border-t border-slate-100 space-y-2">
-            <div className="flex items-center justify-between text-sm">
-              <span className="font-bold text-slate-700">Profile Completion</span>
-              <span className="font-black text-[#5D42CE] flex items-center gap-0.5 cursor-pointer">
-                85% <ChevronRight className="w-4 h-4 text-[#5D42CE]" />
-              </span>
-            </div>
-            <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-              <div className="bg-[#5D42CE] h-full w-[85%] rounded-full" />
-            </div>
-          </div>
-
-          {/* Complete your profile promo */}
-          <div className="p-4 rounded-xl bg-[#F6F4FE] border border-purple-100 flex items-center justify-between gap-3">
-            <div className="flex items-start gap-3">
-              <div className="w-7 h-7 rounded-lg bg-purple-100 text-[#5D42CE] flex items-center justify-center shrink-0 mt-0.5">
-                <Sparkles className="w-4 h-4" />
-              </div>
-              <div>
-                <p className="text-xs font-black text-slate-900 leading-tight">Complete your profile</p>
-                <p className="text-[11px] text-slate-500 font-medium leading-normal mt-0.5">
-                  Add your interests, skills and more to get better roommate matches!
+                <p className="text-xs font-semibold text-slate-400 mt-0.5">
+                  {profileData.studentId}
                 </p>
               </div>
             </div>
-            <ArrowUpRight className="w-4.5 h-4.5 text-[#5D42CE] shrink-0" />
+
+            {/* College / Branch Info list */}
+            <div className="space-y-3 pt-3.5 border-t border-slate-100 text-sm">
+              <div className="flex items-center justify-between">
+                <span className="text-slate-400 font-medium">College</span>
+                <span className="font-bold text-slate-800 text-right">{profileData.college}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-slate-400 font-medium">Branch</span>
+                <span className="font-bold text-slate-800 text-right">{profileData.branch}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-slate-400 font-medium">Year of Study</span>
+                <span className="font-bold text-slate-800 text-right">{profileData.year}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-slate-400 font-medium">Hostel/PG Name</span>
+                <span className="font-bold text-slate-800 text-right">{profileData.hostel}</span>
+              </div>
+            </div>
+
+            {/* Profile Completion Bar */}
+            <div className="pt-3 border-t border-slate-100 space-y-2">
+              <div className="flex items-center justify-between text-sm">
+                <span className="font-bold text-slate-700">Profile Completion</span>
+                <span
+                  onClick={() => setIsEditModalOpen(true)}
+                  className="font-black text-[#5D42CE] flex items-center gap-0.5 cursor-pointer"
+                >
+                  92% <ChevronRight className="w-4 h-4 text-[#5D42CE]" />
+                </span>
+              </div>
+              <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                <div className="bg-[#5D42CE] h-full w-[92%] rounded-full" />
+              </div>
+            </div>
+
+            {/* Complete your profile promo */}
+            <div
+              onClick={() => setIsEditModalOpen(true)}
+              className="p-4 rounded-xl bg-[#F6F4FE] border border-purple-100 flex items-center justify-between gap-3 cursor-pointer hover:bg-purple-100/50 transition"
+            >
+              <div className="flex items-start gap-3">
+                <div className="w-7 h-7 rounded-lg bg-purple-100 text-[#5D42CE] flex items-center justify-center shrink-0 mt-0.5">
+                  <Sparkles className="w-4 h-4" />
+                </div>
+                <div>
+                  <p className="text-xs font-black text-slate-900 leading-tight">Complete your profile</p>
+                  <p className="text-[11px] text-slate-500 font-medium leading-normal mt-0.5">
+                    Update your photo, hostel, year &amp; branch anytime!
+                  </p>
+                </div>
+              </div>
+              <ArrowUpRight className="w-4.5 h-4.5 text-[#5D42CE] shrink-0" />
+            </div>
+          </div>
+
+          {/* CAMPUS STATUS & BADGES CARD */}
+          <div className="bg-white rounded-3xl p-5 border border-slate-100 shadow-[0_2px_12px_rgba(0,0,0,0.03)] space-y-3.5">
+            <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-xl bg-purple-100 text-[#5D42CE] flex items-center justify-center">
+                  <BookOpen className="w-4 h-4" />
+                </div>
+                <h4 className="text-xs font-black text-slate-900">Campus Status &amp; Badges</h4>
+              </div>
+              <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md">
+                Active Student
+              </span>
+            </div>
+
+            <div className="space-y-2.5 text-xs">
+              <div className="flex items-center justify-between p-2.5 rounded-2xl bg-[#FAF9FE] border border-purple-50">
+                <div>
+                  <p className="text-[10px] text-slate-400 font-bold uppercase">Study Mode</p>
+                  <p className="font-extrabold text-slate-900">Exam / Semester Prep</p>
+                </div>
+                <span className="text-xs">📚</span>
+              </div>
+
+              <div className="flex items-center justify-between p-2.5 rounded-2xl bg-[#FAF9FE] border border-purple-50">
+                <div>
+                  <p className="text-[10px] text-slate-400 font-bold uppercase">Digital ID Token</p>
+                  <p className="font-extrabold text-slate-900 font-mono text-[11px]">{profileData.studentId}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={copyId}
+                  className="p-1.5 rounded-xl bg-white border border-slate-200 text-slate-600 hover:text-[#5D42CE] transition cursor-pointer"
+                  title="Copy Student Token"
+                >
+                  <Copy className="w-3.5 h-3.5" />
+                </button>
+              </div>
+
+              <div className="flex items-center justify-between pt-1 text-[11px] font-bold text-slate-500">
+                <span className="flex items-center gap-1 text-emerald-600">
+                  <CheckCircle2 className="w-3.5 h-3.5" /> Emergency Contact Synced
+                </span>
+                <span className="text-purple-600">MIT AOE ✓</span>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -188,14 +472,15 @@ export default function StudentProfilePage() {
         <div className="lg:col-span-5 bg-white rounded-2xl p-6 border border-slate-100 shadow-[0_2px_12px_rgba(0,0,0,0.03)] space-y-4">
           <div className="flex items-center justify-between pb-1.5 border-b border-slate-50">
             <h3 className="text-sm font-black text-slate-900 flex items-center gap-2">
-              <Users className="w-4.5 h-4.5 text-[#5D42CE]" />
+              <Users className="w-4 h-4 text-[#5D42CE]" />
               Roommate &amp; Lifestyle Settings
             </h3>
             <button
               type="button"
-              className="text-xs font-bold text-slate-500 border border-slate-200 rounded-lg px-3 py-1 hover:bg-slate-50 cursor-pointer"
+              onClick={handleSaveLifestyle}
+              className="text-xs font-bold text-white bg-[#5D42CE] hover:bg-[#4d34b5] rounded-lg px-3 py-1 transition cursor-pointer shadow-xs"
             >
-              ✎ Edit
+              Save Settings
             </button>
           </div>
 
@@ -209,11 +494,14 @@ export default function StudentProfilePage() {
                   <button
                     key={v}
                     type="button"
-                    onClick={() => setCleanlinessFriendly(v)}
+                    onClick={() => {
+                      setCleanlinessFriendly(v);
+                      showToast(`Cleanliness set to ${v}`);
+                    }}
                     className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
                       cleanlinessFriendly === v
                         ? "bg-[#5D42CE] text-white shadow-xs"
-                        : "bg-slate-50 text-slate-500 hover:text-slate-800 border border-slate-150"
+                        : "bg-slate-50 text-slate-500 hover:text-slate-800 border border-slate-200"
                     }`}
                   >
                     {v}
@@ -231,11 +519,14 @@ export default function StudentProfilePage() {
                 <button
                   key={v}
                   type="button"
-                  onClick={() => setSleepWakeHour(v)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                  onClick={() => {
+                    setSleepWakeHour(v);
+                    showToast(`Schedule set to ${v}`);
+                  }}
+                  className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
                     sleepWakeHour === v
                       ? "bg-[#5D42CE] text-white shadow-xs"
-                      : "bg-slate-50 text-slate-500 hover:text-slate-800 border border-slate-150"
+                      : "bg-slate-50 text-slate-500 hover:text-slate-800 border border-slate-200"
                   }`}
                 >
                   {v}
@@ -252,11 +543,14 @@ export default function StudentProfilePage() {
                 <button
                   key={v}
                   type="button"
-                  onClick={() => setDietPref(v)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                  onClick={() => {
+                    setDietPref(v);
+                    showToast(`Diet preference set to ${v}`);
+                  }}
+                  className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
                     dietPref === v
                       ? "bg-[#10B981] text-white shadow-xs"
-                      : "bg-slate-50 text-slate-500 hover:text-slate-800 border border-slate-150"
+                      : "bg-slate-50 text-slate-500 hover:text-slate-800 border border-slate-200"
                   }`}
                 >
                   {v}
@@ -273,11 +567,14 @@ export default function StudentProfilePage() {
                 <button
                   key={v}
                   type="button"
-                  onClick={() => setAddictions(v)}
+                  onClick={() => {
+                    setAddictions(v);
+                    showToast(`Habit preference set to ${v}`);
+                  }}
                   className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
                     addictions === v
                       ? "bg-[#5D42CE] text-white shadow-xs"
-                      : "bg-slate-50 text-slate-500 hover:text-slate-800 border border-slate-150"
+                      : "bg-slate-50 text-slate-500 hover:text-slate-800 border border-slate-200"
                   }`}
                 >
                   {v}
@@ -286,9 +583,9 @@ export default function StudentProfilePage() {
             </div>
           </div>
 
-          {/* Editable Languages (3 tags) */}
+          {/* Editable Languages */}
           <div className="space-y-1.5 pt-1">
-            <span className="text-[11px] font-bold text-slate-550 block">Languages (editable)</span>
+            <span className="text-[11px] font-bold text-slate-500 block">Languages (editable)</span>
             <div className="grid grid-cols-3 gap-2.5">
               {languages.map((lang, idx) => (
                 <input
@@ -297,15 +594,15 @@ export default function StudentProfilePage() {
                   value={lang}
                   onChange={(e) => handleLanguageChange(idx, e.target.value)}
                   placeholder={`Lang ${idx + 1}`}
-                  className="w-full text-center py-2 px-3 bg-slate-50 hover:bg-slate-100 focus:bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-700 focus:outline-none focus:ring-1 focus:ring-purple-350"
+                  className="w-full text-center py-2 px-3 bg-slate-50 hover:bg-slate-100 focus:bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-700 focus:outline-none focus:ring-1 focus:ring-purple-300"
                 />
               ))}
             </div>
           </div>
 
-          {/* Editable Interests & Hobbies (3 tags) */}
+          {/* Editable Interests & Hobbies */}
           <div className="space-y-1.5 pt-1">
-            <span className="text-[11px] font-bold text-slate-550 block">Interests &amp; Hobbies (editable)</span>
+            <span className="text-[11px] font-bold text-slate-500 block">Interests &amp; Hobbies (editable)</span>
             <div className="grid grid-cols-3 gap-2.5">
               {hobbies.map((hobby, idx) => (
                 <input
@@ -314,7 +611,7 @@ export default function StudentProfilePage() {
                   value={hobby}
                   onChange={(e) => handleHobbyChange(idx, e.target.value)}
                   placeholder={`Hobby ${idx + 1}`}
-                  className="w-full text-center py-2 px-3 bg-slate-50 hover:bg-purple-55 focus:bg-white border border-slate-200 focus:border-purple-200 rounded-lg text-xs font-bold text-slate-700 focus:outline-none focus:ring-1 focus:ring-purple-350"
+                  className="w-full text-center py-2 px-3 bg-slate-50 hover:bg-purple-50 focus:bg-white border border-slate-200 focus:border-purple-200 rounded-lg text-xs font-bold text-slate-700 focus:outline-none focus:ring-1 focus:ring-purple-300"
                 />
               ))}
             </div>
@@ -335,12 +632,16 @@ export default function StudentProfilePage() {
           <div className="pt-2.5 border-t border-slate-50 flex items-center justify-between">
             <div>
               <p className="text-xs sm:text-sm font-bold text-slate-900 leading-tight">Open to Roommate Inquiries</p>
-              <p className="text-[11px] text-slate-450 font-medium">(Turn off visibility if found)</p>
+              <p className="text-[11px] text-slate-400 font-medium">(Turn off visibility if found)</p>
             </div>
             <button
               type="button"
-              onClick={() => setOpenToInquiries(!openToInquiries)}
-              className={`w-10 h-5.5 rounded-full p-0.5 transition-colors cursor-pointer flex items-center ${
+              onClick={() => {
+                const updated = !openToInquiries;
+                setOpenToInquiries(updated);
+                showToast(updated ? "You are now visible for roommate inquiries" : "Roommate inquiries hidden");
+              }}
+              className={`w-10 h-6 rounded-full p-0.5 transition-colors cursor-pointer flex items-center ${
                 openToInquiries ? "bg-[#5D42CE]" : "bg-slate-300"
               }`}
             >
@@ -357,7 +658,6 @@ export default function StudentProfilePage() {
             CARD 3 (RIGHT): 3-STACK METRIC CARDS (lg:col-span-3)
         ========================================================= */}
         <div className="lg:col-span-3 space-y-4">
-          
           {/* Stack 1: Student Identification */}
           <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-[0_2px_12px_rgba(0,0,0,0.03)] space-y-3.5">
             <div className="flex items-center justify-between">
@@ -383,20 +683,23 @@ export default function StudentProfilePage() {
 
               <div className="py-0.5 border-b border-slate-50">
                 <span className="text-[10px] text-slate-400 font-medium block">College Email</span>
-                <span className="font-semibold text-slate-750 text-xs truncate block mt-0.5">
-                  riya.wagh@mitaoe.ac.in
+                <span className="font-semibold text-slate-700 text-xs truncate block mt-0.5">
+                  {profileData.email}
                 </span>
               </div>
 
-              <div className="flex items-center justify-between pt-0.5">
+              <div
+                onClick={copyId}
+                className="flex items-center justify-between pt-0.5 cursor-pointer hover:bg-slate-50 p-1 rounded-xl transition"
+              >
                 <div className="flex items-center gap-2">
                   <QrCode className="w-4 h-4 text-slate-500" />
                   <div>
                     <p className="font-bold text-slate-800 text-xs leading-tight">QR Code</p>
-                    <p className="text-[10px] text-slate-405 leading-tight">Scan to verify ID</p>
+                    <p className="text-[10px] text-slate-400 leading-tight">Scan to verify ID</p>
                   </div>
                 </div>
-                <ChevronRight className="w-4.5 h-4.5 text-slate-300" />
+                <ChevronRight className="w-4 h-4 text-slate-300" />
               </div>
             </div>
           </div>
@@ -408,9 +711,9 @@ export default function StudentProfilePage() {
                 <Tag className="w-4 h-4 text-[#5D42CE]" />
                 Active Subscription
               </h4>
-              <button type="button" className="text-[11px] font-bold text-[#5D42CE] hover:underline cursor-pointer">
+              <Link href="/pass" className="text-[11px] font-bold text-[#5D42CE] hover:underline">
                 Manage
-              </button>
+              </Link>
             </div>
 
             <div className="space-y-1">
@@ -436,14 +739,18 @@ export default function StudentProfilePage() {
             </div>
           </div>
 
-          {/* Stack 3: Account Security & Services */}
+          {/* Stack 3: Account Security & Services (With LOGOUT) */}
           <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-[0_2px_12px_rgba(0,0,0,0.03)] space-y-3">
             <div className="flex items-center justify-between pb-1.5 border-b border-slate-50">
               <h4 className="text-xs font-black text-slate-900 flex items-center gap-1.5">
                 <Lock className="w-4 h-4 text-[#5D42CE]" />
                 Account Security &amp; Services
               </h4>
-              <button type="button" className="text-[11px] font-bold text-slate-400 hover:text-slate-600">
+              <button
+                type="button"
+                onClick={() => setIsEditModalOpen(true)}
+                className="text-[11px] font-bold text-slate-400 hover:text-slate-600 cursor-pointer"
+              >
                 Edit
               </button>
             </div>
@@ -451,8 +758,8 @@ export default function StudentProfilePage() {
             <div className="space-y-2 text-xs sm:text-sm">
               <div className="flex items-center justify-between py-0.5">
                 <span className="text-slate-400 font-medium text-xs">Email</span>
-                <div className="flex items-center gap-1.5">
-                  <span className="font-semibold text-slate-700 text-xs">riya.wagh@mitaoe.ac.in</span>
+                <div className="flex items-center gap-1.5 truncate max-w-[170px]">
+                  <span className="font-semibold text-slate-700 text-xs truncate">{profileData.email}</span>
                   <span className="text-[9px] font-bold text-emerald-600 bg-emerald-50 px-1 rounded">✓</span>
                 </div>
               </div>
@@ -460,37 +767,47 @@ export default function StudentProfilePage() {
               <div className="flex items-center justify-between py-0.5 border-b border-slate-50 pb-2">
                 <span className="text-slate-400 font-medium text-xs">Phone</span>
                 <div className="flex items-center gap-1.5">
-                  <span className="font-semibold text-slate-700 text-xs">+91 91******12</span>
+                  <span className="font-semibold text-slate-700 text-xs">{profileData.phone}</span>
                   <span className="text-[9px] font-bold text-emerald-600 bg-emerald-50 px-1 rounded">✓</span>
                 </div>
               </div>
 
-              <div className="flex items-center justify-between py-1.5 border-b border-slate-50 cursor-pointer hover:text-[#5D42CE] text-xs font-semibold text-slate-705">
+              <div
+                onClick={() => showToast("Password reset link sent to your college email.")}
+                className="flex items-center justify-between py-1.5 border-b border-slate-50 cursor-pointer hover:text-[#5D42CE] text-xs font-semibold text-slate-700"
+              >
                 <span>Reset Password</span>
                 <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
               </div>
 
-              <div className="flex items-center justify-between py-1.5 border-b border-slate-50 cursor-pointer hover:text-[#5D42CE] text-xs font-semibold text-slate-705">
+              <div
+                onClick={() => showToast("Profile privacy settings: Roommate profile is public on campus.")}
+                className="flex items-center justify-between py-1.5 border-b border-slate-50 cursor-pointer hover:text-[#5D42CE] text-xs font-semibold text-slate-700"
+              >
                 <span>Privacy Settings</span>
                 <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
               </div>
 
-              <div className="flex items-center justify-between pt-1 cursor-pointer hover:text-rose-600 text-xs font-semibold">
-                <span className="text-rose-500">Block / Report</span>
+              {/* REPLACED BLOCK / REPORT WITH FUNCTIONAL LOGOUT */}
+              <div
+                onClick={handleLogout}
+                className="flex items-center justify-between pt-1.5 cursor-pointer hover:text-rose-700 text-xs font-bold text-rose-600 transition"
+              >
+                <span className="flex items-center gap-1.5">
+                  <LogOut className="w-3.5 h-3.5" />
+                  Log Out
+                </span>
                 <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
               </div>
             </div>
           </div>
-
         </div>
-
       </div>
 
       {/* =========================================================
           BOTTOM ROW: 4 STATS OVERVIEW CARDS
       ========================================================= */}
       <div className="max-w-[1360px] mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-5">
-        
         {/* Card 1: My Savings */}
         <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-[0_2px_12px_rgba(0,0,0,0.03)] flex flex-col justify-between space-y-3">
           <div className="flex items-center justify-between">
@@ -509,10 +826,10 @@ export default function StudentProfilePage() {
             </div>
             <p className="text-[10px] text-slate-400 font-medium">this month</p>
           </div>
-          <button type="button" className="text-xs font-bold text-[#5D42CE] hover:underline flex items-center gap-0.5 pt-1.5 border-t border-slate-50 cursor-pointer">
+          <Link href="/pass" className="text-xs font-bold text-[#5D42CE] hover:underline flex items-center gap-0.5 pt-1.5 border-t border-slate-50">
             <span>View Details</span>
             <ChevronRight className="w-3 h-3" />
-          </button>
+          </Link>
         </div>
 
         {/* Card 2: My Accommodation */}
@@ -524,14 +841,14 @@ export default function StudentProfilePage() {
             </div>
           </div>
           <div>
-            <h4 className="text-xs sm:text-sm font-black text-slate-900 truncate">Om Shanti Girls PG</h4>
+            <h4 className="text-xs sm:text-sm font-black text-slate-900 truncate">{profileData.hostel}</h4>
             <p className="text-[10px] font-bold text-slate-400 uppercase mt-1 tracking-wider">Rent Due</p>
             <p className="text-sm font-black text-slate-900">5 Nov 2026</p>
           </div>
-          <button type="button" className="text-xs font-bold text-[#5D42CE] hover:underline flex items-center gap-0.5 pt-1.5 border-t border-slate-50 cursor-pointer">
+          <Link href="/student/pg" className="text-xs font-bold text-[#5D42CE] hover:underline flex items-center gap-0.5 pt-1.5 border-t border-slate-50">
             <span>View Details</span>
             <ChevronRight className="w-3 h-3" />
-          </button>
+          </Link>
         </div>
 
         {/* Card 3: My Activity */}
@@ -550,10 +867,10 @@ export default function StudentProfilePage() {
               <strong className="text-slate-900 font-black">1</strong> Pending Roommate Request
             </p>
           </div>
-          <button type="button" className="text-xs font-bold text-[#5D42CE] hover:underline flex items-center gap-0.5 pt-1.5 border-t border-slate-50 cursor-pointer">
+          <Link href="/student/bookings" className="text-xs font-bold text-[#5D42CE] hover:underline flex items-center gap-0.5 pt-1.5 border-t border-slate-50">
             <span>View All</span>
             <ChevronRight className="w-3 h-3" />
-          </button>
+          </Link>
         </div>
 
         {/* Card 4: My Coupons */}
@@ -570,19 +887,17 @@ export default function StudentProfilePage() {
             </p>
             <p className="text-[10px] font-bold text-slate-400 mt-1">₹ 450 Total Savings</p>
           </div>
-          <button type="button" className="text-xs font-bold text-[#5D42CE] hover:underline flex items-center gap-0.5 pt-1.5 border-t border-slate-50 cursor-pointer">
+          <Link href="/student/cafes" className="text-xs font-bold text-[#5D42CE] hover:underline flex items-center gap-0.5 pt-1.5 border-t border-slate-50">
             <span>View Coupons</span>
             <ChevronRight className="w-3 h-3" />
-          </button>
+          </Link>
         </div>
-
       </div>
 
       {/* =========================================================
           BOTTOM ROW: QUICK ACTIONS & PROMO BANNER
       ========================================================= */}
-      <div className="max-w-[1360px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch mt-5 animate-slideUp">
-        
+      <div className="max-w-[1360px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch mt-5">
         {/* Quick Actions (lg:col-span-6) */}
         <div className="lg:col-span-6 bg-white rounded-2xl p-5 border border-slate-100 shadow-[0_2px_12px_rgba(0,0,0,0.03)] space-y-3 flex flex-col justify-center">
           <h4 className="text-xs font-black text-slate-900 flex items-center gap-1.5">
@@ -608,7 +923,7 @@ export default function StudentProfilePage() {
             </Link>
 
             <Link
-              href="/student/roommates"
+              href="/student/roomates"
               className="p-3.5 rounded-xl bg-[#F8FAFC] hover:bg-[#EFF6FF] hover:text-[#3B82F6] border border-slate-100/70 text-center transition flex flex-col items-center gap-1 text-[11.5px] font-bold text-slate-600"
             >
               <Users className="w-4.5 h-4.5 text-blue-600" />
@@ -616,7 +931,7 @@ export default function StudentProfilePage() {
             </Link>
 
             <Link
-              href="/student/coupons"
+              href="/pass"
               className="p-3.5 rounded-xl bg-[#F8FAFC] hover:bg-purple-50 hover:text-[#5D42CE] border border-slate-100 text-center transition flex flex-col items-center gap-1 text-[11.5px] font-bold text-slate-600"
             >
               <Tag className="w-4.5 h-4.5 text-amber-600" />
@@ -625,27 +940,153 @@ export default function StudentProfilePage() {
           </div>
         </div>
 
-        {/* Promo Banner: Save more. Live better. (lg:col-span-6) */}
+        {/* Promo Banner */}
         <div className="lg:col-span-6 bg-gradient-to-r from-purple-500/10 via-indigo-500/10 to-pink-500/5 rounded-2xl p-5 border border-purple-100/60 shadow-[0_2px_12px_rgba(0,0,0,0.03)] flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="space-y-1 text-center sm:text-left">
             <h4 className="text-sm font-black text-slate-900 leading-tight">
               Save more. Live better.
             </h4>
             <p className="text-[11px] text-slate-500 font-medium max-w-sm leading-normal">
-              Your Hostel360 membership helps you get exclusive discounts on mess, laundry, local cafés, and prime student services!
+              Your Studentica membership helps you get exclusive discounts on mess, laundry, local cafés, and prime student services!
             </p>
           </div>
 
-          <button
-            type="button"
-            className="px-5 py-2.5 rounded-xl bg-[#5D42CE] hover:bg-[#4d34b5] text-white text-xs font-bold shadow-sm transition shrink-0 cursor-pointer"
+          <Link
+            href="/pass"
+            className="px-5 py-2.5 rounded-xl bg-[#5D42CE] hover:bg-[#4d34b5] text-white text-xs font-bold shadow-sm transition shrink-0"
           >
             Explore Offers →
-          </button>
+          </Link>
         </div>
-
       </div>
 
+      {/* =========================================================
+          PROFILE EDIT MODAL POPUP (WITH PHOTO CHOOSER)
+      ========================================================== */}
+      {isEditModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-in fade-in duration-150">
+          <div className="bg-white rounded-3xl p-6 sm:p-7 max-w-md w-full border border-slate-100 shadow-2xl space-y-4 animate-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div className="flex items-center gap-2">
+                <Edit2 className="w-4 h-4 text-[#5D42CE]" />
+                <h3 className="text-sm font-black text-slate-900">Edit Profile Identity</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsEditModalOpen(false)}
+                className="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition cursor-pointer"
+              >
+                <X size={15} />
+              </button>
+            </div>
+
+            {/* Photo Selection Row */}
+            <div className="flex items-center gap-3 p-3 rounded-2xl bg-slate-50 border border-slate-100">
+              <div className="w-14 h-14 rounded-full overflow-hidden bg-purple-100 border-2 border-white shadow-sm shrink-0 flex items-center justify-center">
+                <img
+                  src={editFormData.avatar}
+                  alt="Avatar preview"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="flex-1 space-y-1">
+                <p className="text-xs font-bold text-slate-800">Profile Photo</p>
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="px-3 py-1 rounded-xl bg-[#5D42CE] hover:bg-[#4d34b5] text-white text-[10px] font-black shadow-xs transition flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Upload className="w-3 h-3" />
+                  <span>Upload Image</span>
+                </button>
+              </div>
+            </div>
+
+            <form onSubmit={handleSaveIdentity} className="space-y-3 text-xs font-bold text-slate-700">
+              <div>
+                <label className="text-[10px] text-slate-400 uppercase block mb-1">Full Name</label>
+                <input
+                  type="text"
+                  required
+                  value={editFormData.name}
+                  onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs font-semibold text-slate-800 focus:outline-none focus:border-[#5D42CE]"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-2.5">
+                <div>
+                  <label className="text-[10px] text-slate-400 uppercase block mb-1">College</label>
+                  <input
+                    type="text"
+                    required
+                    value={editFormData.college}
+                    onChange={(e) => setEditFormData({ ...editFormData, college: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs font-semibold text-slate-800 focus:outline-none focus:border-[#5D42CE]"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[10px] text-slate-400 uppercase block mb-1">Year of Study</label>
+                  <input
+                    type="text"
+                    required
+                    value={editFormData.year}
+                    onChange={(e) => setEditFormData({ ...editFormData, year: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs font-semibold text-slate-800 focus:outline-none focus:border-[#5D42CE]"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-[10px] text-slate-400 uppercase block mb-1">Branch</label>
+                <input
+                  type="text"
+                  required
+                  value={editFormData.branch}
+                  onChange={(e) => setEditFormData({ ...editFormData, branch: e.target.value })}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs font-semibold text-slate-800 focus:outline-none focus:border-[#5D42CE]"
+                />
+              </div>
+
+              <div>
+                <label className="text-[10px] text-slate-400 uppercase block mb-1">Hostel / PG Name</label>
+                <input
+                  type="text"
+                  required
+                  value={editFormData.hostel}
+                  onChange={(e) => setEditFormData({ ...editFormData, hostel: e.target.value })}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs font-semibold text-slate-800 focus:outline-none focus:border-[#5D42CE]"
+                />
+              </div>
+
+              <div className="flex items-center gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsEditModalOpen(false)}
+                  className="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 transition cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 py-2.5 rounded-xl bg-[#5D42CE] hover:bg-[#4d34b5] text-white font-black transition cursor-pointer"
+                >
+                  Save Profile
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Floating Toast Notification */}
+      {toastMessage && (
+        <div className="fixed bottom-6 right-6 z-50 bg-[#140E36] text-white px-5 py-3 rounded-2xl shadow-xl text-xs font-bold flex items-center gap-2 border border-purple-800 animate-in fade-in slide-in-from-bottom-2">
+          <Check className="w-4 h-4 text-emerald-400" />
+          <span>{toastMessage}</span>
+        </div>
+      )}
     </div>
   );
 }

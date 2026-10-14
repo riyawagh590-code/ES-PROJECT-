@@ -2,7 +2,6 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-{/*import Navbar from "@/components/common/Navbar";*/}
 import {
   GraduationCap,
   Search,
@@ -16,7 +15,6 @@ import {
   RotateCcw,
   SlidersHorizontal,
   Home as HomeIcon,
-  Grid,
   Utensils,
   Building,
   Coffee,
@@ -35,6 +33,23 @@ export default function StudentCleaningPage() {
   const [selectedDays, setSelectedDays] = useState("All Days");
   const [selectedRating, setSelectedRating] = useState("All Ratings");
 
+  // Sidebar Checkbox states
+  const [rateChecks, setRateChecks] = useState({
+    150: false,
+    200: false,
+    250: false,
+    300: false,
+  });
+  const [dayChecks, setDayChecks] = useState({
+    "Monday - Friday": false,
+    "Monday - Saturday": false,
+    "Monday - Sunday": false,
+  });
+  const [ratingChecks, setRatingChecks] = useState({
+    "4.5": false,
+    "4.0": false,
+  });
+
   const sidebarLinks = [
     { label: "Home", href: "/", icon: HomeIcon },
     { label: "Mess", href: "/student/mess", icon: Utensils },
@@ -42,9 +57,9 @@ export default function StudentCleaningPage() {
     { label: "Cafe", href: "/student/cafes", icon: Coffee },
     { label: "Laundry", href: "/student/laundry", icon: Shirt },
     { label: "Housekeeping", href: "/student/cleaning", icon: Sparkles, active: true },
-    { label: "Roommate Finder", href: "/student/roomates", icon: Users },
+    { label: "Roommate Finder", href: "/student/roommates", icon: Users },
     { label: "Freshers Pass", href: "/pass", icon: Award },
-    { label: "about", href: "/student/about", icon: Bell },
+    { label: "About", href: "/student/about", icon: Bell },
     { label: "Profile", href: "/student/profile", icon: User },
     { label: "Settings", href: "/settings", icon: Settings },
   ];
@@ -152,25 +167,93 @@ export default function StudentCleaningPage() {
     },
   ];
 
+  const handleReset = () => {
+    setSearchTerm("");
+    setSelectedRate("All Rates");
+    setSelectedDays("All Days");
+    setSelectedRating("All Ratings");
+    setRateChecks({ 150: false, 200: false, 250: false, 300: false });
+    setDayChecks({
+      "Monday - Friday": false,
+      "Monday - Saturday": false,
+      "Monday - Sunday": false,
+    });
+    setRatingChecks({ "4.5": false, "4.0": false });
+  };
+
+  // Comprehensive Live Filter
+  const filteredStaff = staffMembers.filter((staff) => {
+    // 1. Search by name
+    const query = searchTerm.trim().toLowerCase();
+    const matchesSearch = query === "" || staff.name.toLowerCase().includes(query);
+
+    // 2. Hourly Rate filter (Dropdown + Checkboxes)
+    let matchesRate = true;
+    const rateNum = Number(staff.rate);
+
+    // Dropdown Check
+    if (selectedRate !== "All Rates" && selectedRate !== "Hourly Rate") {
+      const dropdownNum = parseInt(selectedRate.replace(/[^0-9]/g, ""), 10);
+      if (!isNaN(dropdownNum)) {
+        matchesRate = rateNum === dropdownNum;
+      }
+    }
+
+    // Sidebar Checkboxes Check
+    const activeRateChecks = Object.entries(rateChecks)
+      .filter(([_, checked]) => checked)
+      .map(([rate]) => Number(rate));
+
+    if (activeRateChecks.length > 0) {
+      matchesRate = matchesRate && activeRateChecks.includes(rateNum);
+    }
+
+    // 3. Working Days filter (Dropdown + Checkboxes)
+    let matchesDays = true;
+    if (selectedDays !== "All Days" && selectedDays !== "Working Days") {
+      matchesDays = staff.days.toLowerCase() === selectedDays.toLowerCase();
+    }
+
+    const activeDayChecks = Object.entries(dayChecks)
+      .filter(([_, checked]) => checked)
+      .map(([day]) => day.toLowerCase());
+
+    if (activeDayChecks.length > 0) {
+      matchesDays = matchesDays && activeDayChecks.includes(staff.days.toLowerCase());
+    }
+
+    // 4. Rating filter (Dropdown + Checkboxes)
+    let matchesRating = true;
+    const ratingNum = parseFloat(staff.rating);
+
+    if (selectedRating === "4.5 & above") {
+      matchesRating = ratingNum >= 4.5;
+    } else if (selectedRating === "4.0 & above") {
+      matchesRating = ratingNum >= 4.0;
+    }
+
+    if (ratingChecks["4.5"]) {
+      matchesRating = matchesRating && ratingNum >= 4.5;
+    } else if (ratingChecks["4.0"]) {
+      matchesRating = matchesRating && ratingNum >= 4.0;
+    }
+
+    return matchesSearch && matchesRate && matchesDays && matchesRating;
+  });
+
   return (
     <div className="min-h-screen bg-[#FAF9FD] text-slate-900 font-sans selection:bg-purple-100 selection:text-purple-700">
-      {/* 1. TOP NAVBAR */}
-      
-
-      {/* 2. HERO BANNER */}
+      {/* HERO BANNER */}
       <section className="max-w-[1550px] mx-auto px-4 md:px-6 pt-5 pb-4">
-        {/* Back Link */}
         <Link
-          href="/student/services"
+          href="/student"
           className="inline-flex items-center gap-1.5 text-xs font-bold text-[#4F46E5] hover:text-indigo-800 transition mb-3"
         >
           ← All Services
         </Link>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
-          {/* Main Hero Card (8 Cols) */}
           <div className="lg:col-span-8 relative rounded-[32px] bg-gradient-to-r from-[#EDE9FE] via-[#F5F3FF] to-[#FAF5FF] border border-purple-100 p-8 md:p-10 overflow-hidden flex flex-col justify-between shadow-sm min-h-[220px]">
-            {/* Background Cutout Housekeeper Image */}
             <div className="absolute right-0 top-0 bottom-0 w-[44%] hidden sm:block pointer-events-none">
               <img
                 src="https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=800&auto=format&fit=crop&q=80"
@@ -179,7 +262,6 @@ export default function StudentCleaningPage() {
               />
             </div>
 
-            {/* Doodled Annotation */}
             <div className="absolute top-6 right-[44%] hidden md:block text-[#6C47FF] text-xs font-bold rotate-[-8deg] pointer-events-none select-none">
               Clean Spaces ♡ <br /> Better Days ♡
             </div>
@@ -199,13 +281,12 @@ export default function StudentCleaningPage() {
               </p>
             </div>
 
-            {/* Metric Pills */}
             <div className="relative z-10 flex flex-wrap items-center gap-4 pt-6 text-xs font-bold text-slate-700">
               <div className="flex items-center gap-1.5">
                 <span className="w-5 h-5 rounded-full bg-purple-100 text-[#6C47FF] flex items-center justify-center text-[10px]">
                   👤
                 </span>
-                <span>10 staff listed</span>
+                <span>{staffMembers.length} staff listed</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <Clock className="w-4 h-4 text-[#6C47FF]" />
@@ -218,11 +299,9 @@ export default function StudentCleaningPage() {
             </div>
           </div>
 
-          {/* Need help choosing Promo Box (4 Cols) */}
           <div className="lg:col-span-4 rounded-[32px] bg-gradient-to-br from-[#EEF2FF] via-[#F5F3FF] to-[#FAF5FF] border border-indigo-100/70 p-6 flex flex-col justify-between shadow-sm relative overflow-hidden min-h-[170px]">
             <div className="space-y-2 max-w-[65%] z-10">
               <div className="flex items-center gap-2 text-[#4F46E5]">
-                {/* Lightbulb with radiant lines */}
                 <svg className="w-5 h-5 text-[#4F46E5]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5" />
                   <path d="M9 18h6" />
@@ -246,39 +325,23 @@ export default function StudentCleaningPage() {
               </Link>
             </div>
 
-            {/* Exact Bucket, Mop & Potted Plant Illustration */}
             <div className="absolute right-3 bottom-0 w-32 h-28 pointer-events-none select-none flex items-end justify-end">
               <svg viewBox="0 0 160 140" fill="none" className="w-full h-full">
-                {/* Soft shadow base */}
                 <ellipse cx="85" cy="132" rx="60" ry="6" fill="#E0E7FF" />
-
-                {/* Potted plant on left */}
                 <path d="M35 110 L47 110 L44 130 L38 130 Z" fill="#4338CA" />
                 <ellipse cx="41" cy="110" rx="6" ry="2" fill="#312E81" />
-                {/* Green leaves */}
                 <path d="M41 110 Q32 98 34 88 Q40 98 41 110" fill="#10B981" />
                 <path d="M41 110 Q41 94 45 84 Q47 96 41 110" fill="#34D399" />
                 <path d="M41 110 Q50 99 53 91 Q49 101 41 110" fill="#059669" />
-
-                {/* Cleaning Bucket */}
                 <path d="M75 92 L120 92 L114 132 L81 132 Z" fill="#3B82F6" />
                 <path d="M72 90 L123 90 L121 95 L74 95 Z" fill="#2563EB" rx="2" />
-                {/* Bucket rim depth and water reflection */}
                 <path d="M78 96 L117 96 L114 104 L81 104 Z" fill="#60A5FA" opacity="0.6" />
                 <path d="M85 108 L110 108 L108 126 L87 126 Z" fill="#1D4ED8" opacity="0.35" />
-
-                {/* Bucket metal handle */}
                 <path d="M73 95 Q68 112 78 120" stroke="#93C5FD" strokeWidth="2.5" fill="none" strokeLinecap="round" />
-
-                {/* Mop Handle leaning */}
                 <rect x="100" y="24" width="6" height="82" rx="3" transform="rotate(-14 100 24)" fill="#F59E0B" />
                 <rect x="98.5" y="60" width="7" height="10" rx="2" transform="rotate(-14 98.5 60)" fill="#D97706" />
-
-                {/* Mop Cloth Head inside bucket */}
                 <ellipse cx="98" cy="92" rx="14" ry="5" fill="#E0F2FE" />
                 <path d="M88 92 Q98 102 108 92" stroke="#BAE6FD" strokeWidth="3" fill="none" />
-
-                {/* Water bubbles & sparkle accents */}
                 <circle cx="82" cy="78" r="3" fill="#67E8F9" opacity="0.8" />
                 <circle cx="76" cy="66" r="2" fill="#A5F3FC" />
                 <path d="M118 64 Q122 60 120 54 Q116 58 118 64" fill="#34D399" opacity="0.8" />
@@ -289,25 +352,40 @@ export default function StudentCleaningPage() {
         </div>
       </section>
 
-      {/* 3. MAIN WORKSPACE: LEFT FILTERS + CENTER STAFF CARDS + RIGHT QUICK NAV */}
+      {/* MAIN WORKSPACE */}
       <section className="max-w-[1550px] mx-auto px-4 md:px-6 py-6">
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
           {/* LEFT SIDEBAR: FILTERS */}
           <aside className="xl:col-span-3 space-y-6">
             <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm space-y-6">
-              <div className="flex items-center gap-2 pb-3 border-b border-slate-100 text-slate-900 font-extrabold text-sm">
-                <SlidersHorizontal className="w-4 h-4 text-[#6C47FF]" />
-                Filters
+              <div className="flex items-center justify-between pb-3 border-b border-slate-100 text-slate-900 font-extrabold text-sm">
+                <div className="flex items-center gap-2">
+                  <SlidersHorizontal className="w-4 h-4 text-[#6C47FF]" />
+                  <span>Filters</span>
+                </div>
+                <button
+                  onClick={handleReset}
+                  className="text-[11px] font-bold text-[#6C47FF] hover:underline"
+                >
+                  Clear all
+                </button>
               </div>
 
               {/* Hourly Rate Checkboxes */}
               <div className="space-y-3">
                 <label className="text-xs font-bold text-slate-800 block">Hourly Rate</label>
                 <div className="space-y-2 text-xs">
-                  {["₹150 / hour", "₹200 / hour", "₹250 / hour", "₹300 / hour"].map((rate, idx) => (
-                    <label key={idx} className="flex items-center gap-2.5 text-slate-600 cursor-pointer">
-                      <input type="checkbox" className="rounded accent-[#6C47FF]" />
-                      <span>{rate}</span>
+                  {[150, 200, 250, 300].map((rate) => (
+                    <label key={rate} className="flex items-center gap-2.5 text-slate-600 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={rateChecks[rate]}
+                        onChange={(e) =>
+                          setRateChecks({ ...rateChecks, [rate]: e.target.checked })
+                        }
+                        className="rounded accent-[#6C47FF]"
+                      />
+                      <span>₹{rate} / hour</span>
                     </label>
                   ))}
                 </div>
@@ -317,13 +395,19 @@ export default function StudentCleaningPage() {
               <div className="space-y-3">
                 <label className="text-xs font-bold text-slate-800 block">Working Days</label>
                 <div className="space-y-2 text-xs">
-                  {["Monday - Friday", "Monday - Saturday", "Monday - Sunday"].map((day, idx) => (
-                    <label key={idx} className="flex items-center gap-2.5 text-slate-600 cursor-pointer">
-                      <input type="checkbox" className="rounded accent-[#6C47FF]" />
+                  {["Monday - Friday", "Monday - Saturday", "Monday - Sunday"].map((day) => (
+                    <label key={day} className="flex items-center gap-2.5 text-slate-600 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={dayChecks[day]}
+                        onChange={(e) =>
+                          setDayChecks({ ...dayChecks, [day]: e.target.checked })
+                        }
+                        className="rounded accent-[#6C47FF]"
+                      />
                       <span>{day}</span>
                     </label>
                   ))}
-            
                 </div>
               </div>
 
@@ -331,20 +415,33 @@ export default function StudentCleaningPage() {
               <div className="space-y-3">
                 <label className="text-xs font-bold text-slate-800 block">Rating</label>
                 <div className="space-y-2 text-xs">
-                  {["4.5 & above", "4.0 & above"].map((rate, idx) => (
-                    <label key={idx} className="flex items-center gap-2.5 text-slate-600 cursor-pointer">
-                      <input type="checkbox" className="rounded accent-[#6C47FF]" />
-                      <span>{rate}</span>
+                  {[
+                    { key: "4.5", label: "4.5 & above" },
+                    { key: "4.0", label: "4.0 & above" },
+                  ].map((r) => (
+                    <label key={r.key} className="flex items-center gap-2.5 text-slate-600 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={ratingChecks[r.key]}
+                        onChange={(e) =>
+                          setRatingChecks({ ...ratingChecks, [r.key]: e.target.checked })
+                        }
+                        className="rounded accent-[#6C47FF]"
+                      />
+                      <span>{r.label}</span>
                     </label>
                   ))}
                 </div>
               </div>
-              <button className="w-full py-3 rounded-2xl bg-[#6C47FF] hover:bg-[#5835e5] text-white text-xs font-extrabold shadow-md shadow-purple-200 transition">
-              Apply Filters
-            </button>
+
+              <button
+                onClick={handleReset}
+                className="w-full py-3 rounded-2xl bg-[#6C47FF] hover:bg-[#5835e5] text-white text-xs font-extrabold shadow-md shadow-purple-200 transition"
+              >
+                Reset All Filters
+              </button>
             </div>
 
-            {/* Bottom Doodle Box */}
             <div className="rounded-3xl p-5 bg-[#EEF2FF] border border-indigo-100 text-center space-y-2 shadow-sm">
               <div className="text-xs font-bold text-[#4F46E5] rotate-[-4deg]">
                 A cleaner space <br /> helps you focus <br /> on what matters! ♡
@@ -355,7 +452,7 @@ export default function StudentCleaningPage() {
             </div>
           </aside>
 
-          {/* CENTER MAIN: SEARCH BAR + 10 STAFF CARDS */}
+          {/* CENTER MAIN: SEARCH BAR + CARDS */}
           <main className="xl:col-span-7 space-y-5">
             {/* Horizontal Filter Controls */}
             <div className="bg-white rounded-2xl p-3 border border-slate-100 shadow-sm flex flex-wrap items-center justify-between gap-3">
@@ -366,7 +463,7 @@ export default function StudentCleaningPage() {
                   type="text"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Search by name"
+                  placeholder="Search by staff name..."
                   className="w-full text-xs font-semibold text-slate-800 placeholder-slate-400 bg-transparent focus:outline-none"
                 />
               </div>
@@ -378,7 +475,6 @@ export default function StudentCleaningPage() {
                   onChange={(e) => setSelectedRate(e.target.value)}
                   className="w-full text-xs font-semibold text-slate-700 bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2 appearance-none cursor-pointer focus:outline-none"
                 >
-                  <option>Hourly Rate</option>
                   <option>All Rates</option>
                   <option>₹150 / hour</option>
                   <option>₹200 / hour</option>
@@ -395,7 +491,6 @@ export default function StudentCleaningPage() {
                   onChange={(e) => setSelectedDays(e.target.value)}
                   className="w-full text-xs font-semibold text-slate-700 bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2 appearance-none cursor-pointer focus:outline-none"
                 >
-                  <option>Working Days</option>
                   <option>All Days</option>
                   <option>Monday - Friday</option>
                   <option>Monday - Saturday</option>
@@ -411,7 +506,6 @@ export default function StudentCleaningPage() {
                   onChange={(e) => setSelectedRating(e.target.value)}
                   className="w-full text-xs font-semibold text-slate-700 bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2 appearance-none cursor-pointer focus:outline-none"
                 >
-                  <option>Rating</option>
                   <option>All Ratings</option>
                   <option>4.5 & above</option>
                   <option>4.0 & above</option>
@@ -421,12 +515,7 @@ export default function StudentCleaningPage() {
 
               {/* Reset */}
               <button
-                onClick={() => {
-                  setSearchTerm("");
-                  setSelectedRate("All Rates");
-                  setSelectedDays("All Days");
-                  setSelectedRating("All Ratings");
-                }}
+                onClick={handleReset}
                 className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-slate-600 hover:text-[#6C47FF] transition"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
@@ -434,68 +523,85 @@ export default function StudentCleaningPage() {
               </button>
             </div>
 
-            {/* Staff Cards Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {staffMembers.map((staff) => (
-                <div
-                  key={staff.id}
-                  className="bg-white rounded-3xl p-4 border border-slate-100 shadow-sm hover:shadow-lg transition-all duration-300 flex items-stretch gap-4 group"
-                >
-                  {/* Left: Staff Photo */}
-                  <div className="w-32 sm:w-36 h-auto rounded-2xl overflow-hidden shrink-0 relative bg-slate-100">
-                    <img
-                      src={staff.image}
-                      alt={staff.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                  </div>
-
-                  {/* Right: Info & CTA */}
-                  <div className="flex-1 flex flex-col justify-between py-1">
-                    <div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">
-                          {staff.role}
-                        </span>
-                        <div className="flex items-center gap-1 text-[11px] font-black text-slate-900">
-                          <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
-                          <span>{staff.rating}</span>
-                        </div>
-                      </div>
-
-                      <h4 className="text-sm font-black text-slate-900 mt-0.5">{staff.name}</h4>
-
-                      <div className="mt-1">
-                        <span className="text-base font-black text-slate-900">₹{staff.rate}</span>
-                        <span className="text-[10px] text-slate-400 font-semibold"> / hour</span>
-                      </div>
-
-                      <div className="space-y-1 mt-2 text-[11px] text-slate-500 font-medium">
-                        <div className="flex items-center gap-1.5">
-                          <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                          <span>{staff.hours}</span>
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                          <Calendar className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                          <span>{staff.days}</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* View Details Button */}
-                    <div className="pt-3">
-                      <Link
-                       href="/student/cleaning/shital-patil"
-                      className="w-full py-2.5 rounded-xl bg-[#6C47FF] hover:bg-[#5835e5] text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition shadow-sm"
-                       >
-                      <span>View Details</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
-                      </Link>
-                    </div>
-                  </div>
-                </div>
-              ))}
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-slate-500">
+                {filteredStaff.length} Staff Members Found
+              </span>
             </div>
+
+            {/* Empty State */}
+            {filteredStaff.length === 0 ? (
+              <div className="bg-white rounded-3xl p-12 text-center border border-slate-100 space-y-2">
+                <p className="text-sm font-bold text-slate-700">No staff members match your criteria</p>
+                <p className="text-xs text-slate-400">Try loosening your filters or resetting the search.</p>
+                <button
+                  onClick={handleReset}
+                  className="mt-3 px-5 py-2 rounded-xl bg-purple-50 text-[#6C47FF] text-xs font-extrabold hover:bg-purple-100 transition"
+                >
+                  Reset Filters
+                </button>
+              </div>
+            ) : (
+              /* Staff Cards Grid */
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {filteredStaff.map((staff) => (
+                  <div
+                    key={staff.id}
+                    className="bg-white rounded-3xl p-4 border border-slate-100 shadow-sm hover:shadow-lg transition-all duration-300 flex items-stretch gap-4 group"
+                  >
+                    <div className="w-32 sm:w-36 h-auto rounded-2xl overflow-hidden shrink-0 relative bg-slate-100">
+                      <img
+                        src={staff.image}
+                        alt={staff.name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                    </div>
+
+                    <div className="flex-1 flex flex-col justify-between py-1">
+                      <div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">
+                            {staff.role}
+                          </span>
+                          <div className="flex items-center gap-1 text-[11px] font-black text-slate-900">
+                            <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
+                            <span>{staff.rating}</span>
+                          </div>
+                        </div>
+
+                        <h4 className="text-sm font-black text-slate-900 mt-0.5">{staff.name}</h4>
+
+                        <div className="mt-1">
+                          <span className="text-base font-black text-slate-900">₹{staff.rate}</span>
+                          <span className="text-[10px] text-slate-400 font-semibold"> / hour</span>
+                        </div>
+
+                        <div className="space-y-1 mt-2 text-[11px] text-slate-500 font-medium">
+                          <div className="flex items-center gap-1.5">
+                            <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                            <span>{staff.hours}</span>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <Calendar className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                            <span>{staff.days}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="pt-3">
+                        <Link
+                          href={`/student/cleaning/${staff.id}`}
+                          className="w-full py-2.5 rounded-xl bg-[#6C47FF] hover:bg-[#5835e5] text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition shadow-sm"
+                        >
+                          <span>View Details</span>
+                          <ArrowRight className="w-3.5 h-3.5" />
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </main>
 
           {/* RIGHT SIDEBAR: QUICK NAV */}
@@ -525,7 +631,6 @@ export default function StudentCleaningPage() {
               </nav>
             </div>
 
-            {/* Need Help Live Chat Card */}
             <div className="rounded-2xl p-4 bg-purple-50 border border-purple-100 space-y-3">
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
@@ -546,7 +651,7 @@ export default function StudentCleaningPage() {
         </div>
       </section>
 
-      {/* 4. BOTTOM PROMO BANNER */}
+      {/* BOTTOM PROMO BANNER */}
       <section className="max-w-[1550px] mx-auto px-4 md:px-6 py-6">
         <div className="relative rounded-[32px] bg-gradient-to-r from-[#EDE9FE] via-[#F3E8FF] to-[#FAE8FF] border border-purple-100 p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-sm">
           <div className="flex items-center gap-4">
@@ -561,14 +666,17 @@ export default function StudentCleaningPage() {
             </div>
           </div>
 
-          <button className="px-6 py-3 rounded-2xl bg-[#6C47FF] hover:bg-[#5835e5] text-white text-xs font-extrabold flex items-center gap-2 transition shadow-md shadow-purple-200 shrink-0">
+          <button
+            onClick={handleReset}
+            className="px-6 py-3 rounded-2xl bg-[#6C47FF] hover:bg-[#5835e5] text-white text-xs font-extrabold flex items-center gap-2 transition shadow-md shadow-purple-200 shrink-0"
+          >
             <span>Explore All Staff</span>
             <ArrowRight className="w-4 h-4" />
           </button>
         </div>
       </section>
 
-      {/* 5. FOOTER */}
+      {/* FOOTER */}
       <footer className="w-full bg-white border-t border-slate-100 py-8 px-6 mt-8">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-xs font-semibold text-slate-500">
           <div className="flex items-center gap-3">
@@ -586,26 +694,6 @@ export default function StudentCleaningPage() {
             <Link href="/support" className="hover:text-slate-900 transition">Help & Support</Link>
             <Link href="/privacy" className="hover:text-slate-900 transition">Privacy Policy</Link>
             <Link href="/terms" className="hover:text-slate-900 transition">Terms & Conditions</Link>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <span className="text-[11px] font-bold text-indigo-600 rotate-[-4deg]">
-              Stay Connected! ♡
-            </span>
-            <div className="flex items-center gap-2">
-              <button className="w-7 h-7 rounded-full bg-purple-50 text-[#6C47FF] flex items-center justify-center text-xs">
-                IG
-              </button>
-              <button className="w-7 h-7 rounded-full bg-purple-50 text-[#6C47FF] flex items-center justify-center text-xs">
-                TG
-              </button>
-              <button className="w-7 h-7 rounded-full bg-purple-50 text-[#6C47FF] flex items-center justify-center text-xs">
-                YT
-              </button>
-              <button className="w-7 h-7 rounded-full bg-purple-50 text-[#6C47FF] flex items-center justify-center text-xs">
-                WA
-              </button>
-            </div>
           </div>
         </div>
       </footer>

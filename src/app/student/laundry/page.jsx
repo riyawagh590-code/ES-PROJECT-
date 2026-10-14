@@ -2,10 +2,8 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-{/*import Navbar from "@/components/common/Navbar";*/}
 import {
   Home,
-  Grid,
   Utensils,
   Building,
   Coffee,
@@ -28,15 +26,24 @@ import {
   Tag,
   SlidersHorizontal,
   MessageCircle,
+  RotateCcw,
 } from "lucide-react";
 
 export default function StudentLaundryPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedLocation, setSelectedLocation] = useState("All Areas");
-  const [selectedPriceRange, setSelectedPriceRange] = useState("All Ranges");
   const [selectedServiceType, setSelectedServiceType] = useState("All Types");
   const [selectedSort, setSelectedSort] = useState("Rating");
-  const [priceSlider, setPriceSlider] = useState(80);
+  const [priceSlider, setPriceSlider] = useState(100);
+  const [ratingFilter, setRatingFilter] = useState(false);
+
+  // Sidebar Service Checkboxes
+  const [serviceCheckboxes, setServiceCheckboxes] = useState({
+    "Wash & Fold": false,
+    Ironing: false,
+    "Dry Cleaning": false,
+    "Shoe Cleaning": false,
+  });
 
   const sidebarLinks = [
     { label: "Home", href: "/", icon: Home },
@@ -48,7 +55,7 @@ export default function StudentLaundryPage() {
     { label: "Housekeeping", href: "/student/cleaning", icon: Sparkles },
     { label: "Roommate Finder", href: "/student/roommates", icon: Users },
     { label: "Freshers Pass", href: "/pass", icon: Award },
-    { label: "about", href: "/student/about", icon: Bell },
+    { label: "About", href: "/student/about", icon: Bell },
     { label: "Profile", href: "/student/profile", icon: User },
     { label: "Settings", href: "/settings", icon: Settings },
   ];
@@ -62,6 +69,7 @@ export default function StudentLaundryPage() {
       rating: "4.2",
       location: "Dehu Phata",
       price: "₹60/kg",
+      numericPrice: 60,
       hours: "8am - 10pm",
       phone: "9112207557",
       badges: ["Wash & Fold", "Ironing"],
@@ -75,6 +83,7 @@ export default function StudentLaundryPage() {
       rating: "4.0",
       location: "Near vahaturk vibhag police",
       price: "₹55/kg",
+      numericPrice: 55,
       hours: "9am - 9pm",
       phone: "9960396922",
       badges: ["Wash & Fold", "Dry Cleaning"],
@@ -88,6 +97,7 @@ export default function StudentLaundryPage() {
       rating: "4.1",
       location: "Dehu Phata",
       price: "₹60/kg",
+      numericPrice: 60,
       hours: "9am - 8pm",
       phone: "8897698907",
       badges: ["Wash & Fold", "Ironing"],
@@ -101,6 +111,7 @@ export default function StudentLaundryPage() {
       rating: "4.3",
       location: "Near gajanan maharaj mandir",
       price: "₹65/kg",
+      numericPrice: 65,
       hours: "9am - 9:30pm",
       phone: "9112911370",
       badges: ["Dry Cleaning", "Ironing"],
@@ -114,6 +125,7 @@ export default function StudentLaundryPage() {
       rating: "4.0",
       location: "Shop No. 1, Alandi, Pune 412105",
       price: "₹70/kg",
+      numericPrice: 70,
       hours: "9am - 8pm",
       phone: "8182839598",
       badges: ["Dry Cleaning", "Shoe Cleaning"],
@@ -127,6 +139,7 @@ export default function StudentLaundryPage() {
       rating: "4.2",
       location: "Bhosale Nagar, Alandi",
       price: "₹65/kg",
+      numericPrice: 65,
       hours: "8am - 10pm",
       phone: "8824919003",
       badges: ["Wash & Fold", "Ironing"],
@@ -140,6 +153,7 @@ export default function StudentLaundryPage() {
       rating: "4.1",
       location: "Alandi - Markal Road, Alandi",
       price: "₹60/kg",
+      numericPrice: 60,
       hours: "9am - 8pm",
       phone: "9822868135",
       badges: ["Wash & Fold", "Dry Cleaning"],
@@ -153,6 +167,7 @@ export default function StudentLaundryPage() {
       rating: "4.3",
       location: "Shop No. 3, near Gajanan Maharaj Mandir, Dehu Phata",
       price: "₹70/kg",
+      numericPrice: 70,
       hours: "9am - 10pm",
       phone: "9112911370",
       badges: ["Wash & Fold", "Express Service"],
@@ -166,6 +181,7 @@ export default function StudentLaundryPage() {
       rating: "4.0",
       location: "Opp. Gajanan Maharaj Mandir, Dehu Phata",
       price: "₹60/kg",
+      numericPrice: 60,
       hours: "8am - 8pm",
       phone: "7498735276",
       badges: ["Wash & Fold", "Ironing"],
@@ -179,6 +195,7 @@ export default function StudentLaundryPage() {
       rating: "4.2",
       location: "Indrayani Residency, near Yashada Splendid",
       price: "₹65/kg",
+      numericPrice: 65,
       hours: "8am - 9pm",
       phone: "9087645453",
       badges: ["Wash & Fold", "Dry Cleaning"],
@@ -186,14 +203,85 @@ export default function StudentLaundryPage() {
     },
   ];
 
+  const handleResetFilters = () => {
+    setSearchQuery("");
+    setSelectedLocation("All Areas");
+    setSelectedServiceType("All Types");
+    setSelectedSort("Rating");
+    setPriceSlider(100);
+    setRatingFilter(false);
+    setServiceCheckboxes({
+      "Wash & Fold": false,
+      Ironing: false,
+      "Dry Cleaning": false,
+      "Shoe Cleaning": false,
+    });
+  };
+
+  // Live Filtering & Sorting Logic
+  const filteredVendors = laundryVendors
+    .filter((item) => {
+      // 1. Search Query
+      const q = searchQuery.toLowerCase().trim();
+      const matchesSearch =
+        !q ||
+        item.name.toLowerCase().includes(q) ||
+        item.location.toLowerCase().includes(q) ||
+        item.tag.toLowerCase().includes(q);
+
+      // 2. Location (Dropdown)
+      let matchesLocation = true;
+      if (selectedLocation !== "All Areas" && selectedLocation !== "Select location") {
+        matchesLocation = item.location.toLowerCase().includes(selectedLocation.toLowerCase());
+      }
+
+      // 3. Service Type (Dropdown + Checkboxes)
+      let matchesServiceType = true;
+      if (selectedServiceType !== "All Types") {
+        matchesServiceType = item.badges.some((b) =>
+          b.toLowerCase().includes(selectedServiceType.toLowerCase())
+        );
+      }
+
+      const activeCheckboxServices = Object.entries(serviceCheckboxes)
+        .filter(([_, checked]) => checked)
+        .map(([name]) => name);
+
+      if (activeCheckboxServices.length > 0) {
+        matchesServiceType =
+          matchesServiceType &&
+          activeCheckboxServices.some((service) => item.badges.includes(service));
+      }
+
+      // 4. Price Slider
+      const matchesPrice = item.numericPrice <= Number(priceSlider);
+
+      // 5. Rating Filter
+      let matchesRating = true;
+      if (ratingFilter) {
+        matchesRating = parseFloat(item.rating) >= 4.2;
+      }
+
+      return matchesSearch && matchesLocation && matchesServiceType && matchesPrice && matchesRating;
+    })
+    .sort((a, b) => {
+      if (selectedSort === "Rating") {
+        return parseFloat(b.rating) - parseFloat(a.rating);
+      }
+      if (selectedSort === "Price: Low to High") {
+        return a.numericPrice - b.numericPrice;
+      }
+      if (selectedSort === "Price: High to Low") {
+        return b.numericPrice - a.numericPrice;
+      }
+      return 0;
+    });
+
   return (
     <div className="min-h-screen bg-[#FAF9FD] text-slate-900 font-sans selection:bg-purple-100 selection:text-purple-700">
-      {/* 1. TOP NAVBAR */}
-     
-
-      {/* 2. MAIN THREE-COLUMN WORKSPACE */}
+      {/* MAIN THREE-COLUMN WORKSPACE */}
       <div className="max-w-[1550px] mx-auto px-4 md:px-6 py-6 grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
-        {/* LEFT COLUMN: FILTERS (Same as other dashboards) */}
+        {/* LEFT COLUMN: FILTERS */}
         <aside className="xl:col-span-3 space-y-6">
           <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm space-y-6">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
@@ -201,15 +289,32 @@ export default function StudentLaundryPage() {
                 <SlidersHorizontal className="w-4 h-4 text-[#6C47FF]" />
                 Filter Laundry
               </h3>
+              <button
+                type="button"
+                onClick={handleResetFilters}
+                className="text-[11px] font-bold text-[#6C47FF] hover:underline cursor-pointer"
+              >
+                Clear all
+              </button>
             </div>
 
             {/* Service Type Checkboxes */}
             <div className="space-y-3">
               <label className="text-xs font-bold text-slate-700 block">Service Type</label>
               <div className="space-y-2 text-xs">
-                {["Wash & Fold", "Ironing", "Dry Cleaning", "Shoe Cleaning"].map((service, idx) => (
-                  <label key={idx} className="flex items-center gap-2.5 text-slate-700 cursor-pointer">
-                    <input type="checkbox" className="rounded accent-[#6C47FF]" />
+                {["Wash & Fold", "Ironing", "Dry Cleaning", "Shoe Cleaning"].map((service) => (
+                  <label key={service} className="flex items-center gap-2.5 text-slate-700 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={serviceCheckboxes[service]}
+                      onChange={(e) =>
+                        setServiceCheckboxes({
+                          ...serviceCheckboxes,
+                          [service]: e.target.checked,
+                        })
+                      }
+                      className="rounded accent-[#6C47FF]"
+                    />
                     <span>{service}</span>
                   </label>
                 ))}
@@ -227,12 +332,12 @@ export default function StudentLaundryPage() {
                 max="100"
                 step="5"
                 value={priceSlider}
-                onChange={(e) => setPriceSlider(e.target.value)}
+                onChange={(e) => setPriceSlider(Number(e.target.value))}
                 className="w-full accent-[#6C47FF] cursor-pointer"
               />
               <div className="flex items-center justify-between text-[11px] font-bold text-slate-500">
                 <span>₹40/kg</span>
-                <span>₹{priceSlider}+/kg</span>
+                <span>Up to ₹{priceSlider}/kg</span>
               </div>
             </div>
 
@@ -240,7 +345,12 @@ export default function StudentLaundryPage() {
             <div className="space-y-2">
               <label className="text-xs font-bold text-slate-700 block">Rating</label>
               <label className="flex items-center gap-2 text-xs text-slate-600 cursor-pointer">
-                <input type="checkbox" className="rounded accent-[#6C47FF]" />
+                <input
+                  type="checkbox"
+                  checked={ratingFilter}
+                  onChange={(e) => setRatingFilter(e.target.checked)}
+                  className="rounded accent-[#6C47FF]"
+                />
                 <div className="flex items-center text-amber-500">
                   <Star className="w-3.5 h-3.5 fill-amber-500" />
                   <Star className="w-3.5 h-3.5 fill-amber-500" />
@@ -248,7 +358,7 @@ export default function StudentLaundryPage() {
                   <Star className="w-3.5 h-3.5 fill-amber-500" />
                   <Star className="w-3.5 h-3.5 fill-amber-500" />
                 </div>
-                <span className="text-[11px] font-semibold text-slate-500">4+ & above</span>
+                <span className="text-[11px] font-semibold text-slate-500">4.2+ &amp; above</span>
               </label>
             </div>
 
@@ -256,8 +366,12 @@ export default function StudentLaundryPage() {
             <div className="space-y-2">
               <label className="text-xs font-bold text-slate-700 block">Location</label>
               <div className="relative">
-                <select className="w-full text-xs font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-2xl p-3 appearance-none focus:outline-none cursor-pointer">
-                  <option>Select location</option>
+                <select
+                  value={selectedLocation}
+                  onChange={(e) => setSelectedLocation(e.target.value)}
+                  className="w-full text-xs font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-2xl p-3 appearance-none focus:outline-none cursor-pointer"
+                >
+                  <option>All Areas</option>
                   <option>Dehu Phata</option>
                   <option>Alandi</option>
                   <option>Markal Road</option>
@@ -267,26 +381,16 @@ export default function StudentLaundryPage() {
               </div>
             </div>
 
-            {/* Turnaround Time */}
-            <div className="space-y-3">
-              <label className="text-xs font-bold text-slate-700 block">Delivery Time</label>
-              <div className="space-y-2 text-xs">
-                {["Same Day Delivery", "24-Hour Express", "Standard (2-3 Days)"].map((time, idx) => (
-                  <label key={idx} className="flex items-center gap-2.5 text-slate-700 cursor-pointer">
-                    <input type="checkbox" className="rounded accent-[#6C47FF]" />
-                    <span>{time}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            {/* Apply Button */}
-            <button className="w-full py-3 rounded-2xl bg-[#6C47FF] hover:bg-[#5835e5] text-white text-xs font-extrabold shadow-md shadow-purple-200 transition">
-              Apply Filters
+            {/* Reset All Button */}
+            <button
+              type="button"
+              onClick={handleResetFilters}
+              className="w-full py-3 rounded-2xl bg-[#6C47FF] hover:bg-[#5835e5] text-white text-xs font-extrabold shadow-md shadow-purple-200 transition cursor-pointer"
+            >
+              Reset All Filters
             </button>
           </div>
 
-          {/* Left Doodle Box */}
           <div className="rounded-3xl p-5 bg-[#FFF4EE] border border-orange-100 text-center space-y-2 shadow-sm">
             <div className="text-xs font-extrabold text-[#6C47FF] rotate-[-4deg]">
               Clean Clothes, Happy You! ッ
@@ -295,13 +399,13 @@ export default function StudentLaundryPage() {
               🧺
             </div>
             <p className="text-[11px] font-bold text-slate-500 leading-tight">
-              Fresh & spotless! <br />
+              Fresh &amp; spotless! <br />
               Delivered on time ♡
             </p>
           </div>
         </aside>
 
-        {/* CENTER COLUMN: MAIN CONTENT (Cards & Banners) */}
+        {/* CENTER COLUMN: MAIN CONTENT */}
         <main className="xl:col-span-7 space-y-6">
           {/* HERO BANNER */}
           <section className="relative rounded-[32px] bg-gradient-to-r from-[#FFF1F2] via-[#FDF2F8] to-[#F5F3FF] border border-rose-100/70 p-6 md:p-8 overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6 shadow-sm">
@@ -336,7 +440,6 @@ export default function StudentLaundryPage() {
               </div>
             </div>
 
-            {/* Hero Graphic & Card Stamp */}
             <div className="relative z-10 flex items-center gap-3 shrink-0">
               <div className="w-44 h-36 md:w-52 md:h-40 rounded-2xl overflow-hidden shadow-xl border-4 border-white bg-slate-100">
                 <img
@@ -362,7 +465,7 @@ export default function StudentLaundryPage() {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search laundry by name..."
+                placeholder="Search laundry by name or location..."
                 className="w-full text-xs font-semibold text-slate-800 placeholder-slate-400 bg-transparent focus:outline-none"
               />
             </div>
@@ -389,20 +492,24 @@ export default function StudentLaundryPage() {
                 className="w-full text-xs font-semibold text-slate-700 bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2 appearance-none cursor-pointer focus:outline-none"
               >
                 <option>All Types</option>
-                <option>Wash & Fold</option>
+                <option>Wash &amp; Fold</option>
                 <option>Ironing</option>
                 <option>Dry Cleaning</option>
               </select>
               <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-3 top-3 pointer-events-none" />
             </div>
 
-            <button className="px-4 py-2 rounded-xl bg-[#6C47FF] hover:bg-[#5835e5] text-white text-xs font-bold flex items-center gap-1.5 transition shadow-sm">
-              <Search className="w-3.5 h-3.5" />
-              Search
+            <button
+              type="button"
+              onClick={handleResetFilters}
+              className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-slate-600 hover:text-[#6C47FF] transition cursor-pointer"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              Reset
             </button>
           </section>
 
-          {/* GRID OF 10 LAUNDRY CARDS */}
+          {/* GRID OF LAUNDRY CARDS */}
           <section className="space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -410,7 +517,7 @@ export default function StudentLaundryPage() {
                   🧺
                 </span>
                 <h3 className="text-sm font-extrabold text-slate-900">
-                  Featured Laundry Services ({laundryVendors.length})
+                  Featured Laundry Services ({filteredVendors.length})
                 </h3>
               </div>
 
@@ -428,93 +535,104 @@ export default function StudentLaundryPage() {
               </div>
             </div>
 
-            {/* 3-Column Responsive Cards Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {laundryVendors.map((item) => (
-                <div
-                  key={item.id}
-                  className="bg-white rounded-3xl p-3 border border-slate-100 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between group"
+            {filteredVendors.length === 0 ? (
+              <div className="bg-white rounded-3xl p-12 text-center border border-slate-100 space-y-2">
+                <p className="text-sm font-bold text-slate-700">No laundry services match your search or filter</p>
+                <p className="text-xs text-slate-400">Try adjusting your price range or location.</p>
+                <button
+                  type="button"
+                  onClick={handleResetFilters}
+                  className="mt-3 px-5 py-2 rounded-xl bg-purple-50 text-[#6C47FF] text-xs font-extrabold hover:bg-purple-100 transition cursor-pointer"
                 >
-                  <div>
-                    {/* Storefront Image */}
-                    <div className="relative w-full h-36 rounded-2xl overflow-hidden mb-3">
-                      <img
-                        src={item.image}
-                        alt={item.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
+                  Reset All Filters
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {filteredVendors.map((item) => (
+                  <div
+                    key={item.id}
+                    className="bg-white rounded-3xl p-3 border border-slate-100 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between group"
+                  >
+                    <div>
+                      {/* Storefront Image */}
+                      <div className="relative w-full h-36 rounded-2xl overflow-hidden mb-3">
+                        <img
+                          src={item.image}
+                          alt={item.name}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
 
-                      {/* Tag Badge */}
-                      <span
-                        className={`absolute top-2 left-2 text-[9px] font-black px-2 py-0.5 rounded-full ${item.tagColor} shadow-sm`}
+                        {/* Tag Badge */}
+                        <span
+                          className={`absolute top-2 left-2 text-[9px] font-black px-2 py-0.5 rounded-full ${item.tagColor} shadow-sm`}
+                        >
+                          {item.tag}
+                        </span>
+
+                        {/* Rating */}
+                        <div className="absolute top-2 right-2 bg-white/95 backdrop-blur-md rounded-full px-2 py-0.5 flex items-center gap-1 shadow-sm">
+                          <Star className="w-3 h-3 text-amber-500 fill-amber-500" />
+                          <span className="text-[10px] font-black text-slate-900">{item.rating}</span>
+                        </div>
+                      </div>
+
+                      {/* Details */}
+                      <div className="space-y-1">
+                        <h4 className="text-xs font-black text-slate-900 truncate">
+                          {item.name}
+                        </h4>
+                        <p className="text-[10px] text-slate-400 flex items-start gap-1 line-clamp-1">
+                          <MapPin className="w-3 h-3 text-slate-400 shrink-0 mt-0.5" />
+                          <span>{item.location}</span>
+                        </p>
+
+                        <div className="pt-1 space-y-1 text-[10px] text-slate-600 font-medium">
+                          <div className="flex items-center gap-1.5 font-bold text-slate-900 text-xs">
+                            <span>{item.price}</span>
+                          </div>
+                          <div className="flex items-center gap-1 text-slate-400">
+                            <Clock className="w-3 h-3 shrink-0" />
+                            <span>{item.hours}</span>
+                          </div>
+                          <div className="flex items-center gap-1 text-slate-400 truncate">
+                            <Phone className="w-3 h-3 shrink-0" />
+                            <span>{item.phone}</span>
+                          </div>
+                        </div>
+
+                        {/* Badges */}
+                        <div className="pt-2 flex flex-wrap gap-1">
+                          {item.badges.map((badge, bIdx) => (
+                            <span
+                              key={bIdx}
+                              className="text-[8px] font-bold px-2 py-0.5 rounded-md bg-purple-50 text-[#6C47FF]"
+                            >
+                              {badge}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* View Details Button */}
+                    <div className="pt-3">
+                      <Link
+                        href={
+                          item.id === "cotton-spa" || item.name?.toLowerCase().includes("cotton")
+                            ? "/student/laundry/cotton-spa"
+                            : `/service/${item.id}`
+                        }
+                        className="w-full py-2.5 rounded-xl bg-[#6C47FF] hover:bg-[#5835e5] text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition shadow-sm"
                       >
-                        {item.tag}
-                      </span>
-
-                      {/* Rating */}
-                      <div className="absolute top-2 right-2 bg-white/95 backdrop-blur-md rounded-full px-2 py-0.5 flex items-center gap-1 shadow-sm">
-                        <Star className="w-3 h-3 text-amber-500 fill-amber-500" />
-                        <span className="text-[10px] font-black text-slate-900">{item.rating}</span>
-                      </div>
-                    </div>
-
-                    {/* Details */}
-                    <div className="space-y-1">
-                      <h4 className="text-xs font-black text-slate-900 truncate">
-                        {item.name}
-                      </h4>
-                      <p className="text-[10px] text-slate-400 flex items-start gap-1 line-clamp-1">
-                        <MapPin className="w-3 h-3 text-slate-400 shrink-0 mt-0.5" />
-                        <span>{item.location}</span>
-                      </p>
-
-                      <div className="pt-1 space-y-1 text-[10px] text-slate-600 font-medium">
-                        <div className="flex items-center gap-1.5 font-bold text-slate-900 text-xs">
-                          <span>{item.price}</span>
-                        </div>
-                        <div className="flex items-center gap-1 text-slate-400">
-                          <Clock className="w-3 h-3 shrink-0" />
-                          <span>{item.hours}</span>
-                        </div>
-                        <div className="flex items-center gap-1 text-slate-400 truncate">
-                          <Phone className="w-3 h-3 shrink-0" />
-                          <span>{item.phone}</span>
-                        </div>
-                      </div>
-
-                      {/* Badges */}
-                      <div className="pt-2 flex flex-wrap gap-1">
-                        {item.badges.map((badge, bIdx) => (
-                          <span
-                            key={bIdx}
-                            className="text-[8px] font-bold px-2 py-0.5 rounded-md bg-purple-50 text-[#6C47FF]"
-                          >
-                            {badge}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* View Details Button */}
-                  <div className="pt-3">
-                    <Link
-                         href={
-                          item.id === "cotton-spa" ||
-                          item.id === "cotton-spa" ||
-                          item.name?.toLowerCase().includes("cotton")
-                          ? "/student/laundry/cotton-spa"
-                           : `/service/${item.id}`
-                              }
-                              className="w-full py-2.5 rounded-xl bg-[#6C47FF] hover:bg-[#5835e5] text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition shadow-sm"
-                              >
-                           <span>View Details</span>
-                       <ArrowRight className="w-3.5 h-3.5" />
+                        <span>View Details</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
                       </Link>
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </section>
 
           {/* BOTTOM PROMO STRIP */}
@@ -535,17 +653,18 @@ export default function StudentLaundryPage() {
               </div>
             </div>
 
-            <Link
-              href="/student/services"
-              className="px-5 py-2.5 rounded-2xl bg-[#6C47FF] hover:bg-[#5835e5] text-white text-xs font-black flex items-center gap-2 transition shadow-md shadow-purple-200 shrink-0 z-10"
+            <button
+              type="button"
+              onClick={handleResetFilters}
+              className="px-5 py-2.5 rounded-2xl bg-[#6C47FF] hover:bg-[#5835e5] text-white text-xs font-black flex items-center gap-2 transition shadow-md shadow-purple-200 shrink-0 z-10 cursor-pointer"
             >
-              <span>Book Laundry Now</span>
+              <span>Explore All Laundries</span>
               <ArrowRight className="w-4 h-4" />
-            </Link>
+            </button>
           </section>
         </main>
 
-        {/* RIGHT COLUMN: QUICK NAV / SERVICES SIDEBAR (Moved to Right) */}
+        {/* RIGHT COLUMN: QUICK NAV */}
         <aside className="hidden xl:flex flex-col w-64 bg-white rounded-3xl p-5 border border-slate-100 shadow-sm shrink-0 sticky top-24 space-y-6">
           <div>
             <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-400 mb-3 px-2">
@@ -572,7 +691,6 @@ export default function StudentLaundryPage() {
             </nav>
           </div>
 
-          {/* Need Help Live Chat Card */}
           <div className="rounded-2xl p-4 bg-purple-50 border border-purple-100 space-y-3">
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
@@ -592,7 +710,7 @@ export default function StudentLaundryPage() {
         </aside>
       </div>
 
-      {/* 3. FOOTER */}
+      {/* FOOTER */}
       <footer className="w-full bg-white border-t border-slate-100 py-8 px-6 mt-8">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-xs font-semibold text-slate-500">
           <div className="flex items-center gap-3">
@@ -607,29 +725,9 @@ export default function StudentLaundryPage() {
 
           <div className="flex items-center gap-6">
             <Link href="/about" className="hover:text-slate-900 transition">About Us</Link>
-            <Link href="/support" className="hover:text-slate-900 transition">Help & Support</Link>
+            <Link href="/support" className="hover:text-slate-900 transition">Help &amp; Support</Link>
             <Link href="/privacy" className="hover:text-slate-900 transition">Privacy Policy</Link>
-            <Link href="/terms" className="hover:text-slate-900 transition">Terms & Conditions</Link>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <span className="text-[11px] font-bold text-indigo-600 rotate-[-4deg]">
-              Stay Connected! ♡
-            </span>
-            <div className="flex items-center gap-2">
-              <span className="w-7 h-7 rounded-full bg-purple-50 text-[#6C47FF] flex items-center justify-center text-xs font-bold">
-                IG
-              </span>
-              <span className="w-7 h-7 rounded-full bg-purple-50 text-[#6C47FF] flex items-center justify-center text-xs font-bold">
-                WA
-              </span>
-              <span className="w-7 h-7 rounded-full bg-purple-50 text-[#6C47FF] flex items-center justify-center text-xs font-bold">
-                TG
-              </span>
-              <span className="w-7 h-7 rounded-full bg-purple-50 text-[#6C47FF] flex items-center justify-center text-xs font-bold">
-                YT
-              </span>
-            </div>
+            <Link href="/terms" className="hover:text-slate-900 transition">Terms &amp; Conditions</Link>
           </div>
         </div>
       </footer>

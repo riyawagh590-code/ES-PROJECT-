@@ -1,19 +1,15 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import {
   GraduationCap,
   Home,
-  LayoutGrid,
   CalendarDays,
   Bell,
   User,
   Search,
-  LayoutDashboard,
-  Wallet,
   Headphones,
-  Settings,
   ShieldCheck,
   Zap,
   Users,
@@ -32,29 +28,46 @@ import {
 
 export default function StudentDashboardPage() {
   const [searchVal, setSearchVal] = useState("");
-  const [studentName, setStudentName] = useState("Riya");
+  const [studentName, setStudentName] = useState("Student");
+  const [activeBookingsCount, setActiveBookingsCount] = useState(2);
 
-  useEffect(() => {
+  const loadUserData = useCallback(() => {
     try {
       const stored =
-        localStorage.getItem("currentStudent") ||
+        localStorage.getItem("current_user") ||
         localStorage.getItem("currentUser") ||
+        localStorage.getItem("currentStudent") ||
         localStorage.getItem("campusConciergeLoggedIn");
 
       if (stored) {
         const parsed = JSON.parse(stored);
-        const name = parsed.fullName || parsed.name || "";
-        if (name) {
-          // Take first name for friendly greetings
-          setStudentName(name.split(" ")[0]);
+        const name = parsed.fullName || parsed.name || parsed.username || "";
+        if (name && name.trim()) {
+          setStudentName(name.trim().split(" ")[0]);
         }
+      }
+
+      const storedBookings = JSON.parse(
+        localStorage.getItem("student_bookings") || "[]"
+      );
+      if (storedBookings && storedBookings.length > 0) {
+        setActiveBookingsCount(storedBookings.length);
       }
     } catch (e) {
       console.error("Error loading student session:", e);
     }
   }, []);
 
-  
+  useEffect(() => {
+    loadUserData();
+    window.addEventListener("storage", loadUserData);
+    window.addEventListener("focus", loadUserData);
+
+    return () => {
+      window.removeEventListener("storage", loadUserData);
+      window.removeEventListener("focus", loadUserData);
+    };
+  }, [loadUserData]);
 
   const services = [
     {
@@ -215,26 +228,25 @@ export default function StudentDashboardPage() {
             </span>
           </button>
 
-          <Link href="/student/profile" className="flex items-center gap-3 pl-2 border-l border-slate-200 hover:opacity-85 transition">
-            <img
-              src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80"
-              alt={studentName}
-              className="w-9 h-9 rounded-full object-cover ring-2 ring-purple-200"
-            />
+          <Link
+            href="/student/profile"
+            className="flex items-center gap-3 pl-2 border-l border-slate-200 hover:opacity-85 transition"
+          >
+            <div className="w-9 h-9 rounded-full bg-purple-100 text-[#6C47FF] font-black text-xs flex items-center justify-center ring-2 ring-purple-200">
+              {studentName ? studentName.charAt(0).toUpperCase() : "S"}
+            </div>
             <div className="hidden sm:block text-left">
-              <p className="text-xs font-bold text-slate-900 leading-tight">Hi, {studentName}!</p>
+              <p className="text-xs font-bold text-slate-900 leading-tight">
+                Hi, {studentName}!
+              </p>
               <p className="text-[10px] text-slate-400 font-medium">Student</p>
             </div>
           </Link>
         </div>
       </header>
 
-      {/* BODY WRAPPER: Constrained max-width prevents ultra-wide stretching */}
+      {/* BODY WRAPPER */}
       <div className="flex flex-1 w-full max-w-[1500px] mx-auto">
-        {/* 2. LEFT SIDEBAR */}
-    
-
-        {/* 3. MAIN DASHBOARD CONTENT */}
         <main className="flex-1 min-w-0 p-6 md:p-8 space-y-7">
           {/* Top Row: Hero Banner & Right Greeting Card */}
           <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-stretch">
@@ -271,7 +283,8 @@ export default function StudentDashboardPage() {
                 </h1>
 
                 <p className="text-white/80 text-xs md:text-sm leading-relaxed max-w-sm">
-                  Explore and access all essential services designed to make your campus experience easier, safer and better.
+                  Explore and access all essential services designed to make
+                  your campus experience easier, safer and better.
                 </p>
               </div>
 
@@ -298,7 +311,9 @@ export default function StudentDashboardPage() {
                   <h3 className="text-base font-extrabold flex items-center gap-1.5">
                     Good Morning, {studentName}! ☀️
                   </h3>
-                  <p className="text-xs text-white/70">Keep going, you&apos;re doing great!</p>
+                  <p className="text-xs text-white/70">
+                    Keep going, you&apos;re doing great!
+                  </p>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
@@ -306,16 +321,24 @@ export default function StudentDashboardPage() {
                     <div className="flex items-center gap-2 text-indigo-600 mb-1">
                       <Calendar className="w-4 h-4" />
                     </div>
-                    <span className="text-2xl font-black text-slate-900 block leading-none">2</span>
-                    <span className="text-[10px] text-slate-500 font-bold">Upcoming Bookings</span>
+                    <span className="text-2xl font-black text-slate-900 block leading-none">
+                      {activeBookingsCount}
+                    </span>
+                    <span className="text-[10px] text-slate-500 font-bold">
+                      Upcoming Bookings
+                    </span>
                   </div>
 
                   <div className="bg-white rounded-2xl p-3.5 text-slate-800">
                     <div className="flex items-center gap-2 text-amber-500 mb-1">
                       <Star className="w-4 h-4 fill-amber-500" />
                     </div>
-                    <span className="text-2xl font-black text-slate-900 block leading-none">₹450</span>
-                    <span className="text-[10px] text-slate-500 font-bold">Wallet Balance</span>
+                    <span className="text-2xl font-black text-slate-900 block leading-none">
+                      ₹450
+                    </span>
+                    <span className="text-[10px] text-slate-500 font-bold">
+                      Wallet Balance
+                    </span>
                   </div>
                 </div>
 
@@ -326,7 +349,9 @@ export default function StudentDashboardPage() {
                     </div>
                     <div>
                       <p className="font-bold leading-tight">Need help?</p>
-                      <p className="text-[10px] text-white/70">Our support team is always here for you.</p>
+                      <p className="text-[10px] text-white/70">
+                        Our support team is always here for you.
+                      </p>
                     </div>
                   </div>
                   <ChevronRight className="w-4 h-4 text-white/80" />
@@ -335,218 +360,76 @@ export default function StudentDashboardPage() {
             </div>
           </div>
 
-          {/* Middle Row: Services Grid & Quick Links */}
-          <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
-            {/* Services Grid (8 Cols) */}
-            <div className="xl:col-span-8 space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-xl font-extrabold text-slate-900 flex items-center gap-2">
-                    <Users className="w-5 h-5 text-[#6C47FF]" />
-                    Our Services
-                  </h2>
-                  <p className="text-xs text-slate-400">Everything you need, all in one place.</p>
-                </div>
-                <Link
-                  href="/student/services"
-                  className="px-4 py-1.5 rounded-full border border-slate-200 text-xs font-bold text-[#6C47FF] hover:bg-white flex items-center gap-1 transition"
-                >
-                  View All Services <ArrowRight className="w-3 h-3" />
-                </Link>
+          {/* Services Grid */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-extrabold text-slate-900 flex items-center gap-2">
+                  <Users className="w-5 h-5 text-[#6C47FF]" />
+                  Our Services
+                </h2>
+                <p className="text-xs text-slate-400">
+                  Everything you need, all in one place.
+                </p>
               </div>
+            </div>
 
-              {/* 6 Service Cards Grid (3 Columns on md/lg) */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {services.map((item, idx) => {
-                  const Icon = item.icon;
-                  return (
-                    <div
-                      key={idx}
-                      className="bg-white rounded-3xl p-3.5 border border-slate-100 shadow-sm hover:shadow-lg transition-all flex flex-col justify-between group"
-                    >
-                      <div>
-                        {/* Properly scaled card image height */}
-                        <div className="relative w-full h-40 rounded-2xl overflow-hidden mb-3">
-                          <img
-                            src={item.img}
-                            alt={item.title}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                          />
-                          <span
-                            className={`absolute top-2.5 right-2.5 text-[10px] font-black px-2.5 py-0.5 rounded-full ${item.badgeColor} shadow-sm`}
-                          >
-                            {item.badge}
-                          </span>
-                          <div
-                            className={`absolute -bottom-2.5 left-3.5 w-8 h-8 rounded-xl ${item.iconBg} flex items-center justify-center shadow-md`}
-                          >
-                            <Icon className="w-4 h-4" />
-                          </div>
-                        </div>
-
-                        <div className="pt-2 px-1">
-                          <h3 className="text-sm font-extrabold text-slate-900">{item.title}</h3>
-                          <p className="text-[11px] text-slate-400 mt-1 line-clamp-2 leading-relaxed">
-                            {item.desc}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="pt-3 px-1 flex items-center justify-between border-t border-slate-50 mt-3">
-                        <div>
-                          <span className="text-[10px] text-slate-400 block font-semibold leading-tight">
-                            {item.pricePrefix || "From"}
-                          </span>
-                          <span className="text-xs font-black text-slate-900">{item.price}</span>
-                        </div>
-                        <Link
-                          href={item.href}
-                          className={`px-4 py-1.5 rounded-xl text-white text-xs font-bold transition shadow-sm ${item.btnColor}`}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {services.map((item, idx) => {
+                const Icon = item.icon;
+                return (
+                  <div
+                    key={idx}
+                    className="bg-white rounded-3xl p-3.5 border border-slate-100 shadow-sm hover:shadow-lg transition-all flex flex-col justify-between group"
+                  >
+                    <div>
+                      <div className="relative w-full h-40 rounded-2xl overflow-hidden mb-3">
+                        <img
+                          src={item.img}
+                          alt={item.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                        <span
+                          className={`absolute top-2.5 right-2.5 text-[10px] font-black px-2.5 py-0.5 rounded-full ${item.badgeColor} shadow-sm`}
                         >
-                          {item.btnText} →
-                        </Link>
+                          {item.badge}
+                        </span>
+                        <div
+                          className={`absolute -bottom-2.5 left-3.5 w-8 h-8 rounded-xl ${item.iconBg} flex items-center justify-center shadow-md`}
+                        >
+                          <Icon className="w-4 h-4" />
+                        </div>
+                      </div>
+
+                      <div className="pt-2 px-1">
+                        <h3 className="text-sm font-extrabold text-slate-900">
+                          {item.title}
+                        </h3>
+                        <p className="text-[11px] text-slate-400 mt-1 line-clamp-2 leading-relaxed">
+                          {item.desc}
+                        </p>
                       </div>
                     </div>
-                  );
-                })}
-              </div>
-            </div>
 
-            {/* Quick Links & Promos (4 Cols) */}
-            <div className="xl:col-span-4 space-y-4">
-              <div className="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm space-y-3">
-                <h3 className="text-sm font-extrabold text-slate-900">Quick Links</h3>
-
-                <div className="space-y-2">
-                  <Link
-                    href="/student/services"
-                    className="flex items-center justify-between p-3 rounded-2xl hover:bg-slate-50 transition border border-transparent hover:border-slate-100"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-xl bg-purple-100 text-[#6C47FF] flex items-center justify-center">
-                        <Zap className="w-4 h-4" />
-                      </div>
+                    <div className="pt-3 px-1 flex items-center justify-between border-t border-slate-50 mt-3">
                       <div>
-                        <p className="text-xs font-bold text-slate-900 leading-tight">Book a Service</p>
-                        <p className="text-[10px] text-slate-400">Mess, Laundry, Cleaning &amp; more</p>
+                        <span className="text-[10px] text-slate-400 block font-semibold leading-tight">
+                          {item.pricePrefix || "From"}
+                        </span>
+                        <span className="text-xs font-black text-slate-900">
+                          {item.price}
+                        </span>
                       </div>
+                      <Link
+                        href={item.href}
+                        className={`px-4 py-1.5 rounded-xl text-white text-xs font-bold transition shadow-sm ${item.btnColor}`}
+                      >
+                        {item.btnText} →
+                      </Link>
                     </div>
-                    <ChevronRight className="w-4 h-4 text-slate-400" />
-                  </Link>
-
-                  <Link
-                    href="/map"
-                    className="flex items-center justify-between p-3 rounded-2xl hover:bg-slate-50 transition border border-transparent hover:border-slate-100"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center">
-                        <MapPin className="w-4 h-4" />
-                      </div>
-                      <div>
-                        <p className="text-xs font-bold text-slate-900 leading-tight">Campus Map</p>
-                        <p className="text-[10px] text-slate-400">Find services near you</p>
-                      </div>
-                    </div>
-                    <ChevronRight className="w-4 h-4 text-slate-400" />
-                  </Link>
-
-                  <Link
-                    href="/support"
-                    className="flex items-center justify-between p-3 rounded-2xl hover:bg-slate-50 transition border border-transparent hover:border-slate-100"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center">
-                        <Headphones className="w-4 h-4" />
-                      </div>
-                      <div>
-                        <p className="text-xs font-bold text-slate-900 leading-tight">Help &amp; Support</p>
-                        <p className="text-[10px] text-slate-400">Get assistance, 24/7</p>
-                      </div>
-                    </div>
-                    <ChevronRight className="w-4 h-4 text-slate-400" />
-                  </Link>
-                </div>
-              </div>
-
-              {/* Small Steps Big Dreams Card */}
-              <div className="relative rounded-3xl overflow-hidden p-5 bg-[#FFF4EE] border border-orange-100 shadow-sm flex flex-col justify-between min-h-[140px]">
-                <div className="relative z-10 space-y-1">
-                  <div className="text-[11px] font-bold text-indigo-600 -rotate-2">
-                    Small Steps <br /> Big Dreams ↗
                   </div>
-                  <h4 className="text-sm font-black text-slate-900 leading-tight pt-1">
-                    Make the most of your <br /> campus life!
-                  </h4>
-                </div>
-                <div className="relative z-10 flex items-center justify-between pt-3">
-                  <span className="text-[10px] text-slate-500 font-semibold">Explore. Book. Enjoy.</span>
-                  <Link
-                    href="/student/services"
-                    className="w-7 h-7 rounded-full bg-white shadow-sm flex items-center justify-center text-slate-700 hover:bg-[#6C47FF] hover:text-white transition"
-                  >
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </Link>
-                </div>
-              </div>
-
-              {/* Need Help Support Banner */}
-              <div className="bg-white rounded-3xl p-4 border border-slate-100 shadow-sm flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center text-[#6C47FF] shrink-0">
-                    <Headphones className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h5 className="text-xs font-bold text-slate-900 leading-tight">Need Help?</h5>
-                    <p className="text-[10px] text-slate-400">Our support team is just a click away.</p>
-                  </div>
-                </div>
-                <Link
-                  href="/support"
-                  className="px-3.5 py-1.5 rounded-xl bg-[#6C47FF] hover:bg-[#5835e5] text-white text-[11px] font-bold transition shadow-sm shrink-0"
-                >
-                  Contact Support →
-                </Link>
-              </div>
-            </div>
-          </div>
-
-          {/* 4. BOTTOM STATS BAR */}
-          <div className="bg-white border border-slate-100 rounded-3xl p-5 grid grid-cols-2 md:grid-cols-4 gap-4 divide-y md:divide-y-0 md:divide-x divide-slate-100 shadow-sm">
-            <div className="flex items-center gap-3.5 justify-center">
-              <div className="w-10 h-10 rounded-2xl bg-purple-50 text-[#6C47FF] flex items-center justify-center">
-                <Users className="w-5 h-5" />
-              </div>
-              <div>
-                <h4 className="text-base font-black text-slate-900 leading-tight">5+</h4>
-                <p className="text-[10px] font-bold text-slate-400">Campus Services</p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3.5 justify-center pt-3 md:pt-0">
-              <div className="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
-                <Zap className="w-5 h-5" />
-              </div>
-              <div>
-                <h4 className="text-base font-black text-slate-900 leading-tight">24/7</h4>
-                <p className="text-[10px] font-bold text-slate-400">Service Availability</p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3.5 justify-center pt-3 md:pt-0">
-              <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                <ShieldCheck className="w-5 h-5" />
-              </div>
-              <div>
-                <h4 className="text-base font-black text-slate-900 leading-tight">100%</h4>
-                <p className="text-[10px] font-bold text-slate-400">Student Verified</p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3.5 justify-center pt-3 md:pt-0">
-              <div className="text-center font-bold text-[11px] text-[#4F46E5] rotate-[-2deg]">
-                Your comfort <br />
-                Our Service ッ
-              </div>
+                );
+              })}
             </div>
           </div>
         </main>

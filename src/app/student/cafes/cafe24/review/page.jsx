@@ -95,7 +95,7 @@ export default function Cafe24ReviewPage() {
       reviewText,
       recommend,
       anonymous: postAnonymous,
-      reviewer: postAnonymous ? "Anonymous Student" : "Riya Wagh",
+      reviewer: isAnonymous ? "Anonymous Student" : (JSON.parse(localStorage.getItem("current_user") || "{}").fullName || "Student"),
       date: new Date().toLocaleDateString("en-US", {
         month: "short",
         day: "numeric",

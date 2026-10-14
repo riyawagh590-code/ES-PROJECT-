@@ -2,7 +2,6 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-{/*import Navbar from "@/components/common/Navbar";*/}
 import {
   GraduationCap,
   Search,
@@ -23,19 +22,30 @@ import {
   BookOpen,
   Car,
   Home as HomeIcon,
-  Grid,
   Building,
   Coffee,
   Award,
   User,
   Settings,
   MessageCircle,
+  RotateCcw,
 } from "lucide-react";
 
 export default function StudentPGPage() {
-  const [stayType, setStayType] = useState({ hostel: true, pg: false });
+  const [searchTerm, setSearchTerm] = useState("");
+  const [stayType, setStayType] = useState({ hostel: true, pg: true });
   const [genderFilter, setGenderFilter] = useState({ boys: false, girls: false, both: false });
+  const [selectedGenderDropdown, setSelectedGenderDropdown] = useState("All Genders");
   const [priceRange, setPriceRange] = useState(75000);
+  const [selectedLocation, setSelectedLocation] = useState("All Locations");
+  const [selectedAmenities, setSelectedAmenities] = useState({
+    WiFi: false,
+    Mess: false,
+    Laundry: false,
+    "Study Room": false,
+    Security: false,
+    Parking: false,
+  });
   const [selectedSort, setSelectedSort] = useState("Rating");
 
   const sidebarLinks = [
@@ -47,7 +57,7 @@ export default function StudentPGPage() {
     { label: "Housekeeping", href: "/student/cleaning", icon: Sparkles },
     { label: "Roommate Finder", href: "/student/roommates", icon: Users },
     { label: "Freshers Pass", href: "/pass", icon: Award },
-    { label: "about", href: "/student/about", icon: Bell },
+    { label: "About", href: "/student/about", icon: Bell },
     { label: "Profile", href: "/student/profile", icon: User },
     { label: "Settings", href: "/settings", icon: Settings },
   ];
@@ -56,125 +66,165 @@ export default function StudentPGPage() {
     {
       id: "goodluck-hostel",
       name: "Goodluck",
+      type: "Hostel",
       gender: "Boys Hostel",
       genderColor: "bg-[#2563EB] text-white",
       rating: "4.2",
       location: "Dehu Phata",
       price: "65,000",
+      rawPrice: 65000,
       amenities: ["Mess", "WiFi", "Security", "Parking"],
       image: "https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=600&auto=format&fit=crop&q=80",
     },
     {
       id: "sai-dham",
       name: "Sai Dham",
+      type: "Hostel",
       gender: "Girls Hostel",
       genderColor: "bg-[#EC4899] text-white",
       rating: "4.5",
       location: "Near MIT - AOE",
       price: "68,000",
+      rawPrice: 68000,
       amenities: ["Mess", "WiFi", "Laundry", "Study Room"],
       image: "https://images.unsplash.com/photo-1595526114035-0d45ed16cfbf?w=600&auto=format&fit=crop&q=80",
     },
     {
       id: "classmate-hostel",
       name: "Classmate",
+      type: "Hostel",
       gender: "Boys Hostel",
       genderColor: "bg-[#2563EB] text-white",
       rating: "4.0",
       location: "Near gajanan maharaj mandir",
       price: "72,000",
+      rawPrice: 72000,
       amenities: ["Mess", "WiFi", "Security", "Parking"],
       image: "https://images.unsplash.com/photo-1567496898669-ee935f5f647a?w=600&auto=format&fit=crop&q=80",
     },
     {
       id: "manas-hostel",
       name: "Manas",
+      type: "Hostel",
       gender: "Girls Hostel",
       genderColor: "bg-[#EC4899] text-white",
       rating: "4.3",
       location: "Near gajanan maharaj mandir",
       price: "64,000",
+      rawPrice: 64000,
       amenities: ["Mess", "WiFi", "Laundry", "Study Room"],
       image: "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=600&auto=format&fit=crop&q=80",
     },
     {
       id: "rajmata-hostel",
       name: "Rajmata",
+      type: "Hostel",
       gender: "Girls Hostel",
       genderColor: "bg-[#EC4899] text-white",
       rating: "4.1",
       location: "Indrayani Nagar",
       price: "66,000",
+      rawPrice: 66000,
       amenities: ["Mess", "WiFi", "Security", "Parking"],
       image: "https://images.unsplash.com/photo-1541123437800-1bb1317badc2?w=600&auto=format&fit=crop&q=80",
     },
     {
       id: "mathura-hostel",
       name: "Mathura",
+      type: "Hostel",
       gender: "Boys Hostel",
       genderColor: "bg-[#2563EB] text-white",
       rating: "4.4",
-      location: "Visheshwar Nagar",
+      location: "Vishweshwar Nagar",
       price: "70,000",
+      rawPrice: 70000,
       amenities: ["Mess", "WiFi", "Laundry", "Study Room"],
       image: "https://images.unsplash.com/photo-1513694203232-719a280e022f?w=600&auto=format&fit=crop&q=80",
     },
     {
       id: "chaitanya-boys-hostel",
       name: "Chaitanya",
+      type: "Hostel",
       gender: "Boys Hostel",
       genderColor: "bg-[#2563EB] text-white",
       rating: "4.0",
       location: "Dehu - Alandi Rd, Pahat, Alandi",
       price: "50,000",
+      rawPrice: 50000,
       amenities: ["Mess", "WiFi", "Security", "Parking"],
       image: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=600&auto=format&fit=crop&q=80",
     },
     {
       id: "tuljai-pg",
       name: "Tuljai PG and Hostel",
+      type: "PG",
       gender: "Girls Hostel",
       genderColor: "bg-[#EC4899] text-white",
       rating: "4.2",
       location: "Near Kale Residency, Vishweshwar Nagar",
       price: "65,000",
+      rawPrice: 65000,
       amenities: ["Mess", "WiFi", "Laundry", "Study Room"],
       image: "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=600&auto=format&fit=crop&q=80",
     },
     {
       id: "vasanti-hostel",
       name: "Vasanti",
+      type: "Hostel",
       gender: "Boys Hostel",
       genderColor: "bg-[#2563EB] text-white",
       rating: "4.3",
       location: "Dehu Phata, Alandi",
       price: "68,000",
+      rawPrice: 68000,
       amenities: ["Mess", "WiFi", "Security", "Parking"],
       image: "https://images.unsplash.com/photo-1590490360182-c33d57733427?w=600&auto=format&fit=crop&q=80",
     },
     {
       id: "dhananjay-hostel",
       name: "Dhananjay",
+      type: "Hostel",
       gender: "Boys Hostel",
       genderColor: "bg-[#2563EB] text-white",
       rating: "4.1",
       location: "Opp. MIT College, Hinjewadi",
       price: "66,000",
+      rawPrice: 66000,
       amenities: ["Mess", "WiFi", "Laundry", "Parking"],
       image: "https://images.unsplash.com/photo-1596276020587-8044fe049813?w=600&auto=format&fit=crop&q=80",
     },
     {
       id: "pearl-paradise",
       name: "Pearl Paradise",
+      type: "Hostel",
       gender: "Girls Hostel",
       genderColor: "bg-[#EC4899] text-white",
       rating: "4.5",
       location: "DhyanYog Apartment, Dehu - Alandi Rd.",
       price: "68,000",
+      rawPrice: 68000,
       amenities: ["Mess", "WiFi", "Security", "Study Room"],
       image: "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=600&auto=format&fit=crop&q=80",
     },
   ];
+
+  const handleResetFilters = () => {
+    setSearchTerm("");
+    setStayType({ hostel: true, pg: true });
+    setGenderFilter({ boys: false, girls: false, both: false });
+    setSelectedGenderDropdown("All Genders");
+    setPriceRange(75000);
+    setSelectedLocation("All Locations");
+    setSelectedSort("Rating");
+    setSelectedAmenities({
+      WiFi: false,
+      Mess: false,
+      Laundry: false,
+      "Study Room": false,
+      Security: false,
+      Parking: false,
+    });
+  };
 
   const renderAmenityIcon = (name) => {
     switch (name) {
@@ -195,24 +245,101 @@ export default function StudentPGPage() {
     }
   };
 
+  // Live Comprehensive Filter & Sort Logic
+  const filteredHostels = hostels
+    .filter((item) => {
+      // 1. Search Query
+      const query = searchTerm.trim().toLowerCase();
+      const matchesSearch =
+        query === "" ||
+        item.name.toLowerCase().includes(query) ||
+        item.location.toLowerCase().includes(query);
+
+      // 2. Type Filter (Hostel / PG)
+      let matchesType = true;
+      if (stayType.hostel && !stayType.pg) {
+        matchesType = item.type === "Hostel" || !item.name.toLowerCase().includes("pg");
+      } else if (!stayType.hostel && stayType.pg) {
+        matchesType = item.type === "PG" || item.name.toLowerCase().includes("pg");
+      } else if (!stayType.hostel && !stayType.pg) {
+        matchesType = false;
+      }
+
+      // 3. Gender Filter (Top Dropdown + Sidebar Checkboxes)
+      let matchesGender = true;
+      const genLow = item.gender.toLowerCase();
+
+      if (selectedGenderDropdown === "Boys") {
+        matchesGender = genLow.includes("boys");
+      } else if (selectedGenderDropdown === "Girls") {
+        matchesGender = genLow.includes("girls");
+      }
+
+      const activeGenderChecks = [];
+      if (genderFilter.boys) activeGenderChecks.push("boys");
+      if (genderFilter.girls) activeGenderChecks.push("girls");
+      if (genderFilter.both) activeGenderChecks.push("both");
+
+      if (activeGenderChecks.length > 0) {
+        matchesGender =
+          matchesGender &&
+          activeGenderChecks.some((g) => (g === "both" ? true : genLow.includes(g)));
+      }
+
+      // 4. Price Filter
+      const matchesPrice = item.rawPrice <= Number(priceRange);
+
+      // 5. Location Filter
+      let matchesLocation = true;
+      if (selectedLocation !== "All Locations" && selectedLocation !== "Select location") {
+        matchesLocation = item.location.toLowerCase().includes(selectedLocation.toLowerCase());
+      }
+
+      // 6. Amenities Filter
+      const activeAmenities = Object.entries(selectedAmenities)
+        .filter(([_, checked]) => checked)
+        .map(([amenity]) => amenity);
+
+      let matchesAmenities = true;
+      if (activeAmenities.length > 0) {
+        matchesAmenities = activeAmenities.every((amenity) =>
+          item.amenities.includes(amenity)
+        );
+      }
+
+      return (
+        matchesSearch &&
+        matchesType &&
+        matchesGender &&
+        matchesPrice &&
+        matchesLocation &&
+        matchesAmenities
+      );
+    })
+    .sort((a, b) => {
+      if (selectedSort === "Rating") {
+        return parseFloat(b.rating) - parseFloat(a.rating);
+      } else if (selectedSort === "Price: Low to High") {
+        return a.rawPrice - b.rawPrice;
+      } else if (selectedSort === "Price: High to Low") {
+        return b.rawPrice - a.rawPrice;
+      }
+      return 0;
+    });
+
   return (
     <div className="min-h-screen bg-[#FAF9FD] text-slate-900 font-sans selection:bg-purple-100 selection:text-purple-700">
-      {/* 1. TOP NAVBAR */}
-    
-
-      {/* 2. HERO BANNER */}
+      {/* HERO BANNER */}
       <section className="max-w-[1550px] mx-auto px-4 md:px-6 pt-6 pb-4">
         <div className="relative rounded-[36px] bg-gradient-to-r from-[#EDE9FE] via-[#F5F3FF] to-[#FAF5FF] border border-purple-100 p-8 md:p-12 overflow-hidden flex flex-col lg:flex-row items-center justify-between gap-8 shadow-sm">
-          {/* Top Doodle Tag */}
           <div className="absolute top-6 left-1/3 hidden md:block text-[#6C47FF] text-xs font-bold rotate-[-10deg] pointer-events-none select-none">
             Your <br /> Second Home <br /> Awaits! ッ
           </div>
 
-          {/* Left Text */}
           <div className="space-y-4 max-w-xl z-10">
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-purple-200/60 text-[#6C47FF] text-xs font-bold uppercase tracking-wider">
               <Building className="w-3.5 h-3.5" />
-              Hostel & PG
+              Hostel &amp; PG
             </div>
 
             <h1 className="text-4xl md:text-5xl font-black text-slate-950 tracking-tight leading-[1.15]">
@@ -240,7 +367,6 @@ export default function StudentPGPage() {
             </div>
           </div>
 
-          {/* Center Cutout Building Graphic */}
           <div className="relative z-10 shrink-0">
             <div className="w-64 h-56 md:w-72 md:h-60 rounded-3xl overflow-hidden shadow-xl border-4 border-white bg-slate-100">
               <img
@@ -251,7 +377,6 @@ export default function StudentPGPage() {
             </div>
           </div>
 
-          {/* Right Help Box */}
           <div className="w-full lg:w-72 bg-gradient-to-br from-[#818CF8] via-[#6366F1] to-[#4F46E5] text-white rounded-[28px] p-6 shadow-xl space-y-3 z-10 flex flex-col justify-between">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white shrink-0">
@@ -276,18 +401,25 @@ export default function StudentPGPage() {
         </div>
       </section>
 
-      {/* 3. MAIN WORKSPACE: LEFT FILTERS + CENTER CARDS + RIGHT QUICK NAV */}
-      <section className="max-w-[1550px] mx-auto px-4 md:px-6 py-8">
+      {/* MAIN WORKSPACE */}
+      <section className="max-w-[1550px] mx-auto px-4 md:px-6 py-6">
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
+          
           {/* LEFT SIDEBAR: FILTERS */}
           <aside className="xl:col-span-3 space-y-6">
             <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm space-y-6">
               <div className="flex items-center justify-between pb-3 border-b border-slate-100">
                 <h3 className="font-extrabold text-sm text-slate-900 flex items-center gap-2">
-                  <Building className="w-4 h-4 text-[#6C47FF]" />
-                  Filter Hostels & PGs
+                  <SlidersHorizontal className="w-4 h-4 text-[#6C47FF]" />
+                  Filter Hostels &amp; PGs
                 </h3>
-                <SlidersHorizontal className="w-4 h-4 text-slate-400" />
+                <button
+                  type="button"
+                  onClick={handleResetFilters}
+                  className="text-[11px] font-bold text-[#6C47FF] hover:underline"
+                >
+                  Clear all
+                </button>
               </div>
 
               {/* Type Filter */}
@@ -320,15 +452,36 @@ export default function StudentPGPage() {
                 <label className="text-xs font-bold text-slate-700 block">Gender</label>
                 <div className="space-y-2 text-xs">
                   <label className="flex items-center gap-2.5 text-slate-700 cursor-pointer">
-                    <input type="checkbox" className="rounded accent-[#6C47FF]" />
+                    <input
+                      type="checkbox"
+                      checked={genderFilter.boys}
+                      onChange={(e) =>
+                        setGenderFilter({ ...genderFilter, boys: e.target.checked })
+                      }
+                      className="rounded accent-[#6C47FF]"
+                    />
                     <span className="text-[#2563EB] font-bold">👤 Boys</span>
                   </label>
                   <label className="flex items-center gap-2.5 text-slate-700 cursor-pointer">
-                    <input type="checkbox" className="rounded accent-[#6C47FF]" />
+                    <input
+                      type="checkbox"
+                      checked={genderFilter.girls}
+                      onChange={(e) =>
+                        setGenderFilter({ ...genderFilter, girls: e.target.checked })
+                      }
+                      className="rounded accent-[#6C47FF]"
+                    />
                     <span className="text-[#EC4899] font-bold">👤 Girls</span>
                   </label>
                   <label className="flex items-center gap-2.5 text-slate-700 cursor-pointer">
-                    <input type="checkbox" className="rounded accent-[#6C47FF]" />
+                    <input
+                      type="checkbox"
+                      checked={genderFilter.both}
+                      onChange={(e) =>
+                        setGenderFilter({ ...genderFilter, both: e.target.checked })
+                      }
+                      className="rounded accent-[#6C47FF]"
+                    />
                     <span className="text-purple-600 font-bold">👥 Both</span>
                   </label>
                 </div>
@@ -345,12 +498,12 @@ export default function StudentPGPage() {
                   max="75000"
                   step="1000"
                   value={priceRange}
-                  onChange={(e) => setPriceRange(e.target.value)}
+                  onChange={(e) => setPriceRange(Number(e.target.value))}
                   className="w-full accent-[#6C47FF] cursor-pointer"
                 />
                 <div className="flex items-center justify-between text-[11px] font-bold text-slate-500">
                   <span>₹40,000</span>
-                  <span>₹{Number(priceRange).toLocaleString()}+</span>
+                  <span>Up to ₹{Number(priceRange).toLocaleString()}</span>
                 </div>
               </div>
 
@@ -358,8 +511,12 @@ export default function StudentPGPage() {
               <div className="space-y-2">
                 <label className="text-xs font-bold text-slate-700 block">Location</label>
                 <div className="relative">
-                  <select className="w-full text-xs font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-2xl p-3 appearance-none focus:outline-none cursor-pointer">
-                    <option>Select location</option>
+                  <select
+                    value={selectedLocation}
+                    onChange={(e) => setSelectedLocation(e.target.value)}
+                    className="w-full text-xs font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-2xl p-3 appearance-none focus:outline-none cursor-pointer"
+                  >
+                    <option>All Locations</option>
                     <option>Dehu Phata</option>
                     <option>Near MIT - AOE</option>
                     <option>Indrayani Nagar</option>
@@ -374,22 +531,35 @@ export default function StudentPGPage() {
               <div className="space-y-3">
                 <label className="text-xs font-bold text-slate-700 block">Amenities</label>
                 <div className="space-y-2 text-xs">
-                  {["WiFi", "Mess Facility", "Laundry", "Study Room", "Security", "Parking"].map((amenity, idx) => (
-                    <label key={idx} className="flex items-center gap-2.5 text-slate-600 cursor-pointer">
-                      <input type="checkbox" className="rounded accent-[#6C47FF]" />
+                  {["WiFi", "Mess", "Laundry", "Study Room", "Security", "Parking"].map((amenity) => (
+                    <label key={amenity} className="flex items-center gap-2.5 text-slate-600 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={selectedAmenities[amenity]}
+                        onChange={(e) =>
+                          setSelectedAmenities({
+                            ...selectedAmenities,
+                            [amenity]: e.target.checked,
+                          })
+                        }
+                        className="rounded accent-[#6C47FF]"
+                      />
                       <span>{amenity}</span>
                     </label>
                   ))}
                 </div>
               </div>
 
-              {/* Apply Button */}
-              <button className="w-full py-3 rounded-2xl bg-[#6C47FF] hover:bg-[#5835e5] text-white text-xs font-extrabold shadow-md shadow-purple-200 transition">
-                Apply Filters
+              {/* Apply / Reset Button */}
+              <button
+                type="button"
+                onClick={handleResetFilters}
+                className="w-full py-3 rounded-2xl bg-[#6C47FF] hover:bg-[#5835e5] text-white text-xs font-extrabold shadow-md shadow-purple-200 transition"
+              >
+                Reset All Filters
               </button>
             </div>
 
-            {/* Bottom Left Doodle Box */}
             <div className="rounded-3xl p-5 bg-[#FFF4EE] border border-orange-100 text-center space-y-2 shadow-sm">
               <div className="text-xs font-extrabold text-indigo-700 rotate-[-4deg]">
                 Good Vibes Only ッ
@@ -400,16 +570,71 @@ export default function StudentPGPage() {
             </div>
           </aside>
 
-          {/* CENTER MAIN: HOSTEL / PG CARDS */}
+          {/* CENTER MAIN */}
           <main className="xl:col-span-7 space-y-5">
-            {/* Top Bar with count & sort */}
+            {/* Horizontal Search & Selectors Bar */}
+            <div className="bg-white rounded-2xl p-3 border border-slate-100 shadow-sm flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-2 px-3 py-2 bg-slate-50 border border-slate-200/70 rounded-xl flex-1 min-w-[180px]">
+                <Search className="w-4 h-4 text-slate-400" />
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Search hostel / PG by name or locality..."
+                  className="w-full text-xs font-semibold text-slate-800 placeholder-slate-400 bg-transparent focus:outline-none"
+                />
+              </div>
+
+              {/* Gender Dropdown */}
+              <div className="relative min-w-[125px]">
+                <select
+                  value={selectedGenderDropdown}
+                  onChange={(e) => setSelectedGenderDropdown(e.target.value)}
+                  className="w-full text-xs font-semibold text-slate-700 bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2 appearance-none cursor-pointer focus:outline-none"
+                >
+                  <option>All Genders</option>
+                  <option>Boys</option>
+                  <option>Girls</option>
+                </select>
+                <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-3 top-3 pointer-events-none" />
+              </div>
+
+              {/* Location Quick Dropdown */}
+              <div className="relative min-w-[130px]">
+                <select
+                  value={selectedLocation}
+                  onChange={(e) => setSelectedLocation(e.target.value)}
+                  className="w-full text-xs font-semibold text-slate-700 bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2 appearance-none cursor-pointer focus:outline-none"
+                >
+                  <option>All Locations</option>
+                  <option>Dehu Phata</option>
+                  <option>Near MIT - AOE</option>
+                  <option>Indrayani Nagar</option>
+                  <option>Vishweshwar Nagar</option>
+                  <option>Hinjewadi</option>
+                </select>
+                <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-3 top-3 pointer-events-none" />
+              </div>
+
+              {/* Reset Trigger */}
+              <button
+                type="button"
+                onClick={handleResetFilters}
+                className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-slate-600 hover:text-[#6C47FF] transition"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                Reset
+              </button>
+            </div>
+
+            {/* Count & Sort Bar */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="w-7 h-7 rounded-xl bg-purple-100 text-[#6C47FF] flex items-center justify-center text-xs font-black">
                   🏨
                 </span>
                 <span className="text-sm font-extrabold text-slate-900">
-                  {hostels.length} Hostels & PGs Found
+                  {filteredHostels.length} Hostels &amp; PGs Found
                 </span>
               </div>
 
@@ -427,80 +652,95 @@ export default function StudentPGPage() {
               </div>
             </div>
 
-            {/* Grid of Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {hostels.map((item) => (
-                <div
-                  key={item.id}
-                  className="bg-white rounded-3xl p-3.5 border border-slate-100 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between group"
+            {/* Empty State */}
+            {filteredHostels.length === 0 ? (
+              <div className="bg-white rounded-3xl p-12 text-center border border-slate-100 space-y-2">
+                <p className="text-sm font-bold text-slate-700">No hostels or PGs match your filter criteria</p>
+                <p className="text-xs text-slate-400">Try adjusting your price range or clearing specific filters.</p>
+                <button
+                  type="button"
+                  onClick={handleResetFilters}
+                  className="mt-3 px-5 py-2 rounded-xl bg-purple-50 text-[#6C47FF] text-xs font-extrabold hover:bg-purple-100 transition"
                 >
-                  <div>
-                    {/* Image & Header Tags */}
-                    <div className="relative w-full h-40 rounded-2xl overflow-hidden mb-3">
-                      <img
-                        src={item.image}
-                        alt={item.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
+                  Reset All Filters
+                </button>
+              </div>
+            ) : (
+              /* Grid of Cards */
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {filteredHostels.map((item) => (
+                  <div
+                    key={item.id}
+                    className="bg-white rounded-3xl p-3.5 border border-slate-100 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between group"
+                  >
+                    <div>
+                      {/* Image & Header Tags */}
+                      <div className="relative w-full h-40 rounded-2xl overflow-hidden mb-3">
+                        <img
+                          src={item.image}
+                          alt={item.name}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
 
-                      {/* Gender Badge */}
-                      <span
-                        className={`absolute top-2.5 left-2.5 text-[10px] font-black px-2.5 py-0.5 rounded-full ${item.genderColor} shadow-sm`}
-                      >
-                        {item.gender}
-                      </span>
+                        {/* Gender Badge */}
+                        <span
+                          className={`absolute top-2.5 left-2.5 text-[10px] font-black px-2.5 py-0.5 rounded-full ${item.genderColor} shadow-sm`}
+                        >
+                          {item.gender}
+                        </span>
 
-                      {/* Rating Pill */}
-                      <div className="absolute top-2.5 right-2.5 bg-white/90 backdrop-blur-md rounded-full px-2.5 py-0.5 flex items-center gap-1 shadow-sm">
-                        <Star className="w-3 h-3 text-amber-500 fill-amber-500" />
-                        <span className="text-[11px] font-black text-slate-900">{item.rating}</span>
+                        {/* Rating Pill */}
+                        <div className="absolute top-2.5 right-2.5 bg-white/90 backdrop-blur-md rounded-full px-2.5 py-0.5 flex items-center gap-1 shadow-sm">
+                          <Star className="w-3 h-3 text-amber-500 fill-amber-500" />
+                          <span className="text-[11px] font-black text-slate-900">{item.rating}</span>
+                        </div>
+                      </div>
+
+                      {/* Title & Location */}
+                      <div className="px-1 space-y-1">
+                        <h4 className="text-sm font-black text-slate-900 leading-snug">
+                          {item.name}
+                        </h4>
+                        <p className="text-[11px] text-slate-400 flex items-center gap-1 truncate">
+                          <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
+                          {item.location}
+                        </p>
+                      </div>
+
+                      {/* Pricing */}
+                      <div className="px-1 pt-2 flex items-baseline gap-1">
+                        <span className="text-lg font-black text-slate-900">₹{item.price}</span>
+                        <span className="text-[10px] text-slate-400 font-semibold">/year</span>
+                      </div>
+
+                      {/* Amenities Icons */}
+                      <div className="px-1 pt-3 flex flex-wrap gap-1.5 text-[10px] font-semibold text-slate-600">
+                        {item.amenities.map((amenity, aIdx) => (
+                          <span
+                            key={aIdx}
+                            className="flex items-center gap-1 bg-slate-50 border border-slate-100 rounded-lg px-2 py-0.5"
+                          >
+                            {renderAmenityIcon(amenity)}
+                            {amenity}
+                          </span>
+                        ))}
                       </div>
                     </div>
 
-                    {/* Title & Location */}
-                    <div className="px-1 space-y-1">
-                      <h4 className="text-sm font-black text-slate-900 leading-snug">
-                        {item.name}
-                      </h4>
-                      <p className="text-[11px] text-slate-400 flex items-center gap-1 truncate">
-                        <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
-                        {item.location}
-                      </p>
-                    </div>
-
-                    {/* Pricing */}
-                    <div className="px-1 pt-2 flex items-baseline gap-1">
-                      <span className="text-lg font-black text-slate-900">₹{item.price}</span>
-                      <span className="text-[10px] text-slate-400 font-semibold">/year</span>
-                    </div>
-
-                    {/* Amenities Icons */}
-                    <div className="px-1 pt-3 flex flex-wrap gap-1.5 text-[10px] font-semibold text-slate-600">
-                      {item.amenities.map((amenity, aIdx) => (
-                        <span
-                          key={aIdx}
-                          className="flex items-center gap-1 bg-slate-50 border border-slate-100 rounded-lg px-2 py-0.5"
-                        >
-                          {renderAmenityIcon(amenity)}
-                          {amenity}
-                        </span>
-                      ))}
+                    {/* View Details Button */}
+                    <div className="pt-4 px-1">
+                      <Link
+                        href={`/student/pg/${item.id === "manas-hostel" ? "manas" : item.id}`}
+                        className="w-full py-2.5 rounded-xl bg-[#6C47FF] hover:bg-[#5835e5] text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition shadow-sm"
+                      >
+                        <span>View Details</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </Link>
                     </div>
                   </div>
-
-                  {/* View Details Button */}
-                  <div className="pt-4 px-1">
-                    <Link
-                    href="/student/pg/manas"
-                    className="w-full py-2.5 rounded-xl bg-[#6C47FF] hover:bg-[#5835e5] text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition shadow-sm"
-                    >
-                    <span>View Details</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                     </Link>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
 
             {/* Bottom Promo Stay Banner */}
             <div className="relative rounded-[32px] bg-gradient-to-r from-[#FFF1F2] via-[#FDF2F8] to-[#F5F3FF] border border-rose-100 p-6 flex flex-col md:flex-row items-center justify-between gap-6 shadow-sm overflow-hidden mt-6">
@@ -514,8 +754,12 @@ export default function StudentPGPage() {
                 <div className="w-32 h-24 rounded-2xl bg-white shadow-md p-2 flex items-center justify-center text-4xl">
                   🛏️
                 </div>
-                <button className="px-6 py-3 rounded-2xl bg-[#6C47FF] hover:bg-[#5835e5] text-white text-xs font-black flex items-center gap-2 transition shadow-md shadow-purple-200">
-                  <span>Explore All Hostels & PGs</span>
+                <button
+                  type="button"
+                  onClick={handleResetFilters}
+                  className="px-6 py-3 rounded-2xl bg-[#6C47FF] hover:bg-[#5835e5] text-white text-xs font-black flex items-center gap-2 transition shadow-md shadow-purple-200"
+                >
+                  <span>Explore All Hostels &amp; PGs</span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
               </div>
@@ -549,7 +793,6 @@ export default function StudentPGPage() {
               </nav>
             </div>
 
-            {/* Need Help Live Chat Card */}
             <div className="rounded-2xl p-4 bg-purple-50 border border-purple-100 space-y-3">
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
@@ -570,7 +813,7 @@ export default function StudentPGPage() {
         </div>
       </section>
 
-      {/* 4. FOOTER */}
+      {/* FOOTER */}
       <footer className="w-full bg-white border-t border-slate-100 py-8 px-6 mt-8">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-xs font-semibold text-slate-500">
           <div className="flex items-center gap-3">
@@ -585,29 +828,9 @@ export default function StudentPGPage() {
 
           <div className="flex items-center gap-6">
             <Link href="/about" className="hover:text-slate-900 transition">About Us</Link>
-            <Link href="/support" className="hover:text-slate-900 transition">Help & Support</Link>
+            <Link href="/support" className="hover:text-slate-900 transition">Help &amp; Support</Link>
             <Link href="/privacy" className="hover:text-slate-900 transition">Privacy Policy</Link>
-            <Link href="/terms" className="hover:text-slate-900 transition">Terms & Conditions</Link>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <span className="text-[11px] font-bold text-indigo-600 rotate-[-4deg]">
-              Stay Connected! ♡
-            </span>
-            <div className="flex items-center gap-2">
-              <button className="w-7 h-7 rounded-full bg-purple-50 text-[#6C47FF] flex items-center justify-center text-xs">
-                IG
-              </button>
-              <button className="w-7 h-7 rounded-full bg-purple-50 text-[#6C47FF] flex items-center justify-center text-xs">
-                TG
-              </button>
-              <button className="w-7 h-7 rounded-full bg-purple-50 text-[#6C47FF] flex items-center justify-center text-xs">
-                YT
-              </button>
-              <button className="w-7 h-7 rounded-full bg-purple-50 text-[#6C47FF] flex items-center justify-center text-xs">
-                WA
-              </button>
-            </div>
+            <Link href="/terms" className="hover:text-slate-900 transition">Terms &amp; Conditions</Link>
           </div>
         </div>
       </footer>
