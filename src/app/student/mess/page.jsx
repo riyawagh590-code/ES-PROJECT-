@@ -100,7 +100,7 @@ export default function StudentMessPage() {
       price: "1,600",
       rawPrice: 1600,
       features: ["Pure Veg", "Hygienic", "Affordable"],
-      image: "https://images.unsplash.com/photo-1626777552726-4a6b54c97e46?w=600&auto=format&fit=crop&q=80",
+      image: "/images/mess_photos/satvik1.png"
     },
     {
       id: "moms-kitchen",
