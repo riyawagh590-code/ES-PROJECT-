@@ -76,7 +76,7 @@ export default function StudentMessPage() {
       price: "1,800",
       rawPrice: 1800,
       features: ["Tasty Meals", "Clean Kitchen", "Good Location"],
-      image: "https://images.unsplash.com/photo-1589302168068-964664d93dc0?w=600&auto=format&fit=crop&q=80",
+      image:"/images/mess_photos/shreesai.png"
     },
     {
       id: "sneham",
@@ -112,7 +112,7 @@ export default function StudentMessPage() {
       price: "1,700",
       rawPrice: 1700,
       features: ["Healthy Food", "Regular Menu", "Friendly Staff"],
-      image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&auto=format&fit=crop&q=80",
+      image: "/images/mess_photos/moms_kitchen.png"
     },
     {
       id: "gokul-catering",
@@ -124,7 +124,7 @@ export default function StudentMessPage() {
       price: "1,700",
       rawPrice: 1700,
       features: ["Veg & Non-Veg", "Tasty Food", "Good Hygiene"],
-      image: "https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=600&auto=format&fit=crop&q=80",
+      image: "/images/mess_photos/gokul.png"
     },
     {
       id: "yadnya",
@@ -136,10 +136,10 @@ export default function StudentMessPage() {
       price: "1,800",
       rawPrice: 1800,
       features: ["Homely Food", "Clean Kitchen", "Spacious"],
-      image: "https://images.unsplash.com/photo-1552566626-52f8b828add9?w=600&auto=format&fit=crop&q=80",
+      image:"/images/mess_photos/yadnya.png"
     },
     {
-      id: "gokul-clean",
+      id: "Vannakam mess",
       name: "Gokul Mess & Catering",
       type: "Veg",
       rating: "4.2",
@@ -148,7 +148,7 @@ export default function StudentMessPage() {
       price: "1,700",
       rawPrice: 1700,
       features: ["Fresh Food", "Clean & Safe", "Affordable"],
-      image: "https://images.unsplash.com/photo-1610057099443-fde8c4d50f91?w=600&auto=format&fit=crop&q=80",
+      image:"/images/mess_photos/vannakam.png" 
     },
     {
       id: "swagat",
@@ -160,7 +160,7 @@ export default function StudentMessPage() {
       price: "1,600",
       rawPrice: 1600,
       features: ["Home Style", "Hygienic", "Good Location"],
-      image: "https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=600&auto=format&fit=crop&q=80",
+      image:"/images/mess_photos/swagat.png"
     },
     {
       id: "rudra",
@@ -172,7 +172,7 @@ export default function StudentMessPage() {
       price: "1,800",
       rawPrice: 1800,
       features: ["Tasty Food", "Clean Kitchen", "Friendly Staff"],
-      image: "https://images.unsplash.com/photo-1540420773420-3366772f4999?w=600&auto=format&fit=crop&q=80",
+      image: "/images/mess_photos/rudra.png"
     },
     {
       id: "ruchira",
@@ -184,7 +184,7 @@ export default function StudentMessPage() {
       price: "1,700",
       rawPrice: 1700,
       features: ["Homely Food", "Clean Kitchen", "Good Hygiene"],
-      image: "https://images.unsplash.com/photo-1590846406792-0adc7f938f1d?w=600&auto=format&fit=crop&q=80",
+      image: "/images/mess_photos/ruchira.png"
     },
     {
       id: "shedge",
@@ -196,7 +196,7 @@ export default function StudentMessPage() {
       price: "1,800",
       rawPrice: 1800,
       features: ["Tasty Food", "Clean & Safe", "Affordable"],
-      image: "https://images.unsplash.com/photo-1578474846511-04ba529f0b88?w=600&auto=format&fit=crop&q=80",
+      image:  "/images/mess_photos/shedge.png"
     },
   ];
 
