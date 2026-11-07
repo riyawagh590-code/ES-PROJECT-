@@ -64,7 +64,7 @@ export default function StudentMessPage() {
       price: "1,900",
       rawPrice: 1900,
       features: ["Home Style Food", "Clean Hygienic", "Student Friendly"],
-      image: "/images/mess_photos/annapurna.png"
+      image: "/images/mess_photos/annapuna.png"
     },
     {
       id: "shree-sai",
