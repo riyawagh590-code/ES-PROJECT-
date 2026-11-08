@@ -141,7 +141,7 @@ export default function RoommateFinderPage() {
       numericBudget: 4500,
       interests: "Coding, Books, Classical Music",
       quote: "Looking for a clean, quiet roommate to share a 2BHK flat near campus.",
-      img: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&auto=format&fit=crop&q=80",
+      img:"images/roommate/aditi",
       href: "/student/roomates/quiz",
     },
     {
