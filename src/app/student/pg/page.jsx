@@ -87,7 +87,7 @@ export default function StudentPGPage() {
       price: "68,000",
       rawPrice: 68000,
       amenities: ["Mess", "WiFi", "Laundry", "Study Room"],
-      image: "https://images.unsplash.com/photo-1595526114035-0d45ed16cfbf?w=600&auto=format&fit=crop&q=80",
+      image: "/images/hostel/sai_dham.png",
     },
     {
       id: "classmate-hostel",
