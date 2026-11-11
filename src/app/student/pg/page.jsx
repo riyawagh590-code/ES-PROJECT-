@@ -191,7 +191,7 @@ export default function StudentPGPage() {
       price: "66,000",
       rawPrice: 66000,
       amenities: ["Mess", "WiFi", "Laundry", "Parking"],
-      image: "/images/hostel/dhananjay.png",
+      image: "/images/hostel/dhanayjay.png",
     },
     {
       id: "pearl-paradise",
