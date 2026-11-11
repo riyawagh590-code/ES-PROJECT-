@@ -113,7 +113,7 @@ export default function StudentPGPage() {
       price: "64,000",
       rawPrice: 64000,
       amenities: ["Mess", "WiFi", "Laundry", "Study Room"],
-      image: "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=600&auto=format&fit=crop&q=80",
+      image:"/images/hostel/manas.png",
     },
     {
       id: "rajmata-hostel",
@@ -126,7 +126,7 @@ export default function StudentPGPage() {
       price: "66,000",
       rawPrice: 66000,
       amenities: ["Mess", "WiFi", "Security", "Parking"],
-      image: "https://images.unsplash.com/photo-1541123437800-1bb1317badc2?w=600&auto=format&fit=crop&q=80",
+      image: "/images/hostel/rajmata.png",
     },
     {
       id: "mathura-hostel",
@@ -139,7 +139,7 @@ export default function StudentPGPage() {
       price: "70,000",
       rawPrice: 70000,
       amenities: ["Mess", "WiFi", "Laundry", "Study Room"],
-      image: "https://images.unsplash.com/photo-1513694203232-719a280e022f?w=600&auto=format&fit=crop&q=80",
+      image: "/images/hostel/mathura.png",
     },
     {
       id: "chaitanya-boys-hostel",
@@ -152,7 +152,7 @@ export default function StudentPGPage() {
       price: "50,000",
       rawPrice: 50000,
       amenities: ["Mess", "WiFi", "Security", "Parking"],
-      image: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=600&auto=format&fit=crop&q=80",
+      image: "/images/hostel/chaitanya.png",
     },
     {
       id: "tuljai-pg",
@@ -165,7 +165,7 @@ export default function StudentPGPage() {
       price: "65,000",
       rawPrice: 65000,
       amenities: ["Mess", "WiFi", "Laundry", "Study Room"],
-      image: "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=600&auto=format&fit=crop&q=80",
+      image: "/images/hostel/tuljai.png",
     },
     {
       id: "vasanti-hostel",
@@ -178,7 +178,7 @@ export default function StudentPGPage() {
       price: "68,000",
       rawPrice: 68000,
       amenities: ["Mess", "WiFi", "Security", "Parking"],
-      image: "https://images.unsplash.com/photo-1590490360182-c33d57733427?w=600&auto=format&fit=crop&q=80",
+      image: "/images/hostel/vasanti.png",
     },
     {
       id: "dhananjay-hostel",
@@ -191,7 +191,7 @@ export default function StudentPGPage() {
       price: "66,000",
       rawPrice: 66000,
       amenities: ["Mess", "WiFi", "Laundry", "Parking"],
-      image: "https://images.unsplash.com/photo-1596276020587-8044fe049813?w=600&auto=format&fit=crop&q=80",
+      image: "/images/hostel/dhananjay.png",
     },
     {
       id: "pearl-paradise",
